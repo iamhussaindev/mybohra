@@ -1,0 +1,6 @@
+framework module MDOLib {
+  umbrella header "MDOLib.h"
+
+  export *
+  module * { export * }
+}
