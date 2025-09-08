@@ -5,4 +5,6 @@ export * from "./ErrorScreen/ErrorBoundary"
 export * from "./PDF/PdfScreen"
 export * from "./Counter/CounterScreen"
 export * from "./Counter/SavedList"
+export * from "./EventReminder/EventReminderScreen"
+export * from "./TasbeehList/TasbeehListScreen"
 // export other screens here

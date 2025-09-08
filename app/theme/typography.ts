@@ -18,6 +18,7 @@ export const customFontsToLoad = {
   spaceGroteskBold,
   arabicKanz: require("../../assets/fonts/mJ.ttf"),
   amiriRegular: require("../../assets/fonts/regularamiri.ttf"),
+
   muminoBold: require("../../assets/fonts/UberMoveText-Bold.otf"),
   muminoRegular: require("../../assets/fonts/UberMoveText-Regular.otf"),
   muminoMedium: require("../../assets/fonts/UberMoveText-Medium.otf"),
@@ -25,6 +26,12 @@ export const customFontsToLoad = {
 
   muminoHeaderBold: require("../../assets/fonts/UberMove-Bold.otf"),
   muminoHeaderRegular: require("../../assets/fonts/UberMove-Medium.otf"),
+
+  satoshiLight: require("../../assets/fonts/Satoshi-Light.otf"),
+  satoshiRegular: require("../../assets/fonts/Satoshi-Regular.otf"),
+  satoshiMedium: require("../../assets/fonts/Satoshi-Medium.otf"),
+  satoshiBold: require("../../assets/fonts/Satoshi-Bold.otf"),
+  satoshiBlack: require("../../assets/fonts/Satoshi-Black.otf"),
 }
 
 const fonts = {
@@ -39,7 +46,7 @@ const fonts = {
   mumino: {
     // Custom font.
     bold: "muminoHeaderBold",
-    regular: "muminoHeaderRegular",
+    normal: "muminoHeaderRegular",
     medium: "muminoMedium",
     light: "muminoLight",
     header: "muminoHeaderBold",
@@ -71,6 +78,13 @@ const fonts = {
     // Android only font.
     normal: "monospace",
   },
+  satoshi: {
+    light: "satoshiLight",
+    normal: "satoshiRegular",
+    medium: "satoshiMedium",
+    bold: "satoshiBold",
+    black: "satoshiBlack",
+  },
 }
 
 export const typography = {
@@ -81,7 +95,7 @@ export const typography = {
   /**
    * The primary font. Used in most places.
    */
-  primary: fonts.mumino,
+  primary: fonts.satoshi,
   /**
    * An alternate font used for perhaps titles and stuff.
    */

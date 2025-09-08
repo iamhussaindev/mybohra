@@ -1,10 +1,9 @@
 import React from "react"
 import { Icon, Text } from "app/components"
-import { View, ViewStyle } from "react-native"
+import { ImageStyle, TextStyle, View, ViewStyle, TouchableOpacity } from "react-native"
 import { colors, spacing } from "app/theme"
 import { ILocation } from "app/models/DataStore"
 import { CurrentTime } from "./atoms/CurrentTime"
-import { DrawerIconButton } from "./atoms/DrawerIconButton"
 
 interface HeaderProps {
   open: boolean
@@ -13,17 +12,10 @@ interface HeaderProps {
   loaded: boolean
   showBorder?: boolean
   shadowOffset?: number
+  onLocationPress?: () => void
 }
 
 export function Header(props: HeaderProps) {
-  const toggleDrawer = () => {
-    if (!props.open) {
-      props.setOpen(true)
-    } else {
-      props.setOpen(false)
-    }
-  }
-
   const $shadow: ViewStyle = {
     shadowColor: colors.border,
     shadowOffset: {
@@ -36,9 +28,20 @@ export function Header(props: HeaderProps) {
 
   return (
     <View style={[$header, props.showBorder && $border, props.showBorder && $shadow]}>
-      <DrawerIconButton onPress={toggleDrawer} />
       <View style={$headerLocation}>
-        {props.loaded ? <Text size="sm" text={`${props.currentLocation.city}`} /> : null}
+        <TouchableOpacity style={$headerLocationContainer} onPress={props.onLocationPress}>
+          {props.loaded ? (
+            <Text
+              style={$headerLocationText}
+              weight="bold"
+              size="md"
+              text={`${props.currentLocation.city}`}
+            />
+          ) : null}
+          <View style={$headerLocationIcon}>
+            <Icon style={$headerLocationIconStyle} size={18} icon="caretLeft" />
+          </View>
+        </TouchableOpacity>
         <CurrentTime />
       </View>
       <View style={$headerRightIcon}>
@@ -46,6 +49,27 @@ export function Header(props: HeaderProps) {
       </View>
     </View>
   )
+}
+
+const $headerLocationIconStyle: ImageStyle = {
+  transform: [{ rotate: "-90deg" }],
+}
+
+const $headerLocationContainer: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+}
+
+const $headerLocationIcon: ViewStyle = {
+  marginStart: spacing.xxs,
+  flexDirection: "row",
+  marginTop: 2,
+}
+
+const $headerLocationText: TextStyle = {
+  color: colors.text,
+  fontSize: 18,
 }
 
 const $border: ViewStyle = {
@@ -60,12 +84,14 @@ const $headerRightIcon: ViewStyle = {
 }
 
 const $headerLocation: ViewStyle = {
-  alignItems: "center",
+  alignItems: "flex-start",
+  paddingStart: spacing.lg,
+  // paddingEnd: spacing.lg,
 }
 
 const $header: ViewStyle = {
   flexDirection: "row",
   justifyContent: "space-between",
-  backgroundColor: colors.palette.neutral100,
+  backgroundColor: colors.background,
   alignItems: "center",
 }

@@ -36,7 +36,7 @@ export default function NamazScreenHeader({
           <BackButton />
         </View>
         <View style={$header}>
-          <Text style={$title} weight="regular">
+          <Text style={$title} weight="normal">
             {title}
           </Text>
         </View>

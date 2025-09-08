@@ -14,6 +14,7 @@ import Config from "../config"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
 import { NavigationTab } from "./NavigationTab"
+import HijriDate from "app/libs/HijriDate"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -36,6 +37,8 @@ export type AppStackParamList = {
   PdfViewer: undefined
   Counter: undefined
   SavedTasbeeh: undefined
+  EventReminder: { date: HijriDate }
+  TasbeehList: undefined
   // 🔥 Your screens go here
   // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }
@@ -69,6 +72,8 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="PdfViewer" component={Screens.PdfScreen} />
       <Stack.Screen name="Counter" component={Screens.CounterScreen} />
       <Stack.Screen name="SavedTasbeeh" component={Screens.SavedTasbeehScreen} />
+      <Stack.Screen name="EventReminder" component={Screens.EventReminderScreen} />
+      <Stack.Screen name="TasbeehList" component={Screens.TasbeehListScreen} />
     </Stack.Navigator>
   )
 })

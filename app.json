@@ -1,25 +1,23 @@
 {
-  "name": "v2app",
-  "displayName": "v2app",
+  "name": "My Bohra",
+  "displayName": "My Bohra",
   "expo": {
-    "name": "v2app",
-    "slug": "v2app",
-    "scheme": "v2app",
+    "name": "mybohra",
+    "slug": "mybohra",
+    "scheme": "mybohra",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-all.png",
     "splash": {
       "image": "./assets/images/splash-logo-all.png",
       "resizeMode": "contain",
-      "backgroundColor": "#191015"
+      "backgroundColor": "#AB0256"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
     },
     "jsEngine": "hermes",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "android": {
       "icon": "./assets/images/app-icon-android-legacy.png",
       "package": "com.muminoapp.all",
@@ -30,7 +28,7 @@
       "splash": {
         "image": "./assets/images/splash-logo-android-universal.png",
         "resizeMode": "contain",
-        "backgroundColor": "#191015"
+        "backgroundColor": "#AB0256"
       }
     },
     "ios": {
@@ -41,7 +39,7 @@
         "image": "./assets/images/splash-logo-ios-mobile.png",
         "tabletImage": "./assets/images/splash-logo-ios-tablet.png",
         "resizeMode": "contain",
-        "backgroundColor": "#191015"
+        "backgroundColor": "#AB0256"
       }
     },
     "web": {
@@ -49,7 +47,7 @@
       "splash": {
         "image": "./assets/images/splash-logo-web.png",
         "resizeMode": "contain",
-        "backgroundColor": "#191015"
+        "backgroundColor": "#AB0256"
       },
       "bundler": "metro"
     },

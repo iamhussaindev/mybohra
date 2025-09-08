@@ -23,7 +23,7 @@ export default function SoundPlayerHome({ navigation }: { navigation: any }) {
   const screenWidth = Dimensions.get("window").width ?? 0
   const totalWidth = screenWidth - 48
 
-  const width = (totalWidth * (position ?? 0)) / (duration ?? 0) ?? 0
+  const width = (totalWidth * (position ?? 0)) / (duration ?? 0)
   const seekWidth = isNaN(width) ? 0 : width
 
   return (

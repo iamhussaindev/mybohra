@@ -9,10 +9,9 @@ export function CurrentTime() {
   const getCurrentTime = useCallback(() => {
     const date = momentTime()
     const hijriDate = new HijriDate()
-    // return `${hijriDate.day} ${hijriDate.getShortMonthName()} / ${date.format("D MMMM")}`
     return {
       hijri: `${hijriDate.day} ${hijriDate.getShortMonthName()}`,
-      gregorian: date.format("D MMMM hh:mm A"),
+      gregorian: date.format("D MMM hh:mm A"),
     }
   }, [])
 
@@ -28,10 +27,17 @@ export function CurrentTime() {
 
   return (
     <View style={$viewContainer}>
-      <Icon icon="calendar" size={16} color={colors.tint} />
-      <Text style={[$textStyle, $hijriStyle]}>{currentTime.hijri}</Text>
-      <Text style={$textStyle}> / </Text>
-      <Text style={$textStyle}>{currentTime.gregorian}</Text>
+      <Icon icon="calendar" size={12} color={colors.tint} />
+      <Text weight="bold" style={[$textStyle, $hijriStyle]}>
+        {currentTime.hijri}
+      </Text>
+      <Text weight="normal" style={$textStyle}>
+        {" "}
+        /{" "}
+      </Text>
+      <Text weight="bold" style={$textStyle}>
+        {currentTime.gregorian}
+      </Text>
     </View>
   )
 }
@@ -40,10 +46,11 @@ const $viewContainer: ViewStyle = {
   display: "flex",
   flexDirection: "row",
   alignItems: "center",
+  marginTop: -4,
 }
 
 const $textStyle: TextStyle = {
-  fontSize: 16,
+  fontSize: 13,
   fontWeight: "bold",
 }
 

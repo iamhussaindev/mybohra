@@ -1,19 +1,20 @@
 import { Text, Icon } from "app/components"
 import { ramazanNiyyat } from "app/data/niyyat"
-// import HijriDate from "app/libs/HijriDate"
+import HijriDate from "app/libs/HijriDate"
 import { colors, spacing, typography } from "app/theme"
 import React, { useState, useEffect, useRef } from "react"
 import { TextStyle, View, ViewStyle, Pressable } from "react-native"
 import * as storage from "app/utils/storage"
 import Swipeable, { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
+import i18n from "i18n-js"
 
 export default function RamazaanNiyyat() {
-  //   const hijriDate = new HijriDate()
-  const day = 9
-
+  const hijriDate = new HijriDate()
+  const day = hijriDate.day
+  const month = hijriDate.month
   const swipeableRow = useRef<SwipeableMethods>(null)
 
-  const niyyat = ramazanNiyyat.find((niyyat) => niyyat.day === day)
+  const niyyat = ramazanNiyyat.find((niyyat) => niyyat.day === day && month === 9)
   if (!niyyat) return null
 
   const start = niyyat.text.split("Saumal ")[0] + "Saumal"
@@ -22,10 +23,17 @@ export default function RamazaanNiyyat() {
   const [hasSwiped, setHasSwiped] = useState(false)
 
   const [isVisible, setIsVisible] = useState(true)
+  const [currentLanguage, setCurrentLanguage] = useState("ar") // Default to Arabic
+  const [isSwiping, setIsSwiping] = useState(false)
 
   const loadVisibility = async () => {
     const savedVisibility = await storage.loadString(`niyyat_visible_${day}`, "true")
-    setIsVisible(savedVisibility !== "true")
+    setIsVisible(savedVisibility === "true")
+  }
+
+  const loadLanguage = async () => {
+    const savedLanguage = await storage.loadString("niyyat_language", "ar")
+    setCurrentLanguage(savedLanguage || "ar")
   }
 
   const loadSwiped = async () => {
@@ -34,6 +42,17 @@ export default function RamazaanNiyyat() {
     if (swiped !== null) {
       setHasSwiped(swiped === "true")
     }
+  }
+
+  const handleLanguageSwitch = async () => {
+    if (isSwiping) return // Prevent language switch while swiping
+
+    const newLanguage = currentLanguage === "ar" ? "en" : "ar"
+    setCurrentLanguage(newLanguage)
+    await storage.saveString("niyyat_language", newLanguage)
+
+    // Update i18n locale
+    i18n.locale = newLanguage
   }
 
   const handleSwipeHint = async () => {
@@ -61,6 +80,7 @@ export default function RamazaanNiyyat() {
 
   useEffect(() => {
     loadVisibility()
+    loadLanguage()
     loadSwiped()
   }, [])
 
@@ -84,7 +104,7 @@ export default function RamazaanNiyyat() {
   }
 
   if (!isVisible) return null
-  const showArabic = true
+  const showArabic = currentLanguage === "ar"
 
   return (
     <Swipeable
@@ -93,12 +113,19 @@ export default function RamazaanNiyyat() {
       friction={2}
       ref={swipeableRow}
       leftThreshold={30}
+      onSwipeableOpen={() => setIsSwiping(false)}
+      onSwipeableClose={() => setIsSwiping(false)}
+      onSwipeableWillOpen={() => setIsSwiping(true)}
+      onSwipeableWillClose={() => setIsSwiping(true)}
     >
       <View style={$container}>
         <Text style={$title}>Today's Roza Niyyat</Text>
-        <View style={[!showArabic && $row, showArabic && $arabicRow]}>
+        <Pressable
+          onPress={handleLanguageSwitch}
+          style={[!showArabic && $row, showArabic && $arabicRow]}
+        >
           {showArabic ? (
-            <Text weight="regular" style={[$text, $arabic]}>
+            <Text weight="normal" style={[$text, $arabic]}>
               {niyyat.arabic}
             </Text>
           ) : (
@@ -110,7 +137,7 @@ export default function RamazaanNiyyat() {
               <Text style={$text}>{end}</Text>
             </>
           )}
-        </View>
+        </Pressable>
       </View>
     </Swipeable>
   )
@@ -123,7 +150,7 @@ const $arabicRow: ViewStyle = {
 const $arabic: TextStyle = {
   fontSize: 30,
   textAlign: "center",
-  lineHeight: 60,
+  lineHeight: 50,
   fontFamily: typography.arabic.kanz,
   writingDirection: "rtl",
 }
@@ -169,14 +196,21 @@ const $middle: TextStyle = {
 
 const $container: ViewStyle = {
   marginHorizontal: spacing.lg,
+  height: 220,
   borderWidth: 1,
   marginTop: spacing.lg,
   borderRadius: 10,
-  borderColor: colors.palette.primary500,
+  borderColor: colors.palette.neutral300,
   backgroundColor: colors.palette.neutral100,
+  shadowColor: colors.palette.neutral300,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
   paddingHorizontal: spacing.md,
   paddingVertical: spacing.md,
   display: "flex",
   flexDirection: "column",
+  justifyContent: "center",
   position: "relative",
 }

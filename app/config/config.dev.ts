@@ -6,8 +6,8 @@
  * https://reactnative.dev/docs/security#storing-sensitive-info
  */
 
-const ip = "localhost"
+const ip = "http://192.168.1.53"
 
 export default {
-  API_URL: `http://${ip}:3000/api/`,
+  API_URL: `${ip}:3000/api/`,
 }

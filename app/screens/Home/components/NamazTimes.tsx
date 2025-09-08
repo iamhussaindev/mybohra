@@ -80,7 +80,7 @@ function NamazCard(props: {
         ) : null}
         <View style={[$grContainer, props.activeIndex === props.index && $activeNamazCard]}>
           <Text
-            weight="regular"
+            weight="normal"
             style={[$namazLabel, props.activeIndex === props.index && $activeNamazLabel]}
           >
             {props.text}

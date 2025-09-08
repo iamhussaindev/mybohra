@@ -19,6 +19,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { ViewStyle } from "react-native"
 import GetLocation from "react-native-get-location"
 import { SoundProvider } from "./hooks/useAudio"
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
+import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
@@ -118,11 +120,15 @@ function App(props: AppProps) {
       <SoundProvider>
         <ErrorBoundary catchErrors={Config.catchErrors}>
           <GestureHandlerRootView style={$container}>
-            <AppNavigator
-              linking={linking}
-              initialState={initialNavigationState}
-              onStateChange={onNavigationStateChange}
-            />
+            <BottomSheetModalProvider>
+              <LocationBottomSheetProvider>
+                <AppNavigator
+                  linking={linking}
+                  initialState={initialNavigationState}
+                  onStateChange={onNavigationStateChange}
+                />
+              </LocationBottomSheetProvider>
+            </BottomSheetModalProvider>
           </GestureHandlerRootView>
         </ErrorBoundary>
       </SoundProvider>

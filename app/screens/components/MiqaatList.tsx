@@ -31,10 +31,10 @@ export function MiqaatCard({
           </View>
         )}
         <View style={$cardDescription}>
-          <Text weight="regular" style={$cardTitle} text={item.name} />
+          <Text weight="medium" style={$cardTitle} text={item.name} />
           {item.description ? (
             <Text
-              weight="regular"
+              weight="normal"
               style={$cardDescriptionText}
               text={`${item.description ?? ""} ${item.location ? ` - ${item.location}` : ``}`}
             />
@@ -94,15 +94,20 @@ const $countDownContainer: ViewStyle = {
 const $cardDescriptionText: TextStyle = {
   fontSize: 13,
   color: colors.palette.neutral600,
+  flexWrap: "wrap",
+  flex: 1,
+  lineHeight: 20,
+  width: "100%",
 }
 
 const $cardDescription: ViewStyle = {
-  width: "100%",
+  width: "80%",
+  flex: 1,
 }
 
 const $cardTitle: TextStyle = {
   fontSize: 15,
-  width: "60%",
+  width: "80%",
   lineHeight: 20,
   flexWrap: "wrap",
 }
@@ -138,6 +143,7 @@ export default function MiqaatList({
 
 const $listHeader: TextStyle = {
   marginBottom: spacing.sm,
+  width: "100%",
   paddingHorizontal: spacing.lg,
 }
 

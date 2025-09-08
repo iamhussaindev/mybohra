@@ -24,8 +24,8 @@ export default function HeroIcons({ onNavigation }: { onNavigation: (screen: any
     <View style={$heroIconContainer}>
       <HeroCard
         onNavigation={() => onNavigation("Calendar")}
-        text="Audio/PDF"
-        icon={require("../../../../assets/images/audio.png")}
+        text="Duas"
+        icon={require("../../../../assets/images/duas.png")}
       />
       <HeroCard
         onNavigation={() => onNavigation("Calendar")}

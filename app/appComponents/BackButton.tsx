@@ -15,7 +15,7 @@ export function BackButton({ style }: { style?: ViewStyle }) {
         if (navigation.canGoBack()) {
           navigation.goBack()
         } else {
-          navigation.navigate("Tabs")
+          navigation.navigate("Tabs" as never)
         }
       }}
     >

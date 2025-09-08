@@ -17,6 +17,14 @@ import {
 } from "react-native"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 import * as Progress from "react-native-progress"
+import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler"
+import Animated, {
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  runOnJS,
+} from "react-native-reanimated"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import TasbeehSelector from "./TasbeehSelector"
 import GoalSelector from "./GoalSelector"
 import BottomSheet, { SCREEN_HEIGHT, SCREEN_WIDTH } from "@gorhom/bottom-sheet"
@@ -31,25 +39,91 @@ const counterHeight = SCREEN_HEIGHT * 0.25
 export const CounterScreen: FC<CounterScreenProps> = observer(function CounterScreen() {
   const [count, setCount] = useState(0)
   const [isPressed, setIsPressed] = useState(false)
-  const [selectedTasbeeh, setSelectedTasbeeh] = useState<any>(null)
   const [goal, setGoal] = useState(33)
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null)
+
+  // Drag state for counter positioning
+  const translateX = useSharedValue(Math.max(20, SCREEN_WIDTH - counterHeight - 30)) // Initial right position with bounds check
+  const translateY = useSharedValue(
+    Math.max(SCREEN_HEIGHT * 0.5 - counterHeight, SCREEN_HEIGHT - counterHeight - 180),
+  ) // Initial bottom position with bounds check
 
   const { tasbeehStore } = useStores()
   const list = tasbeehStore.list
 
+  // Get selected tasbeeh from store
+  const selectedTasbeeh = tasbeehStore.selectedTasbeeh
+
   useEffect(() => {
-    setCount(tasbeehStore.defaultTasbeehCount)
-    setGoal(tasbeehStore.defaultTasbeehGoal)
-  }, [tasbeehStore.defaultTasbeehCount])
+    // Load selected tasbeeh and saved tasbeeh list on component mount
+    console.log("Loading tasbeeh data...")
+    tasbeehStore.fetchTasbeeh() // Load the tasbeeh list first
+    tasbeehStore.loadSelectedTasbeeh()
+    tasbeehStore.loadDefaultTasbeehCount().then(() => {
+      setCount(tasbeehStore.defaultTasbeehCount)
+      setGoal(tasbeehStore.defaultTasbeehGoal)
+    }) // Load default count and goal
+    loadCounterPosition()
+  }, [])
+
+  // Monitor when tasbeeh list is loaded and trigger count loading
+  useEffect(() => {
+    console.log("Tasbeeh list loaded, length:", tasbeehStore.list.length)
+    if (tasbeehStore.list.length > 0) {
+      console.log("Tasbeeh list is available, triggering count loading...")
+      // Add a small delay to ensure all data is loaded
+      setTimeout(() => {
+        console.log("Delayed count loading triggered...")
+      }, 100)
+    }
+  }, [tasbeehStore.list])
+
+  const loadCounterPosition = async () => {
+    try {
+      const savedX = await AsyncStorage.getItem("counterPositionX")
+      const savedY = await AsyncStorage.getItem("counterPositionY")
+
+      if (savedX && savedY) {
+        const x = parseFloat(savedX)
+        const y = parseFloat(savedY)
+
+        // Validate saved position is within bounds
+        const validX = Math.max(20, Math.min(SCREEN_WIDTH - counterHeight - 20, x))
+        const validY = Math.max(
+          SCREEN_HEIGHT * 0.5 - counterHeight,
+          Math.min(SCREEN_HEIGHT - counterHeight - 120, y),
+        )
+
+        translateX.value = validX
+        translateY.value = validY
+      }
+    } catch (error) {
+      console.log("Error loading counter position:", error)
+    }
+  }
+
+  const saveCounterPosition = async (x: number, y: number) => {
+    try {
+      await AsyncStorage.setItem("counterPositionX", x.toString())
+      await AsyncStorage.setItem("counterPositionY", y.toString())
+    } catch (error) {
+      console.log("Error saving counter position:", error)
+    }
+  }
 
   const handlePress = useCallback(() => {
-    if (count !== 0 && count === goal) {
-      return
-    }
-    setCount((prevCount) => prevCount + 1)
-    ReactNativeHapticFeedback.trigger("impactLight")
-  }, [count, goal])
+    setCount((prevCount) => {
+      if (prevCount !== 0 && prevCount === goal) {
+        return prevCount
+      }
+      const newCount = prevCount + 1
+      ReactNativeHapticFeedback.trigger("impactLight")
+
+      tasbeehStore.saveDefaultCount(newCount)
+
+      return newCount
+    })
+  }, [goal, tasbeehStore, selectedTasbeeh])
 
   const handlePressIn = () => {
     setIsPressed(true)
@@ -80,10 +154,16 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
   const $count = useRef(0)
 
   const handleNegativePress = () => {
-    if (count === 0) {
-      return
-    }
-    setCount((prevCount) => prevCount - 1)
+    setCount((prevCount) => {
+      if (prevCount === 0) {
+        return prevCount
+      }
+      const newCount = prevCount - 1
+
+      tasbeehStore.saveDefaultCount(newCount)
+
+      return newCount
+    })
   }
 
   useEffect(() => {
@@ -100,16 +180,69 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
         text: "Cancel",
         style: "cancel",
       },
-      { text: "Reset", onPress: () => setCount(0) },
+      {
+        text: "Reset",
+        onPress: () => {
+          setCount(0)
+
+          tasbeehStore.saveDefaultCount(0)
+          tasbeehStore.setSelectedTasbeeh(null)
+          setCount(0)
+          setGoal(0)
+        },
+      },
     ])
   }
+
+  // Gesture handler for dragging the counter
+  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
+    onStart: (_, context: any) => {
+      context.startX = translateX.value
+      context.startY = translateY.value
+    },
+    onActive: (event, context: any) => {
+      const newX = context.startX + event.translationX
+      const newY = context.startY + event.translationY
+
+      // Constrain to bottom area (last 40% of screen height)
+      const minY = SCREEN_HEIGHT * 0.5 - counterHeight // Allow more vertical range
+      const maxY = SCREEN_HEIGHT - counterHeight - 120 // Keep margin from action buttons (they're at bottom 40px)
+      const constrainedY = Math.max(minY, Math.min(maxY, newY))
+
+      // Constrain horizontally to screen bounds
+      const minX = 20 // Keep some margin from left edge
+      const maxX = SCREEN_WIDTH - counterHeight - 20 // Keep some margin from right edge
+      const constrainedX = Math.max(minX, Math.min(maxX, newX))
+
+      translateX.value = constrainedX
+      translateY.value = constrainedY
+    },
+    onEnd: () => {
+      // Save the final position
+      runOnJS(saveCounterPosition)(translateX.value, translateY.value)
+      // Optional: Add haptic feedback when dragging ends
+      runOnJS(ReactNativeHapticFeedback.trigger)("impactLight")
+    },
+  })
+
+  // Animated style for the counter
+  const animatedCounterStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
+    }
+  })
 
   const startContinuousDecrement = () => {
     if (count === 0) {
       return
     }
     const id = setInterval(() => {
-      setCount((prevCount) => Math.max(prevCount - 1, 0))
+      setCount((prevCount) => {
+        const newCount = Math.max(prevCount - 1, 0)
+
+        tasbeehStore.saveDefaultCount(newCount)
+        return newCount
+      })
       ReactNativeHapticFeedback.trigger("impactLight")
     }, 200)
     setIntervalId(id)
@@ -124,7 +257,7 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
 
   const fontSize = Dimensions.get("screen").width * 0.2
 
-  const calculateArabicFontSize = (text: string | undefined) => {
+  const calculateArabicFontSize = (text: string | null | undefined) => {
     if (!text) return fontSize
     const baseSize = Dimensions.get("screen").width * 0.24
     const length = text.length
@@ -143,7 +276,7 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
 
   const handleItemClick = (item: ITasbeeh) => {
     if ($count.current === 0) {
-      setSelectedTasbeeh(item)
+      tasbeehStore.setSelectedTasbeeh(item.id)
       setGoal(item.count || 0)
       $bottomSheetRef.current?.close()
       return
@@ -154,21 +287,16 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
       {
         text: "OK",
         onPress: () => {
-          setSelectedTasbeeh(item)
+          tasbeehStore.setSelectedTasbeeh(item.id)
           setCount(0)
           $count.current = 0
           setGoal(item.count || 0)
+
+          tasbeehStore.saveDefaultCount(0)
           $bottomSheetRef.current?.close()
         },
       },
     ])
-  }
-
-  const handleSavePress = () => {
-    if (!selectedTasbeeh) {
-      tasbeehStore.setDefaultTasbeehCount(count, goal)
-    }
-    tasbeehStore.saveCurrentCount(selectedTasbeeh?.id, count)
   }
 
   const hideCounter = selectedTasbeeh?.count === -1
@@ -192,9 +320,7 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
             <Pressable
               style={$closeTasbeehButton}
               onPress={() => {
-                setSelectedTasbeeh(null)
-                setCount(0)
-                setGoal(0)
+                handleResetPress()
               }}
             >
               <Icon size={18} color="white" icon="x" />
@@ -209,8 +335,7 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
           {selectedTasbeeh?.image ? (
             <>
               <Image
-                height={hideCounter ? SCREEN_HEIGHT - 200 : 200}
-                style={$imageTasbeeh}
+                style={goal === -1 ? $imageTasbeehFullScreen : $imageTasbeeh}
                 source={{ uri: selectedTasbeeh?.image }}
               />
             </>
@@ -235,47 +360,32 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
           )}
         </View>
         {!hideCounter ? (
-          <View style={$counterContainerBgMain}>
-            <View style={[$counterContainerBg, isPressed && $counterContainerBgPressed]} />
-            {count > 1 && goal !== 0 ? (
-              <Progress.Circle
-                style={$progressCircle}
-                progress={count / goal}
-                size={counterHeight + 5}
-                strokeCap="round"
-                borderWidth={0}
-                color="#aa5302"
-              />
-            ) : null}
-            <Pressable
-              onPress={handlePress}
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
-              style={$pressableContainer}
-            >
-              <Text weight="bold" style={$counterText}>
-                {count}
-              </Text>
-              {goal ? <Text style={$goalText}>{goal}</Text> : null}
-            </Pressable>
-          </View>
-        ) : null}
-
-        {count > 0 ? (
-          <Pressable onPress={handleSavePress} style={$saveButton}>
-            {tasbeehStore.savingCount ? (
-              <Progress.CircleSnail thickness={1} size={14} color="rgb(102, 65, 0)" />
-            ) : (
-              <Icon color="rgb(102, 65, 0)" size={14} icon="save" />
-            )}
-            <Text style={$saveText}>
-              {tasbeehStore.savingCount
-                ? "Saving..."
-                : tasbeehStore.defaultTasbeehCount === count
-                ? "Saved"
-                : "Save"}
-            </Text>
-          </Pressable>
+          <PanGestureHandler onGestureEvent={gestureHandler}>
+            <Animated.View style={[$counterContainerBgMain, animatedCounterStyle]}>
+              <View style={[$counterContainerBg, isPressed && $counterContainerBgPressed]} />
+              {count > 1 && goal !== 0 ? (
+                <Progress.Circle
+                  style={$progressCircle}
+                  progress={count / goal}
+                  size={counterHeight + 5}
+                  strokeCap="round"
+                  borderWidth={0}
+                  color="#aa5302"
+                />
+              ) : null}
+              <Pressable
+                onPress={handlePress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={$pressableContainer}
+              >
+                <Text weight="bold" style={$counterText}>
+                  {count}
+                </Text>
+                {goal ? <Text style={$goalText}>{goal}</Text> : null}
+              </Pressable>
+            </Animated.View>
+          </PanGestureHandler>
         ) : null}
 
         <View style={$actionButtonsContainer}>
@@ -287,16 +397,15 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
           >
             <Icon color="rgb(102, 65, 0)" size={20} icon="minusCircle" />
           </Pressable>
-          <Pressable onPress={() => $bottomSheetRefGoal.current?.expand()} style={$actionButton}>
-            <Text weight="bold" style={$actionButtonText}>
-              {goal}
-            </Text>
-          </Pressable>
+          {goal !== -1 && (
+            <Pressable onPress={() => $bottomSheetRefGoal.current?.expand()} style={$actionButton}>
+              <Text weight="bold" style={$actionButtonText}>
+                {goal === 0 ? "GOAL" : goal}
+              </Text>
+            </Pressable>
+          )}
           <Pressable onPress={handleResetPress} style={$actionButton}>
             <Icon color="rgb(102, 65, 0)" size={20} icon="undo" />
-          </Pressable>
-          <Pressable style={$actionButton}>
-            <Icon color="rgb(102, 65, 0)" size={20} icon="save" />
           </Pressable>
         </View>
       </View>
@@ -308,7 +417,6 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
         count={count}
         sheetRef={$bottomSheetRef}
         setGoal={setGoal}
-        setSelectedTasbeeh={setSelectedTasbeeh}
       />
       <GoalSelector sheetRef={$bottomSheetRefGoal} setGoal={setGoal} />
     </Screen>
@@ -324,25 +432,46 @@ const $actionButtonText: TextStyle = {
 
 const $imageTasbeeh: ImageStyle = {
   width: SCREEN_WIDTH,
+  height: SCREEN_HEIGHT * 0.3, // Default height for when goal is set
   objectFit: "contain",
   resizeMode: "contain",
   marginBottom: 20,
+  marginTop: 20, // Add top margin for spacing
   justifyContent: "center",
   alignItems: "center",
   display: "flex",
+  alignSelf: "center", // Ensure image is centered
+}
+
+const $imageTasbeehFullScreen: ImageStyle = {
+  width: SCREEN_WIDTH,
+  height: SCREEN_HEIGHT - 200, // Full screen minus header and some margin
+  objectFit: "contain",
+  resizeMode: "contain",
+  justifyContent: "center",
+  alignItems: "center",
+  display: "flex",
+  alignSelf: "center",
 }
 
 const $tasbeehTextContainer: ViewStyle = {
-  height: 250,
+  flex: 0, // Don't take up all available space
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
+  minHeight: 200,
+  width: "100%",
+  // paddingHorizontal: 20,
+  paddingVertical: 20,
+  marginTop: 20, // Add top margin for spacing
 }
 
 const $progressCircle: ViewStyle = {
   position: "absolute",
-  height: 250,
-  width: 250,
+  top: -2.5, // Center it on the counter
+  left: -2.5,
+  height: counterHeight + 5,
+  width: counterHeight + 5,
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
@@ -357,49 +486,24 @@ const $goalText: TextStyle = {
   bottom: 30,
 }
 
-const $saveButton: ViewStyle = {
-  backgroundColor: "white",
-  paddingHorizontal: 20,
-  marginTop: 40,
-  paddingVertical: 8,
-  borderRadius: 30,
-  justifyContent: "center",
-  alignItems: "center",
-  shadowColor: "rgb(0,0,0,0.01)",
-  shadowOffset: {
-    width: 0,
-    height: 2,
-  },
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
-  elevation: 5,
-  flexDirection: "row",
-  gap: 10,
-}
-
-const $saveText: TextStyle = {
-  fontSize: 14,
-  lineHeight: 16,
-  color: "rgb(102, 65, 0)",
-  fontFamily: typography.primary.regular,
-}
-
 const $tasbeehContainer: ViewStyle = {
   marginTop: 10,
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 10,
+  flexDirection: "column", // Change to column to stack content vertically
+  justifyContent: "flex-start", // Position content at the top
+  alignItems: "center", // Center content horizontally
+  flex: 1, // Take up available space
+  width: "100%",
+  paddingHorizontal: 20,
+  paddingTop: 20, // Add some top padding
 }
 
 const $tasbeehTextArabic: TextStyle = {
   fontFamily: typography.arabic.kanz,
-  letterSpacing: 0.1,
   color: "#894a10",
-  marginBottom: 40,
-  marginTop: 20,
   textAlign: "center",
-  paddingHorizontal: 30,
+  textAlignVertical: "center",
+  paddingHorizontal: 20,
+  lineHeight: undefined, // Let the font size determine line height for better readability
 }
 
 const $actionButtonsContainer: ViewStyle = {
@@ -412,6 +516,7 @@ const $actionButtonsContainer: ViewStyle = {
   width: "100%",
   paddingHorizontal: 40,
   gap: 0,
+  zIndex: 5, // Lower than counter to ensure counter is on top
 }
 
 const $actionButton: ViewStyle = {
@@ -432,9 +537,14 @@ const $actionButton: ViewStyle = {
 }
 
 const $counterContainerBgMain: ViewStyle = {
-  position: "relative",
+  position: "absolute",
+  top: 0, // Start from top-left corner
+  left: 0, // Start from top-left corner
   justifyContent: "center",
   alignItems: "center",
+  zIndex: 10, // Ensure it's above other elements
+  width: counterHeight,
+  height: counterHeight,
 }
 
 const $counterContainerBg: ViewStyle = {
@@ -511,4 +621,6 @@ const $counterText: TextStyle = {
 const $container: ViewStyle = {
   flex: 1,
   alignItems: "center",
+  justifyContent: "space-between",
+  paddingBottom: 120, // Add padding to make room for the counter
 }

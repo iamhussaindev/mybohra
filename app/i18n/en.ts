@@ -26,7 +26,9 @@ const en = {
   qiyam: {
     label: "Current Qiyam Shareef of Syedna Aali Qadr Mufaddal Saifuddin TUS is: ",
   },
-
+  calendar: {
+    noMiqaats: "No miqaats on this day",
+  },
   namaz: {
     nextNamaz: "Next Namaz",
   },

@@ -24,7 +24,13 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
 
   return (
     <Screen preset="fixed" safeAreaEdges={["top"]} contentContainerStyle={$screenContainer}>
-      {calendar ? <CalendarHeader calendar={calendar} setCalendar={setCalendar} /> : null}
+      {calendar ? (
+        <CalendarHeader
+          setSelectedDate={setSelectedDate}
+          calendar={calendar}
+          setCalendar={setCalendar}
+        />
+      ) : null}
       {calendar ? (
         <CalendarView
           setSelectedDate={setSelectedDate}

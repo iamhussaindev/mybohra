@@ -217,7 +217,7 @@ export function Card(props: CardProps) {
               {ContentComponent ||
                 (isContentPresent && (
                   <Text
-                    weight="regular"
+                    weight="normal"
                     text={content}
                     tx={contentTx}
                     txOptions={contentTxOptions}
@@ -230,7 +230,7 @@ export function Card(props: CardProps) {
             {FooterComponent ||
               (isFooterPresent && (
                 <Text
-                  weight="regular"
+                  weight="normal"
                   size="xs"
                   text={footer}
                   tx={footerTx}

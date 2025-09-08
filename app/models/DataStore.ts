@@ -2,10 +2,10 @@ import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 import { api } from "app/services/api"
 
 export const LocationModel = types.model("LocationModel", {
-  latitude: types.optional(types.number, 19.076),
-  longitude: types.optional(types.number, 72.8777),
-  city: types.optional(types.string, "Mumbai"),
-  country: types.optional(types.string, "India"),
+  latitude: types.optional(types.number, 19.076), // mumbai latitude
+  longitude: types.optional(types.number, 72.8777), // mumbai longitude
+  city: types.optional(types.string, "Mumbai"), // mumbai
+  country: types.optional(types.string, "India"), // india
   state: types.optional(types.string, "Maharashtra"),
   timezone: types.optional(types.string, "Asia/Kolkata"),
 })
@@ -21,7 +21,6 @@ export const DataStoreModel = types
     fetchNearestLocation: flow(function* (lat: number, lng: number) {
       try {
         const response = yield api.fetchLocation(lat, lng)
-
         if (response.kind === "ok") {
           self.currentLocation = response.data
           self.currentLocationLoaded = true

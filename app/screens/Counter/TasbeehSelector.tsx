@@ -17,14 +17,12 @@ const TasbeehSelector = React.memo(
     list,
     count,
     sheetRef,
-    setSelectedTasbeeh,
     setGoal,
     setCount,
     handleItemClick,
   }: {
     list: ITasbeeh[]
     sheetRef: React.RefObject<BottomSheet>
-    setSelectedTasbeeh: (tasbeeh: any) => void
     setGoal: (goal: number) => void
     count: number
     setCount: (count: number) => void
@@ -54,7 +52,7 @@ const TasbeehSelector = React.memo(
         $searchRef.current?.blur()
         handleItemClick(item)
       },
-      [count, setSelectedTasbeeh, setGoal, setCount, sheetRef],
+      [count, setGoal, setCount, sheetRef, handleItemClick],
     )
 
     const handleClick = useCallback(
@@ -170,14 +168,23 @@ const $gridSingleItem: ViewStyle = {
 const $searchField = {
   backgroundColor: "rgb(255, 250, 241)",
   paddingHorizontal: 20,
-  paddingVertical: 10,
-  borderRadius: 10,
+  paddingVertical: 16,
+  borderRadius: 12,
   marginBottom: 20,
   borderWidth: 1,
-  borderColor: "rgb(195, 162, 104)",
   marginHorizontal: 20,
   marginTop: 20,
-  fontFamily: typography.primary.regular,
+  fontFamily: typography.primary.medium,
+  borderColor: "rgb(240, 195, 116)",
+  fontSize: 16,
+  shadowColor: "rgba(0, 0, 0, 0.1)",
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.5,
+  shadowRadius: 3.84,
+  elevation: 5,
 }
 
 const $sectionListContainer: ViewStyle = {

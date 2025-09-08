@@ -11,15 +11,15 @@ const palette = {
   neutral800: "#191015",
   neutral900: "#000000",
 
-  primary100: "#FFE5EB",
-  primary200: "#FFC2CC",
-  primary300: "#FF7890",
-  primary400: "#D28468",
-  primary500: "#C9184A", // rgba(201, 24, 74, 1)
-  primary600: "#A0133C",
-  primary700: "#780F2E",
-  primary800: "#520A1F",
-  primary900: "#2A0510",
+  primary100: "#F9E9D9", // very soft tint
+  primary200: "#F1CFA9", // light warm beige
+  primary300: "#E6A85E", // lighter earthy orange
+  primary400: "#D88C3D", // warm amber-brown
+  primary500: "#AB0256", // base (given)
+  primary600: "#9A561E", // deeper brown-orange
+  primary700: "#784219", // earthy deep tone
+  primary800: "#532E11", // dark walnut brown
+  primary900: "#2E1A0A", // near-black warm brown
 
   secondary100: "#DCDDE9",
   secondary200: "#BCC0D6",

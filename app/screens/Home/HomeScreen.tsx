@@ -20,6 +20,7 @@ import { RefreshControl } from "react-native-gesture-handler"
 import { useSoundPlayer } from "app/hooks/useAudio"
 import SoundPlayerHome from "./components/SoundPlayerHome"
 import RamazaanNiyyat from "./components/RamazaanNiyyat"
+import { useLocationBottomSheet } from "../../contexts/LocationBottomSheetContext"
 
 interface HomeScreenProps extends AppStackScreenProps<"Home"> {
   refetchHomeData: () => void
@@ -37,6 +38,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   const $drawerInsets = useSafeAreaInsetsStyle(["top"])
   const [showBorder, setShowBorder] = useState(false)
   const [shadowOffset, setShadowOffset] = useState(0)
+  const { openLocationBottomSheet } = useLocationBottomSheet()
 
   const { dataStore, miqaatStore, libraryStore } = useStores()
   const { currentSound } = useSoundPlayer()
@@ -79,6 +81,10 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
     }
   }
 
+  const handleLocationPress = () => {
+    openLocationBottomSheet()
+  }
+
   return (
     <Drawer
       open={open}
@@ -95,7 +101,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
       )}
     >
       <Screen
-        backgroundColor="#ffffff"
+        backgroundColor={colors.background}
         preset="fixed"
         safeAreaEdges={["top"]}
         contentContainerStyle={$screenContainer}
@@ -107,6 +113,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
           currentLocation={dataStore?.currentLocation}
           open={open}
           setOpen={setOpen}
+          onLocationPress={handleLocationPress}
         />
         <SectionList
           onScroll={handleScroll}

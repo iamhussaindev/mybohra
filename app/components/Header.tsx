@@ -11,7 +11,7 @@ export default function Header({
 }: {
   title: React.ReactNode | string
   showBackButton: boolean
-  rightActions: React.ReactNode
+  rightActions?: React.ReactNode
 }) {
   return (
     <View style={$header}>
@@ -26,7 +26,7 @@ export default function Header({
         title
       )}
 
-      {rightActions && <View style={$headerLeft}>{rightActions}</View>}
+      {<View style={$headerLeft}>{rightActions ?? null}</View>}
     </View>
   )
 }

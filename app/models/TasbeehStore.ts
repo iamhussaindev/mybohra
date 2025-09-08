@@ -22,10 +22,10 @@ export const SavedTasbeehModel = types.model("SavedTasbeehModel", {
 export const TasbeehStoreModel = types
   .model("TasbeehStore", {
     list: types.optional(types.array(TasbeehModel), []),
-    savedList: types.optional(types.array(SavedTasbeehModel), []),
     defaultTasbeehCount: types.optional(types.number, 0),
     defaultTasbeehGoal: types.optional(types.number, 0),
     savingCount: types.optional(types.boolean, false),
+    selectedTasbeehId: types.maybeNull(types.number),
   })
   .actions((self) => ({
     reset: flow(function* () {
@@ -67,35 +67,53 @@ export const TasbeehStoreModel = types
       }
       self.savingCount = false
     }),
-    loadSavedTasbeeh: flow(function* () {
+    saveDefaultCount: flow(function* (count: number) {
       try {
-        const savedTasbeeh = yield storage.load("SAVED_TASBEEH")
-        self.savedList = savedTasbeeh
+        self.defaultTasbeehCount = count
+        yield storage.save("DEFAULT_TASBEEH_COUNT", count)
       } catch (error) {
-        console.log(error)
+        console.log("Failed to save default count:", error)
       }
     }),
-    saveCurrentCount: flow(function* (id: number, count: number) {
+
+    setSelectedTasbeeh: flow(function* (tasbeehId: number | null) {
       try {
-        // Find the tasbeeh in savedList by id
-        const savedTasbeeh = self.savedList.find((saved) => saved.tasbeeh.id === id)
-        if (savedTasbeeh) {
-          savedTasbeeh.count = count // Update the count
-        } else {
-          // If not found, add a new saved tasbeeh
-          const tasbeeh = self.list.find((t) => t.id === id)
-          if (tasbeeh) {
-            self.savedList.push({
-              tasbeeh,
-              count,
-            })
-          }
+        if (self.selectedTasbeehId === tasbeehId) {
+          return
         }
 
-        // Persist the updated savedList to storage
-        yield storage.save("SAVED_TASBEEH", self.savedList)
+        self.selectedTasbeehId = tasbeehId
+        // set goal to the count of the tasbeeh
+        self.defaultTasbeehGoal = self.list.find((tasbeeh) => tasbeeh.id === tasbeehId)?.count || 0
+        self.defaultTasbeehCount = 0
+        yield storage.save("DEFAULT_TASBEEH_GOAL", self.defaultTasbeehGoal)
+        yield storage.save("SELECTED_TASBEEH_ID", tasbeehId)
       } catch (error) {
-        console.log("Failed to save current count:", error)
+        console.log("Failed to save selected tasbeeh:", error)
+      }
+    }),
+    loadSelectedTasbeeh: flow(function* () {
+      try {
+        const selectedTasbeehId = yield storage.load("SELECTED_TASBEEH_ID")
+        console.log("Loaded selectedTasbeehId from storage:", selectedTasbeehId)
+        self.selectedTasbeehId = selectedTasbeehId || null
+      } catch (error) {
+        console.log("Failed to load selected tasbeeh:", error)
+        self.selectedTasbeehId = null
+      }
+    }),
+    loadDefaultTasbeehCount: flow(function* () {
+      try {
+        const defaultCount = yield storage.load("DEFAULT_TASBEEH_COUNT")
+        const defaultGoal = yield storage.load("DEFAULT_TASBEEH_GOAL")
+        console.log("Loaded defaultCount from storage:", defaultCount)
+        console.log("Loaded defaultGoal from storage:", defaultGoal)
+        self.defaultTasbeehCount = defaultCount || 0
+        self.defaultTasbeehGoal = defaultGoal || 0
+      } catch (error) {
+        console.log("Failed to load default tasbeeh count:", error)
+        self.defaultTasbeehCount = 0
+        self.defaultTasbeehGoal = 0
       }
     }),
   }))
@@ -106,8 +124,10 @@ export const TasbeehStoreModel = types
     get defaultCount() {
       return self.defaultTasbeehCount
     },
-    get savedTasbeeh() {
-      return self.savedList
+
+    get selectedTasbeeh() {
+      if (!self.selectedTasbeehId) return null
+      return self.list.find((tasbeeh) => tasbeeh.id === self.selectedTasbeehId) || null
     },
   }))
 

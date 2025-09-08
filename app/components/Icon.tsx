@@ -125,6 +125,8 @@ export const iconRegistry = {
   volumeMute: require("../../assets/icons/volume-slash.png"),
   save: require("../../assets/icons/save.png"),
 
+  location: require("../../assets/icons/placeholder.png"),
+
   // Namaz icons
   fajr: require("../../assets/images/fajr.png"),
   sihori: require("../../assets/images/sihori.png"),

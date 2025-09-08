@@ -39,6 +39,7 @@ export default function CalendarView({
       keyExtractor={(_, index) => `${index}`}
       renderItem={({ item }) => item}
       stickyHeaderIndices={[0, 1, 2]}
+      contentContainerStyle={$contentContainer}
       sections={[
         {
           name: "HeaderControl",
@@ -72,7 +73,7 @@ export default function CalendarView({
               {Array.from({ length: 7 }).map((_, index) => {
                 return (
                   <View style={$weekHeader} key={index}>
-                    <Text weight="bold" style={$weekHeaderText}>
+                    <Text weight="medium" style={$weekHeaderText}>
                       {WEEKDAYS[index]}
                     </Text>
                   </View>
@@ -99,21 +100,21 @@ export default function CalendarView({
           name: "Miqaats",
           description: "Miqaats",
           data: [
-            miqaats?.length > 0 ? (
+            selectedDate && miqaats && miqaats.length > 0 ? (
               <View style={$miqaatsListContainer}>
                 <ListView
                   ListHeaderComponent={
-                    miqaats?.length > 0 ? (
-                      <View style={$miqaatHeader}>
+                    <View style={$miqaatHeader}>
+                      <View style={$miqaatHeaderContainer}>
                         <Text weight="bold" style={$miqaatHeaderText}>
-                          Events on {selectedDate?.date?.day} {selectedDate?.date?.getMonthName()}{" "}
+                          Miqaats on {selectedDate?.date?.day} {selectedDate?.date?.getMonthName()}{" "}
                           {selectedDate?.date?.year}
                         </Text>
                         <Text style={$miqaatHeaderDescription}>
                           {selectedDate?.gregorian?.format("dddd, Do MMMM YYYY")}
                         </Text>
                       </View>
-                    ) : null
+                    </View>
                   }
                   scrollEnabled={false}
                   estimatedItemSize={100}
@@ -122,11 +123,11 @@ export default function CalendarView({
                   renderItem={(item) => <MiqaatCard item={item.item} />}
                 />
               </View>
-            ) : (
+            ) : selectedDate ? (
               <View style={$emptyContainer}>
-                <Text size="xs">No events on this day</Text>
+                <Text style={$emptyContainerText}>No miqaats on this day</Text>
               </View>
-            ),
+            ) : null,
           ],
         },
       ]}
@@ -134,12 +135,24 @@ export default function CalendarView({
   )
 }
 
+const $miqaatHeaderContainer: ViewStyle = {
+  flex: 1,
+  justifyContent: "center",
+}
+
 const $miqaatsListContainer: ViewStyle = {
   flex: 1,
   minHeight: 200,
 }
 
+const $emptyContainerText: TextStyle = {
+  color: colors.palette.neutral700,
+  textAlign: "center",
+  paddingHorizontal: spacing.lg,
+}
+
 const $emptyContainer: ViewStyle = {
+  backgroundColor: colors.palette.neutral200,
   flex: 1,
   justifyContent: "center",
   alignItems: "center",
@@ -153,25 +166,30 @@ const $headerCenter: ViewStyle = {
 const $miqaatHeader: ViewStyle = {
   paddingBottom: spacing.md,
   width: "100%",
+  flex: 1,
+  flexDirection: "row",
+  justifyContent: "center",
+  alignItems: "center",
 }
 
 const $miqaatHeaderText: TextStyle = {
   borderLeftColor: colors.palette.primary500,
   borderLeftWidth: 4,
   color: colors.palette.neutral900,
-  fontSize: 18,
+  fontSize: 16,
 }
 
 const $miqaatHeaderDescription: TextStyle = {
   borderLeftColor: colors.palette.primary500,
   borderLeftWidth: 4,
-  color: colors.palette.neutral900,
+  color: colors.palette.neutral800,
   fontSize: 13,
+  marginTop: -spacing.xxs,
 }
 
 const $miqaatsList: ViewStyle = {
-  paddingTop: spacing.lg,
-  paddingHorizontal: spacing.lg,
+  paddingTop: spacing.md,
+  paddingHorizontal: spacing.md,
 }
 
 const $weekHeader: ViewStyle = {
@@ -211,7 +229,6 @@ const $headerControlButton: ViewStyle = {
 
 const $headerText: TextStyle = {
   fontSize: 18,
-  fontWeight: "800",
 }
 
 const $headerControl: ViewStyle = {
@@ -228,4 +245,8 @@ const $headerControl: ViewStyle = {
   borderTopWidth: 1,
 }
 
-// +1 647 897 0946
+const $contentContainer: ViewStyle = {
+  backgroundColor: colors.palette.neutral200,
+  flexGrow: 1,
+  paddingBottom: 50,
+}

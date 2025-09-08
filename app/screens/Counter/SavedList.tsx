@@ -1,4 +1,4 @@
-import { Screen } from "app/components"
+import { Screen, Text } from "app/components"
 import Header from "app/components/Header"
 import { AppStackScreenProps } from "app/navigators"
 import { observer } from "mobx-react-lite"
@@ -14,7 +14,7 @@ export const SavedTasbeehScreen: FC<SavedTasbeehScreenProps> = observer(
     const { tasbeehStore } = useStores()
     const savedList = tasbeehStore.savedList
 
-    console.log(savedList)
+    console.log("savedList", savedList)
 
     return (
       <Screen
@@ -24,6 +24,13 @@ export const SavedTasbeehScreen: FC<SavedTasbeehScreenProps> = observer(
         contentContainerStyle={$screenContainer}
       >
         <Header title="Saved Tasbeeh" showBackButton rightActions={<View />} />
+        <View style={$listContainer}>
+          {savedList.map((item) => (
+            <View key={item.tasbeeh.id}>
+              <Text>{item.count}</Text>
+            </View>
+          ))}
+        </View>
       </Screen>
     )
   },
@@ -33,4 +40,9 @@ const $screenContainer: ViewStyle = {
   backgroundColor: "rgb(254, 244, 227)",
   flex: 1,
   height: Dimensions.get("screen").height,
+}
+
+const $listContainer: ViewStyle = {
+  paddingHorizontal: 20,
+  paddingVertical: 20,
 }

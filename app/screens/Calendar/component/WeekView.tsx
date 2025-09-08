@@ -1,7 +1,7 @@
 import { Dimensions, FlatList, Pressable, TextStyle, View, ViewStyle } from "react-native"
 import React from "react"
 import { Text } from "app/components"
-import { colors } from "app/theme"
+import { colors, typography } from "app/theme"
 import { CalendarDay } from "app/libs/Calendar"
 
 const screenWidth = Dimensions.get("window").width
@@ -40,7 +40,7 @@ export function WeekView({
 
               <View style={$dayContainerInner}>
                 <Text
-                  weight="bold"
+                  weight="medium"
                   style={[
                     $dayText,
                     showArabic && $dayTextArabic,
@@ -77,6 +77,8 @@ export function WeekView({
   )
 }
 
+const dayHeight = screenWidth / 7 + 15
+
 const $weekContainer: ViewStyle = {
   flexDirection: "row",
   backgroundColor: colors.palette.neutral100,
@@ -96,13 +98,13 @@ const $miqaatDot: ViewStyle = {
 }
 
 const $highlight: ViewStyle = {
-  borderRightWidth: 2,
-  borderLeftWidth: 2,
-  borderTopWidth: 2,
-  borderBottomWidth: 2,
+  borderRightWidth: 1,
+  borderLeftWidth: 1,
+  borderTopWidth: 1,
+  borderBottomWidth: 1,
   borderRadius: 2,
   position: "absolute",
-  height: screenWidth / 7,
+  height: dayHeight,
   width: screenWidth / 7,
 }
 
@@ -115,10 +117,10 @@ const $daySelected: ViewStyle = {
 }
 
 const $dayToday: ViewStyle = {
-  borderRightWidth: 2,
-  borderLeftWidth: 2,
-  borderTopWidth: 2,
-  borderBottomWidth: 2,
+  borderRightWidth: 1,
+  borderLeftWidth: 1,
+  borderTopWidth: 1,
+  borderBottomWidth: 1,
   borderLeftColor: colors.palette.primary500,
   borderRightColor: colors.palette.primary500,
   borderTopColor: colors.palette.primary500,
@@ -145,7 +147,7 @@ const $dayTodayText: TextStyle = {
 const $dayList: ViewStyle = {}
 
 const $dayContainer: ViewStyle = {
-  height: screenWidth / 7,
+  height: dayHeight,
   width: screenWidth / 7,
   justifyContent: "center",
   alignItems: "center",
@@ -169,9 +171,9 @@ const $dayText: TextStyle = {
 }
 
 const $dayTextArabic: TextStyle = {
-  fontFamily: "arabic",
-  lineHeight: 45,
-  fontSize: 36,
+  fontFamily: typography.arabic.kanz,
+  lineHeight: 60,
+  fontSize: 42,
   width: "100%",
 }
 

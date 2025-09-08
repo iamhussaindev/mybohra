@@ -8,12 +8,15 @@ import { BackButton } from "app/appComponents/BackButton"
 export default function CalendarHeader({
   setCalendar,
   calendar,
+  setSelectedDate,
 }: {
   calendar: Calendar
   setCalendar: any
+  setSelectedDate: any
 }) {
   const handleToday = () => {
     setCalendar(new Calendar({ miqaats: calendar.miqaats }))
+    setSelectedDate(calendar.getToday)
   }
 
   return (
