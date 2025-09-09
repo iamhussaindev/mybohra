@@ -1,9 +1,10 @@
-import React from "react"
 import { Card, Text } from "app/components"
-import { Dimensions, FlatList, TextStyle, View, ViewStyle } from "react-native"
+import { CurrentGhari } from "app/helpers/namaz.helper"
 import { colors, spacing } from "app/theme"
 import { getFormattedTime } from "app/utils/common"
-import { CurrentGhari } from "app/helpers/namaz.helper"
+import { observer } from "mobx-react-lite"
+import React from "react"
+import { Dimensions, FlatList, TextStyle, View, ViewStyle } from "react-native"
 
 const namazTimes = [
   { key: "4", text: "Sehori End", time_key: "sihori" },
@@ -15,7 +16,7 @@ const namazTimes = [
 
 const screenWidth = Dimensions.get("window").width
 
-export default function NamazTimesList(props: {
+export default observer(function NamazTimesList(props: {
   containerStyle?: any
   times?: any
   nextTimeKey?: string
@@ -54,7 +55,7 @@ export default function NamazTimesList(props: {
       />
     </View>
   )
-}
+})
 
 function NamazCard(props: {
   index?: number

@@ -1,8 +1,10 @@
-import { Dimensions, FlatList, Pressable, TextStyle, View, ViewStyle } from "react-native"
-import React from "react"
+
+
 import { Text } from "app/components"
-import { colors, typography } from "app/theme"
 import { CalendarDay } from "app/libs/Calendar"
+import { colors, typography } from "app/theme"
+import React from "react"
+import { Dimensions, FlatList, Pressable, TextStyle, View, ViewStyle } from "react-native"
 
 const screenWidth = Dimensions.get("window").width
 

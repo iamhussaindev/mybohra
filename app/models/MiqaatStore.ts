@@ -1,10 +1,10 @@
-import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
-import { api } from "app/services/api"
-import * as storage from "app/utils/storage"
-import HijriDate from "app/libs/HijriDate"
-import { timeInMilliseconds } from "app/utils/common"
 import { setupTitle } from "app/helpers/miqaat.helper"
+import HijriDate from "app/libs/HijriDate"
+import { api } from "app/services/api"
+import { timeInMilliseconds } from "app/utils/common"
 import { momentTime } from "app/utils/currentTime"
+import * as storage from "app/utils/storage"
+import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
 export const MiqaatModel = types.model("MiqaatModel", {
   id: types.identifierNumber,
@@ -56,6 +56,7 @@ export const MiqaatStoreModel = types
           if (response.kind === "ok") {
             self.list = response.data?.miqaats
             yield storage.save("MIQAAT", response.data?.miqaats)
+            yield storage.save("MIQAAT_VERSION", version.data?.version)
           }
         } catch (error) {
           console.log(error)

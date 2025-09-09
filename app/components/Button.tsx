@@ -7,7 +7,9 @@ import {
   TextStyle,
   ViewStyle,
 } from "react-native"
+
 import { colors, spacing, typography } from "../theme"
+
 import { Text, TextProps } from "./Text"
 
 type Presets = keyof typeof $viewPresets
@@ -208,8 +210,8 @@ const $viewPresets = {
   default: [
     $baseViewStyle,
     {
-      borderWidth: 1,
-      borderColor: colors.palette.neutral400,
+      borderWidth: 0,
+      borderColor: colors.palette.neutral100,
       backgroundColor: colors.palette.neutral100,
     },
   ] as StyleProp<ViewStyle>,
@@ -232,10 +234,10 @@ const $textPresets: Record<Presets, StyleProp<TextStyle>> = {
 }
 
 const $pressedViewPresets: Record<Presets, StyleProp<ViewStyle>> = {
-  default: { backgroundColor: colors.transparent },
-  filled: { backgroundColor: colors.transparent },
+  default: { backgroundColor: colors.palette.primary600 },
+  filled: { backgroundColor: colors.palette.primary800 },
   reversed: { backgroundColor: colors.palette.neutral700 },
-  tinted: {},
+  tinted: { backgroundColor: colors.palette.neutral100 },
 }
 
 const $pressedTextPresets: Record<Presets, StyleProp<TextStyle>> = {

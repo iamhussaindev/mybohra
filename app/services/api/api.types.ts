@@ -35,6 +35,10 @@ export interface ApiLocationResponse {
   distance: number
 }
 
+export interface ApiLocationsResponse {
+  locations: ApiLocationResponse[]
+}
+
 export interface Metadata {
   pdfSize?: number
   audioSize?: number

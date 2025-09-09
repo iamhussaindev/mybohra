@@ -1,52 +1,18 @@
-import { currentTime } from "app/utils/currentTime"
-import React, { useCallback, useEffect, useState } from "react"
-import { NativeModules } from "react-native"
-import NextNamaz from "./NextNamaz"
+import { NamazTimes } from "app/helpers/namaz.helper"
+import { useLocationPrayerTimes } from "app/hooks/useLocationPrayerTimes"
+import { useNextNamaz } from "app/hooks/useNextNamaz"
+import { observer } from "mobx-react-lite"
+import React from "react"
+
 import NamazTimesList from "./NamazTimes"
-import {
-  CurrentGhari,
-  NamazTimes,
-  getCurrentGhari,
-  getNextNamazKey,
-} from "app/helpers/namaz.helper"
-import { useStores } from "app/models"
+import NextNamaz from "./NextNamaz"
 
-export default function NamazUI() {
-  const date = currentTime().toISOString()
-  const [times, setTimes] = useState<any>({})
-  const [nextNamazKey, setNextNamazKey] = useState<string>("")
-  const [currentGhari, setCurrentGhari] = useState<CurrentGhari>()
+export default observer(function NamazUI() {
+  // Use the comprehensive location + prayer times hook
+  const { times, timesLoaded } = useLocationPrayerTimes()
 
-  const { dataStore } = useStores()
-
-  useEffect(() => {
-    getPrayerTimes(dataStore.currentLocation.latitude, dataStore.currentLocation.longitude, date)
-  }, [])
-
-  const getNextNamaz = useCallback(() => {
-    const nextNamazKey = getNextNamazKey(times)
-    setNextNamazKey(nextNamazKey)
-    const currentGhari = getCurrentGhari(times, nextNamazKey)
-    setCurrentGhari(currentGhari)
-  }, [times])
-
-  useEffect(() => {
-    getNextNamaz()
-
-    const timer = setInterval(() => {
-      getNextNamaz()
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [times])
-
-  const getPrayerTimes = async (lat: number, lon: number, date: string) => {
-    NativeModules.SalaatTimes.getPrayerTimes(lat, lon, date, (times: any) => {
-      setTimes(times)
-    })
-  }
-
-  const timesLoaded = Object.keys(times).length > 0
+  // Use the next namaz hook for automatic updates
+  const { nextNamazKey, currentGhari } = useNextNamaz(times)
 
   return (
     <>
@@ -56,4 +22,4 @@ export default function NamazUI() {
       ) : null}
     </>
   )
-}
+})

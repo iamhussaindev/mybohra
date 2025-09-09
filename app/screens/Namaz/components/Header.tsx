@@ -1,10 +1,13 @@
-import React from "react"
+
+
+
+import { BackButton } from "app/appComponents/BackButton"
 import { Button, Icon, Text } from "app/components"
 import { colors, spacing } from "app/theme"
-import { ImageStyle, TextStyle, View, ViewStyle } from "react-native"
-import { BackButton } from "app/appComponents/BackButton"
-import { Moment } from "moment"
 import { momentTime } from "app/utils/currentTime"
+import { Moment } from "moment"
+import React from "react"
+import { ImageStyle, TextStyle, View, ViewStyle } from "react-native"
 
 export default function NamazScreenHeader({
   title,

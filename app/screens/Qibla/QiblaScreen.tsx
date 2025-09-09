@@ -1,8 +1,8 @@
+import { useStores } from "app/models"
+import haversine from "haversine"
 import React, { useEffect, useState } from "react"
 import { View, Text, StyleSheet } from "react-native"
 import sensors from "react-native-sensors"
-import haversine from "haversine"
-import { useStores } from "app/models"
 
 const QiblaDirectionScreen = () => {
   const [location, setLocation] = useState(null)

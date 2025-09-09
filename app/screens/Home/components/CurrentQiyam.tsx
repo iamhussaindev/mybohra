@@ -3,6 +3,7 @@ import { colors, spacing } from "app/theme"
 import React from "react"
 import { View, ViewStyle } from "react-native"
 
+
 export default function CurrentQiyam(props: { qiyam?: string }) {
   return (
     <View style={$container}>

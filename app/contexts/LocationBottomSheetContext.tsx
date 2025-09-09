@@ -1,4 +1,7 @@
+import { useStores } from "app/models"
+import { PlainLocation } from "app/types/location"
 import React, { createContext, useContext, useRef, ReactNode } from "react"
+
 import {
   LocationBottomSheet,
   LocationBottomSheetRef,
@@ -17,6 +20,7 @@ interface LocationBottomSheetProviderProps {
 
 export function LocationBottomSheetProvider({ children }: LocationBottomSheetProviderProps) {
   const locationBottomSheetRef = useRef<LocationBottomSheetRef>(null)
+  const { dataStore } = useStores()
 
   const openLocationBottomSheet = () => {
     locationBottomSheetRef.current?.open()
@@ -26,10 +30,15 @@ export function LocationBottomSheetProvider({ children }: LocationBottomSheetPro
     locationBottomSheetRef.current?.close()
   }
 
-  const handleLocationSelect = (location: any) => {
-    console.log("Selected location:", location)
-    // Here you can update the current location in the dataStore
-    // dataStore.setCurrentLocation(location)
+  const handleLocationSelect = async (location: PlainLocation, isPersistent = false) => {
+    if (isPersistent) {
+      await dataStore.setCurrentLocation(location, true)
+    } else {
+      // When user manually selects a location, set it as persistent
+      dataStore.setTemporaryLocation(location)
+      dataStore.setPersistentMode(true) // Auto-enable persistent mode for manual selections
+    }
+    closeLocationBottomSheet()
   }
 
   return (

@@ -1,7 +1,8 @@
-import React from "react"
 import { Text } from "app/components"
-import { View } from "react-native"
 import { $centerScreen } from "app/theme/styling"
+import React from "react"
+import { View } from "react-native"
+
 
 export function MarketScreen() {
   return (

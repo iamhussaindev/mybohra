@@ -8,9 +8,11 @@ import {
   FlatList,
   ImageStyle,
 } from "react-native"
+
 import { colors, spacing } from "../theme"
-import { Text } from "./Text"
+
 import { Icon } from "./Icon"
+import { Text } from "./Text"
 
 export interface DropdownOption {
   label: string

@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react"
+
+
 import { Icon, Text } from "app/components"
 import HijriDate from "app/libs/HijriDate"
-import { momentTime } from "app/utils/currentTime"
-import { TextStyle, View, ViewStyle } from "react-native"
 import { colors } from "app/theme"
+import { momentTime } from "app/utils/currentTime"
+import React, { useCallback, useEffect, useState } from "react"
+import { TextStyle, View, ViewStyle } from "react-native"
 
 export function CurrentTime() {
   const getCurrentTime = useCallback(() => {

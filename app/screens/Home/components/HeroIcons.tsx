@@ -1,7 +1,8 @@
-import React from "react"
 import { Card, Text } from "app/components"
-import { Dimensions, Image, ImageStyle, TextStyle, View, ViewStyle } from "react-native"
 import { colors, spacing } from "app/theme"
+import React from "react"
+import { Dimensions, Image, ImageStyle, TextStyle, View, ViewStyle } from "react-native"
+
 
 const screenWidth = Dimensions.get("window").width
 

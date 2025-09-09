@@ -1,8 +1,10 @@
-import React from "react"
 import { Icon, Text } from "app/components"
-import { ImageStyle, TextStyle, View, ViewStyle, TouchableOpacity } from "react-native"
-import { colors, spacing } from "app/theme"
 import { ILocation } from "app/models/DataStore"
+import { colors, spacing } from "app/theme"
+import { observer } from "mobx-react-lite"
+import React from "react"
+import { ImageStyle, TextStyle, View, ViewStyle, TouchableOpacity } from "react-native"
+
 import { CurrentTime } from "./atoms/CurrentTime"
 
 interface HeaderProps {
@@ -15,7 +17,7 @@ interface HeaderProps {
   onLocationPress?: () => void
 }
 
-export function Header(props: HeaderProps) {
+export const Header = observer(function Header(props: HeaderProps) {
   const $shadow: ViewStyle = {
     shadowColor: colors.border,
     shadowOffset: {
@@ -49,7 +51,7 @@ export function Header(props: HeaderProps) {
       </View>
     </View>
   )
-}
+})
 
 const $headerLocationIconStyle: ImageStyle = {
   transform: [{ rotate: "-90deg" }],

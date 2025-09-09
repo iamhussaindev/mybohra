@@ -1,3 +1,4 @@
+import { isRTL } from "app/i18n"
 import React, { ComponentType, FC, useMemo } from "react"
 import {
   GestureResponderEvent,
@@ -20,10 +21,12 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated"
+
+
 import { colors, spacing } from "../theme"
+
 import { iconRegistry, IconTypes } from "./Icon"
 import { Text, TextProps } from "./Text"
-import { isRTL } from "app/i18n"
 
 type Variants = "checkbox" | "switch" | "radio"
 

@@ -1,5 +1,6 @@
 // we always make sure 'react-native' gets included first
 import * as ReactNative from "react-native"
+
 import mockFile from "./mockFile"
 
 // libraries to mock

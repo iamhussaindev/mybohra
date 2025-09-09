@@ -1,6 +1,8 @@
 import React from "react"
 import { Switch as RNSwitch, SwitchProps, ViewStyle, TextStyle, View } from "react-native"
+
 import { colors, spacing } from "../theme"
+
 import { Text } from "./Text"
 
 export interface SwitchComponentProps extends Omit<SwitchProps, "onValueChange"> {

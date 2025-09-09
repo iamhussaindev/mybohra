@@ -1,7 +1,8 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
+
 import { DataStoreModel, LocationModel } from "./DataStore"
-import { MiqaatStoreModel } from "./MiqaatStore"
 import { LibraryStoreModel } from "./LibraryStore"
+import { MiqaatStoreModel } from "./MiqaatStore"
 import { TasbeehStoreModel } from "./TasbeehStore"
 
 /**
@@ -10,6 +11,9 @@ import { TasbeehStoreModel } from "./TasbeehStore"
 export const RootStoreModel = types.model("RootStore").props({
   dataStore: types.optional(DataStoreModel, {
     currentLocation: LocationModel.create(),
+    currentLocationLoaded: false,
+    locations: [],
+    locationsLoaded: false,
   }),
   miqaatStore: types.optional(MiqaatStoreModel, {
     list: [],
@@ -21,7 +25,6 @@ export const RootStoreModel = types.model("RootStore").props({
 
   tasbeehStore: types.optional(TasbeehStoreModel, {
     list: [],
-    savedList: [],
     defaultTasbeehCount: 0,
     savingCount: false,
   }),

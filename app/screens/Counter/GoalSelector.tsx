@@ -1,11 +1,13 @@
-import React from "react"
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetFlatList,
   SCREEN_WIDTH,
 } from "@gorhom/bottom-sheet"
-import { Pressable, TextStyle, ViewStyle } from "react-native"
 import { Text } from "app/components"
+import React from "react"
+import { Pressable, TextStyle, ViewStyle } from "react-native"
+
+
 
 const GoalSelector = ({
   setGoal,

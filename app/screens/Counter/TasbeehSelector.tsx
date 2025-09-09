@@ -1,16 +1,15 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-
-import { Pressable, TextInput, TextStyle, View, ViewStyle } from "react-native"
-import { Text } from "app/components"
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetSectionList,
   SCREEN_WIDTH,
 } from "@gorhom/bottom-sheet"
+import { Text } from "app/components"
+import { ITasbeeh } from "app/models/TasbeehStore"
+import { typography } from "app/theme"
 import Fuse from "fuse.js"
 import groupBy from "lodash/groupBy"
-import { typography } from "app/theme"
-import { ITasbeeh } from "app/models/TasbeehStore"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Pressable, TextInput, TextStyle, View, ViewStyle } from "react-native"
 
 const TasbeehSelector = React.memo(
   ({

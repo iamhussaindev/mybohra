@@ -1,6 +1,7 @@
 import HijriDate from "app/libs/HijriDate"
 import moment from "moment"
 
+
 export const getFormattedTime = (time: string) => {
   return moment(time, "HH:mm").format("hh:mm A")
 }

@@ -1,7 +1,7 @@
-import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 import { api } from "app/services/api"
-import * as storage from "app/utils/storage"
 import { momentTime } from "app/utils/currentTime"
+import * as storage from "app/utils/storage"
+import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
 export const MetadataModel = types.model("MetadataModel", {
   audioSize: types.maybeNull(types.number),

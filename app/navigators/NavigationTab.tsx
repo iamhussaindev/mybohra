@@ -1,15 +1,20 @@
+
+
 import { BottomTabScreenProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { CompositeScreenProps } from "@react-navigation/native"
+import { Icon, Text } from "app/components"
+import { AccountScreen } from "app/screens/Account/AccountScreen"
+import { MarketScreen } from "app/screens/Market/MarketScreen"
+import { SearchScreen } from "app/screens/Search/SearchScreen"
 import React from "react"
 import { TextStyle, ViewStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { Icon, Text } from "app/components"
+
 import { HomeScreen } from "../screens"
 import { colors, spacing, typography } from "../theme"
+
 import { AppStackParamList, AppStackScreenProps } from "./AppNavigator"
-import { SearchScreen } from "app/screens/Search/SearchScreen"
-import { AccountScreen } from "app/screens/Account/AccountScreen"
-import { MarketScreen } from "app/screens/Market/MarketScreen"
+
 
 export type TabParamList = {
   Home: undefined

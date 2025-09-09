@@ -1,7 +1,9 @@
-import { momentTime } from "app/utils/currentTime"
-import HijriDate from "./HijriDate"
-import moment from "moment"
+
 import { IMiqaat } from "app/models/MiqaatStore"
+import { momentTime } from "app/utils/currentTime"
+import moment from "moment"
+
+import HijriDate from "./HijriDate"
 
 const MIN_CALENDAR_YEAR = 1000
 const MAX_CALENDAR_YEAR = 3000

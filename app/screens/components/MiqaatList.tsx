@@ -1,9 +1,11 @@
-import React from "react"
+
+
 import { Card, ListView, Text } from "app/components"
+import HijriDate from "app/libs/HijriDate"
 import { IMiqaat } from "app/models/MiqaatStore"
 import { colors, spacing } from "app/theme"
+import React from "react"
 import { View, ViewStyle, Image, ImageStyle, TextStyle } from "react-native"
-import HijriDate from "app/libs/HijriDate"
 
 export function MiqaatCard({
   item,

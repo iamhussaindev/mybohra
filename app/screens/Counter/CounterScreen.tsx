@@ -1,5 +1,9 @@
+import BottomSheet, { SCREEN_HEIGHT, SCREEN_WIDTH } from "@gorhom/bottom-sheet"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import { Icon, Screen, Text } from "app/components"
 import Header from "app/components/Header"
+import { useStores } from "app/models"
+import { ITasbeeh } from "app/models/TasbeehStore"
 import { AppStackScreenProps } from "app/navigators"
 import { typography } from "app/theme"
 import { observer } from "mobx-react-lite"
@@ -15,22 +19,24 @@ import {
   Image,
   ImageStyle,
 } from "react-native"
+import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 import * as Progress from "react-native-progress"
-import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler"
 import Animated, {
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   runOnJS,
 } from "react-native-reanimated"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import TasbeehSelector from "./TasbeehSelector"
-import GoalSelector from "./GoalSelector"
-import BottomSheet, { SCREEN_HEIGHT, SCREEN_WIDTH } from "@gorhom/bottom-sheet"
-import { useStores } from "app/models"
+
+
+
 import FullScreenLoader from "../Loader/FullScreenLoader"
-import { ITasbeeh } from "app/models/TasbeehStore"
+
+import GoalSelector from "./GoalSelector"
+import TasbeehSelector from "./TasbeehSelector"
+
+
 
 interface CounterScreenProps extends AppStackScreenProps<"Counter"> {}
 

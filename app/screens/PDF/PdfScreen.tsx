@@ -1,18 +1,21 @@
-import Pdf from "react-native-pdf"
-import React, { FC, useEffect, useRef, useState } from "react"
-import { AppStackScreenProps } from "app/navigators"
-import { observer } from "mobx-react-lite"
-import { Dimensions, TextStyle, TouchableHighlight, ViewStyle } from "react-native"
-import { ILibrary } from "app/models/LibraryStore"
+
+
+import Slider from "@react-native-community/slider"
 import { Icon, Screen, Text } from "app/components"
-import { Header } from "./PdfHeader"
+import { formatTime } from "app/helpers/audio.helper"
 import { useSoundPlayer } from "app/hooks/useAudio"
+import { ILibrary } from "app/models/LibraryStore"
+import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
-import { State } from "react-native-track-player"
+import { observer } from "mobx-react-lite"
+import React, { FC, useEffect, useRef, useState } from "react"
+import { Dimensions, TextStyle, TouchableHighlight, ViewStyle } from "react-native"
+import Pdf from "react-native-pdf"
 import * as Progress from "react-native-progress"
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
-import Slider from "@react-native-community/slider"
-import { formatTime } from "app/helpers/audio.helper"
+import { State } from "react-native-track-player"
+
+import { Header } from "./PdfHeader"
 
 interface PdfScreenProps extends AppStackScreenProps<"PdfViewer"> {}
 

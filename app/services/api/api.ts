@@ -6,7 +6,9 @@
  * documentation for more details.
  */
 import { ApiResponse, ApisauceInstance, create } from "apisauce"
+
 import Config from "../../config"
+
 import type {
   ApiConfig,
   ApiDataResponse,
@@ -147,6 +149,27 @@ export class Api {
 
     try {
       const data = response.data as ApiMiqaatResponse
+      return { kind: "ok", data }
+    } catch (error) {
+      if (__DEV__) {
+        console.log(error)
+      }
+      return { kind: "bad-data" }
+    }
+  }
+
+  fetchLocations = async (): Promise<
+    { kind: "ok"; data: ApiLocationResponse[] } | GeneralApiProblem
+  > => {
+    const response: ApiResponse<ApiLocationResponse[]> = await this.apisauce.get(`location/all`)
+
+    if (!response.ok) {
+      const problem = getGeneralApiProblem(response)
+      if (problem) return problem
+    }
+
+    try {
+      const data = response.data as ApiLocationResponse[]
       return { kind: "ok", data }
     } catch (error) {
       if (__DEV__) {

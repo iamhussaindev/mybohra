@@ -1,25 +1,26 @@
 import { Text } from "app/components"
-import { colors, spacing } from "app/theme"
-import React, { useCallback, useEffect, useState } from "react"
-import { View, ViewStyle } from "react-native"
-import { getFormattedTime } from "app/utils/common"
 import {
-  getNamazTimeDiffernce,
+  getNamazTimeDifference,
   namazEndDescription,
   namazLabels,
   NamazTimes,
 } from "app/helpers/namaz.helper"
+import { colors, spacing } from "app/theme"
+import { getFormattedTime } from "app/utils/common"
+import { observer } from "mobx-react-lite"
+import React, { useCallback, useEffect, useState } from "react"
+import { View, ViewStyle } from "react-native"
 
 interface NextNamazProps {
   times: NamazTimes
   nextTimeKey: keyof NamazTimes
 }
 
-export default function NextNamaz(props: NextNamazProps) {
+export default observer(function NextNamaz(props: NextNamazProps) {
   const nextNamazTime = props.times[props.nextTimeKey]
 
   const getCurrentTime = useCallback(() => {
-    return getNamazTimeDiffernce(nextNamazTime)
+    return getNamazTimeDifference(nextNamazTime)
   }, [nextNamazTime])
 
   const [timeDiffString, setTimeDiffString] = useState(() => getCurrentTime().name)
@@ -37,10 +38,7 @@ export default function NextNamaz(props: NextNamazProps) {
       <View style={$borderLeft}></View>
       <View style={$nextNamazLabel}>
         <Text text={props.nextTimeKey === "sihori" ? "" : `Next Namaz `} />
-        <Text
-          weight="bold"
-          text={`${namazLabels[props.nextTimeKey as keyof typeof namazLabels]}` ?? ""}
-        />
+        <Text weight="bold" text={namazLabels[props.nextTimeKey as keyof typeof namazLabels]} />
         <Text text={` ${namazEndDescription[props.nextTimeKey]} `} />
       </View>
       <View style={$timeText}>
@@ -49,7 +47,7 @@ export default function NextNamaz(props: NextNamazProps) {
       </View>
     </View>
   ) : null
-}
+})
 
 const $timeText: ViewStyle = {
   flexDirection: "row",

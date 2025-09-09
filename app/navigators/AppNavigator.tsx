@@ -4,17 +4,21 @@
  * Generally speaking, it will contain an auth flow (registration, login, forgot password)
  * and a "main" flow which the user will use once logged in.
  */
+
+
 import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
+import HijriDate from "app/libs/HijriDate"
+import * as Screens from "app/screens"
+import { colors } from "app/theme"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { useColorScheme } from "react-native"
-import * as Screens from "app/screens"
+
 import Config from "../config"
-import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
-import { colors } from "app/theme"
+
 import { NavigationTab } from "./NavigationTab"
-import HijriDate from "app/libs/HijriDate"
+import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator

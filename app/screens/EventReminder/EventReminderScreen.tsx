@@ -1,10 +1,12 @@
+
+
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native"
 import { Button, Dropdown, Screen, Switch, Text, TextField } from "app/components"
+import Header from "app/components/Header"
+import HijriDate from "app/libs/HijriDate"
 import { colors, spacing } from "app/theme"
 import React, { useState } from "react"
 import { TextStyle, View, ViewStyle, ScrollView, Alert } from "react-native"
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native"
-import HijriDate from "app/libs/HijriDate"
-import Header from "app/components/Header"
 
 type EventReminderRouteProp = RouteProp<
   {

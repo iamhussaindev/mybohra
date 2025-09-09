@@ -1,10 +1,14 @@
-import React, { useEffect } from "react"
-import { Icon, Text } from "app/components"
-import { Pressable, TextStyle, View, ViewStyle } from "react-native"
-import { colors, spacing } from "app/theme"
+
+
+
 import { BackButton } from "app/appComponents/BackButton"
+import { Icon, Text } from "app/components"
 import { ILibrary } from "app/models/LibraryStore"
+import { colors, spacing } from "app/theme"
+import React, { useEffect } from "react"
+import { Pressable, TextStyle, View, ViewStyle } from "react-native"
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
+
 
 interface HeaderProps extends ILibrary {
   isFullscreen?: boolean

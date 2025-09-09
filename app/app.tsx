@@ -4,23 +4,24 @@ if (__DEV__) {
 }
 import "./i18n"
 import "./utils/ignoreWarnings"
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
 import { useFonts } from "expo-font"
-import React, { useEffect } from "react"
-import { locationStorage } from "./utils/storage"
-import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
 import * as Linking from "expo-linking"
+import React, { useEffect } from "react"
+import { ViewStyle } from "react-native"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
+import GetLocation from "react-native-get-location"
+import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
+
+import Config from "./config"
+import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
+import { SoundProvider } from "./hooks/useAudio"
 import { useInitialRootStore, useStores } from "./models"
 import { AppNavigator, useNavigationPersistence } from "./navigators"
 import { ErrorBoundary } from "./screens/ErrorScreen/ErrorBoundary"
-import * as storage from "./utils/storage"
 import { customFontsToLoad } from "./theme"
-import Config from "./config"
-import { GestureHandlerRootView } from "react-native-gesture-handler"
-import { ViewStyle } from "react-native"
-import GetLocation from "react-native-get-location"
-import { SoundProvider } from "./hooks/useAudio"
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet"
-import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
+import * as storage from "./utils/storage"
+import { locationStorage } from "./utils/storage"
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
@@ -66,6 +67,8 @@ function App(props: AppProps) {
     await hideSplashScreen()
     await fetchHomeLibrary()
     await fetchTasbeeh()
+    await fetchLocations()
+    await loadLocationMode()
   }
 
   useEffect(() => {
@@ -83,6 +86,9 @@ function App(props: AppProps) {
         }
       })
   }, [])
+
+  // Smart location change detection is now handled in DataStore.fetchNearestLocation
+  // No need for app state change monitoring
 
   const syncNearestLocation = async (latitude: number, longitude: number) => {
     await dataStore.fetchNearestLocation(latitude, longitude)
@@ -105,6 +111,14 @@ function App(props: AppProps) {
 
   const fetchHomeLibrary = async () => {
     await libraryStore.fetchHomeData()
+  }
+
+  const fetchLocations = async () => {
+    await dataStore.fetchLocations()
+  }
+
+  const loadLocationMode = async () => {
+    await dataStore.loadLocationMode()
   }
 
   if (!rehydrated || !isNavigationStateRestored || !areFontsLoaded) return null

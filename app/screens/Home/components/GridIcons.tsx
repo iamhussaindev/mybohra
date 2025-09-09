@@ -1,7 +1,8 @@
-import { Image, ImageStyle, Pressable, View, ViewStyle } from "react-native"
-import React from "react"
 import { Text } from "app/components"
 import { spacing } from "app/theme"
+import React from "react"
+import { Image, ImageStyle, Pressable, View, ViewStyle } from "react-native"
+
 
 const data = [
   { key: "1", name: "Library", icon: require(`../../../../assets/images/audio.png`) },

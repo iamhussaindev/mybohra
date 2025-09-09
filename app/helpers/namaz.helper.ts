@@ -92,7 +92,7 @@ export const getTime = (times: ITimes, timeKey: string) => {
   return { date, time }
 }
 
-export const getNamazTimeDiffernce = (nextNamazTime: string) => {
+export const getNamazTimeDifference = (nextNamazTime: string) => {
   const currentTime = momentTime()
 
   const time = moment(nextNamazTime, "HH:mm")
@@ -164,7 +164,7 @@ export const getCurrentGhari = (times: ITimes, nextNamazTime: string): CurrentGh
   if (nextNamazTime === "sihori") {
     const { date: nisf } = getTime(times, "nisful_layl")
     const { date: nisfEnd } = getTime(times, "nisful_layl_end")
-    const { name } = getNamazTimeDiffernce(times.sihori)
+    const { name } = getNamazTimeDifference(times.sihori)
 
     if (momentTime().diff(nisf, "minutes") > 0 && momentTime().diff(nisfEnd, "minutes") < 0) {
       return { key: "nisful_layl", name: "Nisful-Layl", group: "evening" }

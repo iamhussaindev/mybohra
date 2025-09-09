@@ -1,12 +1,16 @@
+
+
+
 import { Text, Icon } from "app/components"
 import { ramazanNiyyat } from "app/data/niyyat"
 import HijriDate from "app/libs/HijriDate"
 import { colors, spacing, typography } from "app/theme"
+import * as storage from "app/utils/storage"
+import i18n from "i18n-js"
 import React, { useState, useEffect, useRef } from "react"
 import { TextStyle, View, ViewStyle, Pressable } from "react-native"
-import * as storage from "app/utils/storage"
 import Swipeable, { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
-import i18n from "i18n-js"
+
 
 export default function RamazaanNiyyat() {
   const hijriDate = new HijriDate()

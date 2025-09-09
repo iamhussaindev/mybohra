@@ -1,8 +1,10 @@
-import React from "react"
+
+
+import { BackButton } from "app/appComponents/BackButton"
 import { Text } from "app/components"
 import { colors } from "app/theme"
+import React from "react"
 import { TextStyle, View, ViewStyle } from "react-native"
-import { BackButton } from "app/appComponents/BackButton"
 
 export default function Header({
   title,

@@ -1,10 +1,13 @@
+
+
 import { Button, Icon, ListView, Text } from "app/components"
 import { Calendar, CalendarDay, WEEKDAYS } from "app/libs/Calendar"
-import { colors, spacing } from "app/theme"
-import { Dimensions, ImageStyle, SectionList, TextStyle, View, ViewStyle } from "react-native"
-import React from "react"
 import { useStores } from "app/models"
 import { MiqaatCard } from "app/screens/components/MiqaatList"
+import { colors, spacing } from "app/theme"
+import React from "react"
+import { Dimensions, ImageStyle, SectionList, TextStyle, View, ViewStyle } from "react-native"
+
 import { WeekView } from "./WeekView"
 
 const screenWidth = Dimensions.get("window").width

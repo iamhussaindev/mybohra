@@ -8,8 +8,10 @@ import {
   View,
   ViewStyle,
 } from "react-native"
+
 import { isRTL, translate } from "../i18n"
 import { colors, spacing, typography } from "../theme"
+
 import { Text, TextProps } from "./Text"
 
 export interface TextFieldAccessoryProps {

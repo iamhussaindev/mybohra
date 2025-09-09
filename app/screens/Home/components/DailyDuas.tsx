@@ -1,5 +1,8 @@
-import React from "react"
 import { Text } from "app/components"
+import { ILibrary } from "app/models/LibraryStore"
+import { colors, spacing } from "app/theme"
+import LottieView from "lottie-react-native"
+import React from "react"
 import {
   Dimensions,
   FlatList,
@@ -10,9 +13,6 @@ import {
   ImageStyle,
   Pressable,
 } from "react-native"
-import { colors, spacing } from "app/theme"
-import { ILibrary } from "app/models/LibraryStore"
-import LottieView from "lottie-react-native"
 import { Track } from "react-native-track-player"
 
 const screenWidth = Dimensions.get("window").width
