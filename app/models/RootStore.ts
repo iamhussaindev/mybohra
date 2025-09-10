@@ -3,6 +3,7 @@ import { Instance, SnapshotOut, types } from "mobx-state-tree"
 import { DataStoreModel, LocationModel } from "./DataStore"
 import { LibraryStoreModel } from "./LibraryStore"
 import { MiqaatStoreModel } from "./MiqaatStore"
+import { ReminderStoreModel } from "./ReminderStore"
 import { TasbeehStoreModel } from "./TasbeehStore"
 
 /**
@@ -21,6 +22,11 @@ export const RootStoreModel = types.model("RootStore").props({
 
   libraryStore: types.optional(LibraryStoreModel, {
     homeData: [],
+  }),
+
+  reminderStore: types.optional(ReminderStoreModel, {
+    reminders: [],
+    isLoaded: false,
   }),
 
   tasbeehStore: types.optional(TasbeehStoreModel, {

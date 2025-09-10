@@ -6,5 +6,6 @@ export * from "./PDF/PdfScreen"
 export * from "./Counter/CounterScreen"
 export * from "./Counter/SavedList"
 export * from "./EventReminder/EventReminderScreen"
+export * from "./Reminders/ReminderScreen"
 export * from "./TasbeehList/TasbeehListScreen"
 // export other screens here

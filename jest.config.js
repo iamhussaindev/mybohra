@@ -19,16 +19,40 @@ const thirdPartyIgnorePatterns = [
 /** @type {import('@jest/types').Config.ProjectConfig} */
 module.exports = {
   ...tsjPreset,
-  preset: "jest-expo",
+  preset: "react-native",
   transformIgnorePatterns: [
     `<rootDir>/node_modules/(?!${thirdPartyIgnorePatterns.join("|")})`,
     "jest-runner",
   ],
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.maestro/", "@react-native"],
   setupFiles: ["<rootDir>/test/setup.ts"],
-  transform:{
-    '^.+\\.test.tsx?$': ['ts-jest', {
-      tsconfig: '<rootDir>/test/test-tsconfig.json'
-    }]
-  }
+  testEnvironment: "node",
+  moduleNameMapping: {
+    "^@/(.*)$": "<rootDir>/app/$1",
+    "^app/(.*)$": "<rootDir>/app/$1",
+  },
+  collectCoverageFrom: [
+    "app/**/*.{ts,tsx}",
+    "!app/**/*.d.ts",
+    "!app/**/index.ts",
+    "!app/**/*.stories.{ts,tsx}",
+    "!app/**/__tests__/**",
+    "!app/**/test/**",
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
+  transform: {
+    "^.+\\.test.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: "<rootDir>/test/test-tsconfig.json",
+      },
+    ],
+  },
 }

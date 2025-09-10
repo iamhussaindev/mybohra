@@ -37,6 +37,15 @@ export async function setupRootStore(rootStore: RootStore) {
     }
   }
 
+  // Initialize reminder store
+  try {
+    await rootStore.reminderStore.loadReminders()
+  } catch (e) {
+    if (__DEV__) {
+      if (e instanceof Error) console.error("Error loading reminders:", e.message)
+    }
+  }
+
   // stop tracking state changes if we've already setup
   if (_disposer) _disposer()
 

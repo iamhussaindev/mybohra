@@ -3,7 +3,6 @@ import { styled } from "nativewind"
 import React from "react"
 import { StyleProp, Text as RNText, TextProps as RNTextProps, TextStyle } from "react-native"
 
-
 import { isRTL, translate, TxKeyPath } from "../i18n"
 import { colors, typography } from "../theme"
 
@@ -47,6 +46,8 @@ export interface TextProps extends RNTextProps {
   children?: React.ReactNode
 
   className?: string
+
+  color?: string
 }
 
 /**
@@ -66,6 +67,7 @@ export function Text(props: TextProps) {
     children,
     style: $styleOverride,
     className,
+    color,
     ...rest
   } = props
 
@@ -76,8 +78,9 @@ export function Text(props: TextProps) {
   const $styles: StyleProp<TextStyle> = [
     $rtlStyle,
     $presets[preset],
-    weight && $fontWeightStyles[weight],
-    size && $sizeStyles[size],
+    weight ? $fontWeightStyles[weight] : undefined,
+    size ? $sizeStyles[size] : undefined,
+    color ? { color: color as string } : undefined,
     $styleOverride,
   ]
 

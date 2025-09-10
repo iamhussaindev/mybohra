@@ -1,10 +1,16 @@
-import { IconCurrentLocationFilled, IconEdit } from "@tabler/icons-react-native"
-import { Icon, IconTypes, ListView, Screen, Text } from "app/components"
+import {
+  IconBell,
+  IconBellOff,
+  IconCurrentLocationFilled,
+  IconEdit,
+} from "@tabler/icons-react-native"
+import { Button, Icon, IconTypes, ListView, Screen, Text } from "app/components"
 import Header from "app/components/Header"
 import { useLocationBottomSheet } from "app/contexts/LocationBottomSheetContext"
 import { ITimes, CurrentGhari } from "app/helpers/namaz.helper"
 import { useNextNamaz } from "app/hooks/useNextNamaz"
 import { usePrayerTimesWithDate } from "app/hooks/usePrayerTimesWithDate"
+import { useReminders } from "app/hooks/useReminders"
 import { useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
@@ -14,6 +20,8 @@ import { observer } from "mobx-react-lite"
 import { Moment } from "moment"
 import React, { FC, useState } from "react"
 import { ImageStyle, Pressable, SectionList, TextStyle, View, ViewStyle } from "react-native"
+
+import { TestReminderButton } from "./components/TestReminderButton"
 
 const timesToShow = {
   morning: {
@@ -38,6 +46,8 @@ function NamazItem({
   name,
   group,
   isLast,
+  onPress,
+  isReminderEnabled,
 }: {
   isLast: boolean
   currentGhari?: CurrentGhari
@@ -46,6 +56,8 @@ function NamazItem({
   name: string
   times: ITimes
   group: string
+  onPress: () => void
+  isReminderEnabled: boolean
 }) {
   // @ts-ignore
   const label = timesToShow[group as keyof typeof timesToShow][name]
@@ -58,11 +70,41 @@ function NamazItem({
           <Text style={$itemTextName}>{label}</Text>
         </View>
       </View>
-      <Text weight="bold" style={$itemText}>
-        {getFormattedTime(value)}
-      </Text>
+      <View style={$itemTextContainer}>
+        <Text weight="bold" style={$itemText}>
+          {getFormattedTime(value)}
+        </Text>
+        <Pressable style={$reminderButton} onPress={onPress}>
+          {isReminderEnabled ? (
+            <IconBell size={20} color={colors.palette.primary500} />
+          ) : (
+            <IconBellOff size={20} color={colors.palette.neutral800} />
+          )}
+        </Pressable>
+      </View>
     </View>
   )
+}
+
+const $reminderButton: ViewStyle = {
+  padding: spacing.xs,
+  marginLeft: spacing.sm,
+  borderRadius: spacing.xxxl,
+  backgroundColor: colors.palette.neutral100,
+  borderWidth: 1,
+  borderColor: colors.gray,
+  shadowColor: colors.gray,
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 1,
+  shadowRadius: 10,
+  elevation: 5,
+}
+
+const $itemTextContainer: ViewStyle = {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
 }
 
 const $labelStyle: ViewStyle = {
@@ -104,6 +146,35 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
   const [date, _setDate] = useState<Moment>(momentTime())
   const { dataStore } = useStores()
   const { openLocationBottomSheet } = useLocationBottomSheet()
+  const { createReminder, deleteReminder, getRemindersForPrayerTime } = useReminders()
+
+  const handleQuickReminder = async (prayerTime: keyof ITimes) => {
+    // if any reminder exists for this prayer time, show a toast
+    if (reminders.some((reminder) => reminder.prayerTime === prayerTime)) {
+      // delete the reminder
+
+      const reminders = getRemindersForPrayerTime(prayerTime as any)
+      if (reminders.length > 0) {
+        reminders.forEach(async (reminder) => {
+          await deleteReminder(reminder.id)
+        })
+      }
+    }
+
+    try {
+      await createReminder({
+        name: `${prayerTime} Reminder`,
+        prayerTime: prayerTime as any,
+        offsetMinutes: -5, // 5 minutes before
+        repeatType: "daily",
+      })
+    } catch (error) {
+      console.error("Error creating reminder:", error)
+    }
+  }
+
+  // log all reminders
+  const { reminders } = useReminders()
 
   // Get prayer times for the selected date
   const { times } = usePrayerTimesWithDate(
@@ -124,7 +195,7 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
           <Header
             rightActions={[
               <Pressable style={$todayButton} key="today" onPress={() => _setDate(momentTime())}>
-                <Text>Today</Text>
+                <Text weight="bold">Today</Text>
               </Pressable>,
             ]}
             title="Namaz Timings"
@@ -139,23 +210,31 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
           {
             name: "location",
             data: [
-              <Pressable
+              <Button
                 onPress={openLocationBottomSheet}
                 style={$locationContainer}
                 key="locationContainer"
               >
                 <IconCurrentLocationFilled
                   style={$locationIcon}
-                  color={colors.palette.neutral500}
+                  color={colors.palette.neutral800}
                   size={18}
                 />
-                <Text size="sm" key="location">
+                <Text size="sm" key="location" color={colors.palette.neutral800}>
                   {dataStore.currentLocation.city}
                 </Text>
                 <View style={$editButton}>
-                  <IconEdit color={colors.palette.primary500} size={24} />
+                  <IconEdit color={colors.palette.neutral800} size={24} />
                 </View>
-              </Pressable>,
+              </Button>,
+            ],
+          },
+          {
+            name: "testReminders",
+            data: [
+              <View key="testReminderButton" style={$testReminderContainer}>
+                <TestReminderButton />
+              </View>,
             ],
           },
           {
@@ -172,6 +251,10 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
                     renderItem={(key) => {
                       return (
                         <NamazItem
+                          onPress={() => handleQuickReminder(key.item as keyof ITimes)}
+                          isReminderEnabled={reminders.some(
+                            (reminder) => reminder.prayerTime === key.item && reminder.isEnabled,
+                          )}
                           isLast={
                             key.index ===
                             Object.keys(timesToShow[group as keyof typeof timesToShow]).length - 1
@@ -197,28 +280,47 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
 })
 
 const $locationIcon: ImageStyle = {
-  marginEnd: spacing.xs,
+  marginRight: spacing.xs,
+  marginTop: -2,
 }
 
 const $editButton: ViewStyle = {
-  marginStart: spacing.sm,
+  marginRight: spacing.sm,
+  marginTop: -6,
 }
 
 const $locationContainer: ViewStyle = {
-  marginHorizontal: spacing.md,
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: 8,
+  paddingHorizontal: spacing.md,
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "center",
+  marginBottom: spacing.md,
+  marginHorizontal: spacing.md,
+  height: 40,
+  borderWidth: 1,
+  borderColor: colors.palette.neutral300,
+  shadowColor: colors.gray,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 2,
+}
+
+const $testReminderContainer: ViewStyle = {
+  marginHorizontal: spacing.md,
+  marginTop: spacing.md,
   backgroundColor: colors.palette.neutral100,
   borderRadius: 10,
   borderWidth: 1,
   borderColor: colors.palette.neutral300,
-  padding: spacing.sm,
+  padding: spacing.md,
   shadowColor: colors.gray,
-  shadowOffset: { width: 0, height: 5 },
-  shadowOpacity: 1,
-  shadowRadius: 10,
-  elevation: 5,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 2,
 }
 
 const $todayButton: ViewStyle = {
