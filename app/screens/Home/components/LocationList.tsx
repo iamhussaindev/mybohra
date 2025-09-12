@@ -189,16 +189,28 @@ const LocationList = React.memo(
           }
         }
 
-        // Add other locations from the list (excluding already added ones)
-        const savedLocationKeys = new Set(
-          savedLocations.map((loc) => `${loc.latitude},${loc.longitude}`),
+        // past selected locations
+        const pastSelectedLocations = dataStore.pastSelectedLocations.map(toPlainLocation)
+        // deduplicate past selected locations
+        const deduplicatedPastSelectedLocations = pastSelectedLocations.filter(
+          (location, index, self) =>
+            index ===
+            self.findIndex(
+              (t) => t.latitude === location.latitude && t.longitude === location.longitude,
+            ),
         )
-        const otherLocations = plainList.filter(
-          (loc) => !savedLocationKeys.has(`${loc.latitude},${loc.longitude}`),
+
+        const finalLocations = [...savedLocations, ...deduplicatedPastSelectedLocations]
+        const finalLocationsDeduplicated = finalLocations.filter(
+          (location, index, self) =>
+            index ===
+            self.findIndex(
+              (t) => t.latitude === location.latitude && t.longitude === location.longitude,
+            ),
         )
 
         // Combine saved locations first, then others (limit to first 20 for performance)
-        return [...savedLocations, ...otherLocations].slice(0, 20)
+        return finalLocationsDeduplicated.slice(0, 20)
       }
     }, [
       search,
@@ -208,6 +220,7 @@ const LocationList = React.memo(
       dataStore.currentLocationLoaded,
       dataStore.deviceLocation,
       dataStore.deviceLocationLoaded,
+      dataStore.pastSelectedLocations,
     ])
 
     const renderHeader = useCallback(

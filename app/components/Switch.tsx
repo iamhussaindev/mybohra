@@ -41,6 +41,7 @@ export function Switch(props: SwitchComponentProps) {
     value = false,
     onValueChange,
     label,
+
     containerStyle,
     labelStyle,
     labelPosition = "left",
@@ -50,14 +51,16 @@ export function Switch(props: SwitchComponentProps) {
   const content = (
     <>
       {label && labelPosition === "left" && <Text style={[$label, labelStyle]}>{label}</Text>}
-      <RNSwitch
-        value={value}
-        onValueChange={onValueChange}
-        trackColor={{ false: colors.palette.neutral300, true: colors.palette.primary300 }}
-        thumbColor={value ? colors.palette.primary500 : colors.palette.neutral100}
-        ios_backgroundColor={colors.palette.neutral300}
-        {...rest}
-      />
+      <View style={$switchContainer}>
+        <RNSwitch
+          value={value}
+          onValueChange={onValueChange}
+          trackColor={{ false: colors.palette.neutral300, true: colors.switchGreen }}
+          thumbColor={value ? colors.white : colors.white}
+          ios_backgroundColor={colors.switchBackground}
+          {...rest}
+        />
+      </View>
       {label && labelPosition === "right" && <Text style={[$label, labelStyle]}>{label}</Text>}
     </>
   )
@@ -70,6 +73,11 @@ const $container: ViewStyle = {
   alignItems: "center",
   justifyContent: "space-between",
   paddingVertical: spacing.xs,
+}
+
+const $switchContainer: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
 }
 
 const $label: TextStyle = {

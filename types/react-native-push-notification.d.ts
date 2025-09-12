@@ -56,6 +56,7 @@ declare module "react-native-push-notification" {
     createChannel: (channel: NotificationChannel, callback: (created: boolean) => void) => void
     localNotificationSchedule: (notification: LocalNotificationSchedule) => void
     cancelLocalNotifications: (options: { id: string }) => void
+    cancelLocalNotification: (options: { id: string }) => void
     cancelAllLocalNotifications: () => void
     getScheduledLocalNotifications: (callback: (notifications: any[]) => void) => void
     setApplicationIconBadgeNumber: (count: number) => void

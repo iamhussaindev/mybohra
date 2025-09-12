@@ -3,10 +3,33 @@ import { colors, spacing } from "app/theme"
 import React from "react"
 import { Dimensions, Image, ImageStyle, TextStyle, View, ViewStyle } from "react-native"
 
-
 const screenWidth = Dimensions.get("window").width
 
 function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }) {
+  const $heroTitle: TextStyle = {
+    color: colors.text,
+    marginBottom: spacing.xs,
+  }
+
+  const $heroImage: ImageStyle = {
+    width: "80%",
+    height: "80%",
+    objectFit: "cover",
+  }
+
+  const $heroCard: ViewStyle = {
+    width: screenWidth / 3 - 25,
+    height: screenWidth / 3 - 25,
+    justifyContent: "center",
+    flexDirection: "column",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 5 },
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderRadius: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  }
   return (
     <Card
       onPress={() => {
@@ -21,6 +44,13 @@ function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }
 }
 
 export default function HeroIcons({ onNavigation }: { onNavigation: (screen: any) => void }) {
+  const $heroIconContainer: ViewStyle = {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: spacing.lg,
+    marginTop: 20,
+  }
+
   return (
     <View style={$heroIconContainer}>
       <HeroCard
@@ -40,32 +70,4 @@ export default function HeroIcons({ onNavigation }: { onNavigation: (screen: any
       />
     </View>
   )
-}
-
-const $heroTitle: TextStyle = {
-  color: colors.palette.neutral800,
-  marginBottom: spacing.xs,
-}
-
-const $heroImage: ImageStyle = {
-  width: "80%",
-  height: "80%",
-  objectFit: "cover",
-}
-
-const $heroCard: ViewStyle = {
-  width: screenWidth / 3 - 25,
-  height: screenWidth / 3 - 25,
-  justifyContent: "center",
-  flexDirection: "column",
-  shadowOpacity: 0.05,
-  shadowOffset: { width: 0, height: 5 },
-  alignItems: "center",
-}
-
-const $heroIconContainer: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  marginHorizontal: spacing.lg,
-  marginTop: 20,
 }

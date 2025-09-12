@@ -1,38 +1,11 @@
+import { reminderDataBodies, reminderDataNames } from "app/data/reminderData"
 import { NamazTimes } from "app/helpers/namaz.helper"
+import { schedulePrayerReminder, cancelNotification } from "app/services/notificationService"
 import { PlainLocation } from "app/types/location"
 import { momentTime } from "app/utils/currentTime"
 import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 import { NativeModules } from "react-native"
-
-// Simple notification functions to avoid complex service dependencies
-const scheduleSimpleNotification = async (
-  id: string,
-  title: string,
-  body: string,
-  triggerTime: number,
-) => {
-  try {
-    // For now, just log the notification - you can implement actual notifications later
-    console.log(
-      `Scheduled notification: ${title} - ${body} at ${new Date(triggerTime).toISOString()}`,
-    )
-    return true
-  } catch (error) {
-    console.error("Error scheduling notification:", error)
-    return false
-  }
-}
-
-const cancelSimpleNotification = async (id: string) => {
-  try {
-    console.log(`Cancelled notification: ${id}`)
-    return true
-  } catch (error) {
-    console.error("Error cancelling notification:", error)
-    return false
-  }
-}
 
 export const ReminderModel = types.model("ReminderModel", {
   id: types.identifier,
@@ -54,6 +27,10 @@ export const ReminderModel = types.model("ReminderModel", {
   createdAt: types.optional(types.number, () => Date.now()),
   lastTriggered: types.maybeNull(types.number),
   nextTriggerTime: types.maybeNull(types.number),
+  notificationType: types.optional(
+    types.enumeration("NotificationType", ["short", "long"]),
+    "short",
+  ),
 })
 
 export const ReminderStoreModel = types
@@ -140,12 +117,15 @@ export const ReminderStoreModel = types
 
         if (nextTriggerTime) {
           reminder.nextTriggerTime = nextTriggerTime
-          yield scheduleSimpleNotification(
-            reminder.id,
-            reminder.name,
-            `Time for ${reminder.name}`,
-            nextTriggerTime,
-          )
+          yield schedulePrayerReminder({
+            id: reminder.id,
+            title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
+            body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
+            triggerTime: nextTriggerTime,
+            repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
+            customDays: reminder.customDays.slice(),
+            notificationType: reminder.notificationType as "short" | "long",
+          })
         }
       } catch (error) {
         console.error("Error scheduling reminder:", error)
@@ -159,6 +139,7 @@ export const ReminderStoreModel = types
       repeatType?: "daily" | "weekly" | "monthly" | "never"
       customDays?: number[]
       location: PlainLocation
+      notificationType?: "short" | "long"
     }) {
       const id = `reminder_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
@@ -171,6 +152,7 @@ export const ReminderStoreModel = types
         customDays: reminderData.customDays || [],
         location: reminderData.location,
         createdAt: Date.now(),
+        notificationType: reminderData.notificationType || "short",
       })
 
       self.reminders.push(reminder)
@@ -219,7 +201,9 @@ export const ReminderStoreModel = types
                   .minute(minutes)
                   .second(0)
                   .millisecond(0)
-                  .add(reminder.offsetMinutes, "minutes")
+
+                // Next line is for testing a reminder notification immediately
+                // const triggerTime = momentTime().add(30, "second")
 
                 if (triggerTime.isBefore(currentDate)) {
                   switch (reminder.repeatType) {
@@ -255,12 +239,15 @@ export const ReminderStoreModel = types
 
           if (nextTriggerTime) {
             reminder.nextTriggerTime = nextTriggerTime
-            yield scheduleSimpleNotification(
-              reminder.id,
-              reminder.name,
-              `Time for ${reminder.name}`,
-              nextTriggerTime,
-            )
+            yield schedulePrayerReminder({
+              id: reminder.id,
+              title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
+              body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
+              triggerTime: nextTriggerTime,
+              repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
+              customDays: reminder.customDays.slice(),
+              notificationType: reminder.notificationType as "short" | "long",
+            })
           }
         } catch (error) {
           console.error("Error scheduling reminder:", error)
@@ -363,12 +350,15 @@ export const ReminderStoreModel = types
 
             if (nextTriggerTime) {
               reminder.nextTriggerTime = nextTriggerTime
-              yield scheduleSimpleNotification(
-                reminder.id,
-                reminder.name,
-                `Time for ${reminder.name}`,
-                nextTriggerTime,
-              )
+              yield schedulePrayerReminder({
+                id: reminder.id,
+                title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
+                body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
+                triggerTime: nextTriggerTime,
+                repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
+                customDays: reminder.customDays.slice(),
+                notificationType: reminder.notificationType as "short" | "long",
+              })
             }
           } catch (error) {
             console.error("Error scheduling reminder:", error)
@@ -382,7 +372,7 @@ export const ReminderStoreModel = types
       if (index !== -1) {
         // Cancel existing notification
         try {
-          yield cancelSimpleNotification(id)
+          yield cancelNotification(id)
         } catch (error) {
           console.error("Error canceling reminder notification:", error)
         }
@@ -497,12 +487,15 @@ export const ReminderStoreModel = types
 
               if (nextTriggerTime) {
                 reminder.nextTriggerTime = nextTriggerTime
-                yield scheduleSimpleNotification(
-                  reminder.id,
-                  reminder.name,
-                  `Time for ${reminder.name}`,
-                  nextTriggerTime,
-                )
+                yield schedulePrayerReminder({
+                  id: reminder.id,
+                  title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
+                  body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
+                  triggerTime: nextTriggerTime,
+                  repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
+                  customDays: reminder.customDays.slice(),
+                  notificationType: reminder.notificationType as "short" | "long",
+                })
               }
             } catch (error) {
               console.error("Error scheduling reminder:", error)
@@ -521,7 +514,7 @@ export const ReminderStoreModel = types
 
     cancelReminderNotification: flow(function* (id: string) {
       try {
-        yield cancelSimpleNotification(id)
+        yield cancelNotification(id)
       } catch (error) {
         console.error("Error canceling reminder notification:", error)
       }
@@ -610,12 +603,15 @@ export const ReminderStoreModel = types
 
               if (nextTriggerTime) {
                 reminder.nextTriggerTime = nextTriggerTime
-                yield scheduleSimpleNotification(
-                  reminder.id,
-                  reminder.name,
-                  `Time for ${reminder.name}`,
-                  nextTriggerTime,
-                )
+                yield schedulePrayerReminder({
+                  id: reminder.id,
+                  title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
+                  body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
+                  triggerTime: nextTriggerTime,
+                  repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
+                  customDays: reminder.customDays.slice(),
+                  notificationType: reminder.notificationType as "short" | "long",
+                })
               }
             } catch (error) {
               console.error("Error scheduling reminder:", error)

@@ -5,7 +5,6 @@
  * and a "main" flow which the user will use once logged in.
  */
 
-
 import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
 import HijriDate from "app/libs/HijriDate"
@@ -43,6 +42,8 @@ export type AppStackParamList = {
   SavedTasbeeh: undefined
   EventReminder: { date: HijriDate }
   TasbeehList: undefined
+  Reminder: undefined
+  ReminderSettings: undefined
   // 🔥 Your screens go here
   // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }
@@ -78,6 +79,8 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="SavedTasbeeh" component={Screens.SavedTasbeehScreen} />
       <Stack.Screen name="EventReminder" component={Screens.EventReminderScreen} />
       <Stack.Screen name="TasbeehList" component={Screens.TasbeehListScreen} />
+      <Stack.Screen name="Reminder" component={Screens.ReminderScreen} />
+      <Stack.Screen name="ReminderSettings" component={Screens.ReminderSettingsScreen} />
     </Stack.Navigator>
   )
 })

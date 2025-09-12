@@ -166,7 +166,7 @@ const $cardStyle: ViewStyle = {
 
   flex: 1,
   shadowColor: colors.gray,
-  backgroundColor: colors.palette.neutral100,
+  backgroundColor: colors.white,
   shadowOffset: {
     width: 2,
     height: 2,
@@ -204,6 +204,7 @@ const $pdfCard: ViewStyle = {
   flexDirection: "column",
   padding: 0,
   shadowOpacity: 0,
+  backgroundColor: colors.white,
 }
 
 const $gap: ViewStyle = {

@@ -7,7 +7,13 @@ import React from "react"
 import NamazTimesList from "./NamazTimes"
 import NextNamaz from "./NextNamaz"
 
-export default observer(function NamazUI() {
+export default observer(function NamazUI({
+  navigation,
+  isReminderEnabled,
+}: {
+  navigation: any
+  isReminderEnabled: (prayerTime: keyof NamazTimes) => boolean
+}) {
   // Use the comprehensive location + prayer times hook
   const { times, timesLoaded } = useLocationPrayerTimes()
 
@@ -16,9 +22,19 @@ export default observer(function NamazUI() {
 
   return (
     <>
-      <NextNamaz key="namaz-times" nextTimeKey={nextNamazKey as keyof NamazTimes} times={times} />
+      <NextNamaz
+        isReminderEnabled={isReminderEnabled(nextNamazKey as keyof NamazTimes)}
+        key="namaz-times"
+        nextTimeKey={nextNamazKey as keyof NamazTimes}
+        times={times}
+      />
       {timesLoaded ? (
-        <NamazTimesList currentGhari={currentGhari} nextTimeKey={nextNamazKey} times={times} />
+        <NamazTimesList
+          currentGhari={currentGhari}
+          nextTimeKey={nextNamazKey}
+          times={times}
+          navigation={navigation}
+        />
       ) : null}
     </>
   )

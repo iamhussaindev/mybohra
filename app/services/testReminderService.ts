@@ -1,20 +1,39 @@
-// eslint-disable-next-line react-native/split-platform-components
+/* eslint-disable react-native/split-platform-components */
+import PushNotificationIOS from "@react-native-community/push-notification-ios"
 import { Platform, PermissionsAndroid } from "react-native"
 import PushNotification, { Importance } from "react-native-push-notification"
 
-// Create notification channel for test reminders
-PushNotification.createChannel(
-  {
-    channelId: "test-reminders",
-    channelName: "Test Reminders",
-    channelDescription: "Notifications for testing reminder functionality",
-    playSound: true,
-    soundName: "default",
-    importance: Importance.HIGH,
-    vibrate: true,
-  },
-  (created: boolean) => console.log(`Test reminder channel created: '${created}'`),
-)
+// Check if PushNotification is available
+const isPushNotificationAvailable = () => {
+  try {
+    return PushNotification && typeof PushNotification.configure === "function"
+  } catch (error) {
+    console.warn("PushNotification module not available:", error)
+    return false
+  }
+}
+
+// Create notification channel for test reminders with error handling
+if (isPushNotificationAvailable()) {
+  try {
+    PushNotification.createChannel(
+      {
+        channelId: "test-reminders",
+        channelName: "Test Reminders",
+        channelDescription: "Notifications for testing reminder functionality",
+        playSound: true,
+        soundName: "default",
+        importance: Importance.HIGH,
+        vibrate: true,
+      },
+      (created: boolean) => console.log(`Test reminder channel created: '${created}'`),
+    )
+  } catch (error) {
+    console.warn("PushNotification.createChannel failed for test reminders:", error)
+  }
+} else {
+  console.warn("PushNotification module not available - test reminders will not work")
+}
 
 // Request notification permissions for test reminders
 const requestTestNotificationPermissions = async (): Promise<boolean> => {
@@ -35,8 +54,22 @@ const requestTestNotificationPermissions = async (): Promise<boolean> => {
       console.warn("Error requesting test notification permissions:", err)
       return false
     }
+  } else if (Platform.OS === "ios") {
+    try {
+      const authStatus = await PushNotificationIOS.requestPermissions({
+        alert: true,
+        badge: true,
+        sound: true,
+      })
+
+      console.log("iOS test notification permission status:", authStatus)
+      return authStatus.alert === true || authStatus.badge === true || authStatus.sound === true
+    } catch (err) {
+      console.warn("Error requesting iOS test notification permissions:", err)
+      return false
+    }
   }
-  return true // iOS permissions are handled automatically
+  return false
 }
 
 // Schedule actual test notifications
@@ -46,6 +79,11 @@ const scheduleTestNotification = async (
   body: string,
   triggerTime: number,
 ) => {
+  if (!isPushNotificationAvailable()) {
+    console.warn("PushNotification not available - cannot schedule test notification")
+    return false
+  }
+
   try {
     const hasPermission = await requestTestNotificationPermissions()
     if (!hasPermission) {
@@ -59,22 +97,27 @@ const scheduleTestNotification = async (
       const triggerDate = new Date(triggerTime)
 
       // Schedule the actual notification
-      PushNotification.localNotificationSchedule({
-        id,
-        title,
-        message: body,
-        date: triggerDate,
-        soundName: "default",
-        vibrate: true,
-        vibration: 300,
-        priority: "high",
-        importance: "high",
-        channelId: "test-reminders",
-        userInfo: {
+      try {
+        PushNotification.localNotificationSchedule({
           id,
-          type: "test-reminder",
-        },
-      })
+          title,
+          message: body,
+          date: triggerDate,
+          soundName: "default",
+          vibrate: true,
+          vibration: 300,
+          priority: "high",
+          importance: "high",
+          channelId: "test-reminders",
+          userInfo: {
+            id,
+            type: "test-reminder",
+          },
+        })
+      } catch (scheduleError) {
+        console.warn("Failed to schedule test notification:", scheduleError)
+        return false
+      }
 
       console.log(`⏰ Test notification scheduled:`)
       console.log(`   ID: ${id}`)
@@ -95,13 +138,18 @@ const scheduleTestNotification = async (
 }
 
 const cancelTestNotification = async (id: string) => {
+  if (!isPushNotificationAvailable()) {
+    console.warn("PushNotification not available - cannot cancel test notification")
+    return false
+  }
+
   try {
     // Cancel the actual notification
-    PushNotification.cancelLocalNotifications({ id })
+    PushNotification.cancelLocalNotification({ id })
     console.log(`🚫 Test notification cancelled: ${id}`)
     return true
   } catch (error) {
-    console.error("Error cancelling test notification:", error)
+    console.warn("Error cancelling test notification:", error)
     return false
   }
 }
@@ -206,7 +254,11 @@ export class TestReminderService {
       }
 
       // Also cancel any remaining test notifications that might not be in our map
-      PushNotification.cancelAllLocalNotifications()
+      try {
+        PushNotification.cancelAllLocalNotifications()
+      } catch (error) {
+        console.warn("Error cancelling all notifications:", error)
+      }
 
       console.log(`✅ All test reminders cleared`)
       return true

@@ -1,7 +1,6 @@
-import { NamazTimes } from "app/helpers/namaz.helper"
 import { usePrayerTimes } from "app/hooks/usePrayerTimes"
-import { useCallback, useEffect } from "react"
 import { Moment } from "moment"
+import { useCallback, useEffect } from "react"
 
 /**
  * Custom hook for managing prayer times with a specific date

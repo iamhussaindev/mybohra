@@ -21,6 +21,7 @@ export default observer(function NamazTimesList(props: {
   times?: any
   nextTimeKey?: string
   currentGhari?: CurrentGhari
+  navigation: any
 }) {
   const flatListRef = React.useRef<FlatList>(null)
   const activeItemIndex = namazTimes.findIndex((item) => item.time_key === props.currentGhari?.key)
@@ -36,11 +37,13 @@ export default observer(function NamazTimesList(props: {
           return (
             <NamazCard
               {...item}
+              navigation={props.navigation}
               time={props.currentGhari?.time ?? props.times[item.time_key]}
               text={index === activeItemIndex ? props.currentGhari?.name : item.text}
               isNext={props.currentGhari?.isNext}
               index={index}
               activeIndex={activeItemIndex}
+              timeKey={item.time_key}
             />
           )
         }}
@@ -63,11 +66,18 @@ function NamazCard(props: {
   text?: string
   activeIndex?: boolean
   time: string
+  timeKey: string
   isNext?: boolean
+  navigation: any
 }) {
   return (
     <>
       <Card
+        onPress={() => {
+          props.navigation.navigate("Namaz", {
+            prayerTime: props.time,
+          })
+        }}
         style={[
           $namazCard,
           props.index === 0 && $firstNamazCard,
@@ -106,8 +116,11 @@ const $currentGhariContainer: ViewStyle = {
   position: "absolute",
   top: -10,
   height: 20,
-  left: 20,
+  left: 15.8,
   paddingRight: 7,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
   paddingLeft: 7,
   width: 75,
   backgroundColor: colors.tint,

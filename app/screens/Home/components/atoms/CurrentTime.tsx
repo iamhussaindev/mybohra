@@ -1,5 +1,3 @@
-
-
 import { Icon, Text } from "app/components"
 import HijriDate from "app/libs/HijriDate"
 import { colors } from "app/theme"
@@ -8,6 +6,24 @@ import React, { useCallback, useEffect, useState } from "react"
 import { TextStyle, View, ViewStyle } from "react-native"
 
 export function CurrentTime() {
+  const $viewContainer: ViewStyle = {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: -4,
+  }
+
+  const $textStyle: TextStyle = {
+    fontSize: 13,
+    fontWeight: "bold",
+    color: colors.text,
+  }
+
+  const $hijriStyle: TextStyle = {
+    color: colors.palette.primary500,
+    marginStart: 6,
+  }
+
   const getCurrentTime = useCallback(() => {
     const date = momentTime()
     const hijriDate = new HijriDate()
@@ -29,7 +45,7 @@ export function CurrentTime() {
 
   return (
     <View style={$viewContainer}>
-      <Icon icon="calendar" size={12} color={colors.tint} />
+      <Icon icon="calendar" size={12} color={colors.palette.primary500} />
       <Text weight="bold" style={[$textStyle, $hijriStyle]}>
         {currentTime.hijri}
       </Text>
@@ -42,21 +58,4 @@ export function CurrentTime() {
       </Text>
     </View>
   )
-}
-
-const $viewContainer: ViewStyle = {
-  display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  marginTop: -4,
-}
-
-const $textStyle: TextStyle = {
-  fontSize: 13,
-  fontWeight: "bold",
-}
-
-const $hijriStyle: TextStyle = {
-  color: colors.tint,
-  marginStart: 6,
 }

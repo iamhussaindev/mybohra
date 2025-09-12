@@ -1,5 +1,3 @@
-
-
 import { BottomTabScreenProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { CompositeScreenProps } from "@react-navigation/native"
 import { Icon, Text } from "app/components"
@@ -14,7 +12,6 @@ import { HomeScreen } from "../screens"
 import { colors, spacing, typography } from "../theme"
 
 import { AppStackParamList, AppStackScreenProps } from "./AppNavigator"
-
 
 export type TabParamList = {
   Home: undefined
@@ -122,7 +119,7 @@ export function NavigationTab() {
 
 const $tabBar: ViewStyle = {
   backgroundColor: colors.background,
-  borderTopColor: colors.palette.neutral400,
+  borderTopColor: colors.border,
   shadowColor: colors.palette.neutral400,
   shadowOffset: { width: 10, height: 0 },
   shadowOpacity: 0.1,

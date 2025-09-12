@@ -96,4 +96,7 @@ export const colors = {
   errorBackground: palette.angry100,
 
   green: "#06954f",
+
+  switchGreen: "#3ebd89",
+  switchBackground: "#cdd1e2",
 }

@@ -12,6 +12,7 @@ import { ViewStyle } from "react-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import GetLocation from "react-native-get-location"
 import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
+import Toast from "react-native-toast-message"
 
 import Config from "./config"
 import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
@@ -69,6 +70,8 @@ function App(props: AppProps) {
     await fetchTasbeeh()
     await fetchLocations()
     await loadLocationMode()
+    await loadPastSelectedLocations()
+    await dataStore.loadReminderSettings()
   }
 
   useEffect(() => {
@@ -121,6 +124,10 @@ function App(props: AppProps) {
     await dataStore.loadLocationMode()
   }
 
+  const loadPastSelectedLocations = async () => {
+    await dataStore.loadPastSelectedLocations()
+  }
+
   if (!rehydrated || !isNavigationStateRestored || !areFontsLoaded) return null
 
   const linking = {
@@ -141,6 +148,7 @@ function App(props: AppProps) {
                   initialState={initialNavigationState}
                   onStateChange={onNavigationStateChange}
                 />
+                <Toast position="bottom" swipeable topOffset={200} />
               </LocationBottomSheetProvider>
             </BottomSheetModalProvider>
           </GestureHandlerRootView>

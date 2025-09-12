@@ -1,10 +1,11 @@
 import {
   IconBell,
+  IconBellCog,
   IconBellOff,
+  IconChevronRight,
   IconCurrentLocationFilled,
-  IconEdit,
 } from "@tabler/icons-react-native"
-import { Button, Icon, IconTypes, ListView, Screen, Text } from "app/components"
+import { BottomSheetDrawer, Icon, IconTypes, ListView, Screen, Switch, Text } from "app/components"
 import Header from "app/components/Header"
 import { useLocationBottomSheet } from "app/contexts/LocationBottomSheetContext"
 import { ITimes, CurrentGhari } from "app/helpers/namaz.helper"
@@ -18,10 +19,10 @@ import { getFormattedTime } from "app/utils/common"
 import { momentTime } from "app/utils/currentTime"
 import { observer } from "mobx-react-lite"
 import { Moment } from "moment"
-import React, { FC, useState } from "react"
+import React, { FC, useRef, useState } from "react"
 import { ImageStyle, Pressable, SectionList, TextStyle, View, ViewStyle } from "react-native"
 
-import { TestReminderButton } from "./components/TestReminderButton"
+import ReminderOffsetSelector from "../Reminders/ReminderOffsetSelector"
 
 const timesToShow = {
   morning: {
@@ -41,12 +42,15 @@ const timesToShow = {
   },
 }
 
+const alarmKeys = ["fajr", "zawaal", "maghrib_safe", "nisful_layl", "sihori"]
+
 function NamazItem({
   value,
   name,
   group,
   isLast,
   onPress,
+  onLongPress,
   isReminderEnabled,
 }: {
   isLast: boolean
@@ -56,14 +60,15 @@ function NamazItem({
   name: string
   times: ITimes
   group: string
-  onPress: () => void
+  onPress: (value: boolean) => void
+  onLongPress?: () => void
   isReminderEnabled: boolean
 }) {
   // @ts-ignore
   const label = timesToShow[group as keyof typeof timesToShow][name]
 
   return (
-    <View style={[$itemContainer, isLast && $lastItem]}>
+    <Pressable onLongPress={onLongPress} style={[$itemContainer, isLast && $lastItem]}>
       <View style={$labelStyle}>
         <Icon style={$labelIcon} size={28} icon={name as IconTypes} />
         <View>
@@ -74,30 +79,41 @@ function NamazItem({
         <Text weight="bold" style={$itemText}>
           {getFormattedTime(value)}
         </Text>
-        <Pressable style={$reminderButton} onPress={onPress}>
+        <View style={[$reminderButton, !alarmKeys.includes(name) && $disabledReminderButton]}>
           {isReminderEnabled ? (
-            <IconBell size={20} color={colors.palette.primary500} />
+            <IconBell size={22} style={$reminderIcon} color={colors.palette.neutral800} />
           ) : (
-            <IconBellOff size={20} color={colors.palette.neutral800} />
+            <IconBellOff
+              disabled={!alarmKeys.includes(name)}
+              size={22}
+              style={$reminderIcon}
+              color={
+                !alarmKeys.includes(name) ? colors.palette.neutral400 : colors.palette.neutral800
+              }
+            />
           )}
-        </Pressable>
+          <Switch
+            value={isReminderEnabled}
+            onValueChange={(value) => onPress(value)}
+            disabled={!alarmKeys.includes(name)}
+          />
+        </View>
       </View>
-    </View>
+    </Pressable>
   )
 }
 
+const $reminderIcon: ImageStyle = {
+  marginRight: spacing.sm,
+}
+
 const $reminderButton: ViewStyle = {
-  padding: spacing.xs,
   marginLeft: spacing.sm,
-  borderRadius: spacing.xxxl,
   backgroundColor: colors.palette.neutral100,
-  borderWidth: 1,
-  borderColor: colors.gray,
-  shadowColor: colors.gray,
-  shadowOffset: { width: 0, height: 5 },
-  shadowOpacity: 1,
-  shadowRadius: 10,
-  elevation: 5,
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
 }
 
 const $itemTextContainer: ViewStyle = {
@@ -142,39 +158,64 @@ const $itemText: TextStyle = {
 
 interface NamazScreenProps extends AppStackScreenProps<"Namaz"> {}
 
-export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen() {
+export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen({ navigation }) {
   const [date, _setDate] = useState<Moment>(momentTime())
   const { dataStore } = useStores()
   const { openLocationBottomSheet } = useLocationBottomSheet()
-  const { createReminder, deleteReminder, getRemindersForPrayerTime } = useReminders()
+  const { createReminder, deleteReminder, reminders } = useReminders()
+  const [prayerTime, setPrayerTime] = useState<keyof ITimes | null>(null)
 
-  const handleQuickReminder = async (prayerTime: keyof ITimes) => {
-    // if any reminder exists for this prayer time, show a toast
-    if (reminders.some((reminder) => reminder.prayerTime === prayerTime)) {
-      // delete the reminder
+  const handleQuickReminder = async (prayerTime: keyof ITimes, value: boolean) => {
+    // Check if any reminder exists for this prayer time (enabled or disabled)
+    const existingReminders = reminders.filter((reminder) => reminder.prayerTime === prayerTime)
 
-      const reminders = getRemindersForPrayerTime(prayerTime as any)
-      if (reminders.length > 0) {
-        reminders.forEach(async (reminder) => {
-          await deleteReminder(reminder.id)
-        })
+    if (value) {
+      if (existingReminders.length > 0) {
+        // Store IDs before deletion to avoid MobX errors
+        const reminderIds = existingReminders.map((r) => r.id)
+
+        // Delete existing reminders
+        for (const id of reminderIds) {
+          await deleteReminder(id)
+        }
       }
-    }
+      // Create new reminder using settings
+      try {
+        // Get custom offset for this prayer time, or use default
+        const customOffset = dataStore.reminderSettings.customOffsets.get(prayerTime)
+        const offsetMinutes =
+          customOffset !== undefined
+            ? customOffset
+            : -dataStore.reminderSettings.triggerBeforeMinutes
 
-    try {
-      await createReminder({
-        name: `${prayerTime} Reminder`,
-        prayerTime: prayerTime as any,
-        offsetMinutes: -5, // 5 minutes before
-        repeatType: "daily",
-      })
-    } catch (error) {
-      console.error("Error creating reminder:", error)
+        const reminderData = {
+          name: `${prayerTime} Reminder`,
+          prayerTime: prayerTime as any,
+          offsetMinutes,
+          repeatType: "daily" as const,
+          notificationType: dataStore.reminderSettings.notificationType as "short" | "long",
+        }
+
+        await createReminder(reminderData)
+      } catch (error) {
+        console.error("Error creating reminder:", error)
+      }
+    } else {
+      for (const reminder of existingReminders) {
+        await deleteReminder(reminder.id)
+      }
     }
   }
 
-  // log all reminders
-  const { reminders } = useReminders()
+  const handleLongPressReminder = (prayerTime: keyof ITimes) => {
+    setPrayerTime(prayerTime)
+    $bottomSheetRefGoal.current?.expand()
+  }
+
+  const handleOffsetSelect = (offset: number) => {
+    dataStore.setCustomOffset(prayerTime as string, offset)
+    $bottomSheetRefGoal.current?.close()
+  }
 
   // Get prayer times for the selected date
   const { times } = usePrayerTimesWithDate(
@@ -184,9 +225,11 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
   )
 
   // Get next namaz information with automatic updates
-  const { nextNamazKey, currentGhari } = useNextNamaz(times)
+  const { nextNamazKey, currentGhari } = useNextNamaz(times, 1000 * 60 * 60)
 
   const groups = ["morning", "noon", "evening"]
+
+  const $bottomSheetRefGoal = useRef<React.ElementRef<typeof BottomSheetDrawer>>(null)
 
   return (
     <Screen preset="fixed" safeAreaEdges={["top"]} contentContainerStyle={$screenContainer}>
@@ -194,8 +237,12 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
         ListHeaderComponent={
           <Header
             rightActions={[
-              <Pressable style={$todayButton} key="today" onPress={() => _setDate(momentTime())}>
-                <Text weight="bold">Today</Text>
+              <Pressable
+                style={$settingsButton}
+                key="settings"
+                onPress={() => navigation.navigate("ReminderSettings")}
+              >
+                <IconBellCog size={24} color={colors.palette.neutral800} />
               </Pressable>,
             ]}
             title="Namaz Timings"
@@ -204,39 +251,45 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
         }
         contentContainerStyle={$sectionListContentContainer}
         stickySectionHeadersEnabled={true}
-        scrollEnabled={false}
+        scrollEnabled={true}
+        bounces={false}
         renderItem={({ item }) => item}
         sections={[
           {
             name: "location",
             data: [
-              <Button
+              <Pressable
                 onPress={openLocationBottomSheet}
-                style={$locationContainer}
+                style={$locationContainerButton}
                 key="locationContainer"
               >
-                <IconCurrentLocationFilled
-                  style={$locationIcon}
-                  color={colors.palette.neutral800}
-                  size={18}
-                />
-                <Text size="sm" key="location" color={colors.palette.neutral800}>
-                  {dataStore.currentLocation.city}
-                </Text>
-                <View style={$editButton}>
-                  <IconEdit color={colors.palette.neutral800} size={24} />
+                <View style={$locationContainer}>
+                  <View style={$locationIconContainer}>
+                    <IconCurrentLocationFilled
+                      style={$locationIcon}
+                      color={colors.palette.neutral800}
+                      size={24}
+                    />
+                    <Text size="md" key="location" color={colors.palette.neutral800}>
+                      {dataStore.currentLocation.city}
+                    </Text>
+                  </View>
+
+                  <View style={$editButton}>
+                    <IconChevronRight color={colors.palette.neutral800} size={24} />
+                  </View>
                 </View>
-              </Button>,
+              </Pressable>,
             ],
           },
-          {
-            name: "testReminders",
-            data: [
-              <View key="testReminderButton" style={$testReminderContainer}>
-                <TestReminderButton />
-              </View>,
-            ],
-          },
+          // {
+          //   name: "testReminders",
+          //   data: [
+          //     <View key="testReminderButton" style={$testReminderContainer}>
+          //       <TestReminderButton />
+          //     </View>,
+          //   ],
+          // },
           {
             name: "",
             description: "",
@@ -251,7 +304,8 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
                     renderItem={(key) => {
                       return (
                         <NamazItem
-                          onPress={() => handleQuickReminder(key.item as keyof ITimes)}
+                          onLongPress={() => handleLongPressReminder(key.item as keyof ITimes)}
+                          onPress={(value) => handleQuickReminder(key.item as keyof ITimes, value)}
                           isReminderEnabled={reminders.some(
                             (reminder) => reminder.prayerTime === key.item && reminder.isEnabled,
                           )}
@@ -275,58 +329,66 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen()
           },
         ]}
       />
+
+      <BottomSheetDrawer ref={$bottomSheetRefGoal} snapPoints={["40%", "70%"]}>
+        <ReminderOffsetSelector setOffset={(offset) => handleOffsetSelect(offset)} />
+      </BottomSheetDrawer>
     </Screen>
   )
 })
 
 const $locationIcon: ImageStyle = {
-  marginRight: spacing.xs,
-  marginTop: -2,
+  marginRight: spacing.sm,
+  marginLeft: spacing.xs,
 }
 
 const $editButton: ViewStyle = {
-  marginRight: spacing.sm,
-  marginTop: -6,
+  width: 40,
+  height: 40,
+  backgroundColor: colors.white,
+  alignItems: "center",
+  justifyContent: "center",
+}
+
+const $locationIconContainer: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  backgroundColor: colors.white,
+}
+
+const $locationContainerButton: ViewStyle = {
+  marginHorizontal: spacing.md,
 }
 
 const $locationContainer: ViewStyle = {
-  backgroundColor: colors.palette.neutral100,
-  borderRadius: 8,
-  paddingHorizontal: spacing.md,
+  flex: 1,
   flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  marginBottom: spacing.md,
-  marginHorizontal: spacing.md,
-  height: 40,
-  borderWidth: 1,
-  borderColor: colors.palette.neutral300,
+  justifyContent: "space-between", // this is not working
+  width: "100%",
+  backgroundColor: colors.white,
+  paddingHorizontal: spacing.sm,
+  paddingVertical: spacing.xs,
   shadowColor: colors.gray,
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 2,
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 1,
+  shadowRadius: 10,
+  borderRadius: 10,
+  elevation: 5,
+  borderColor: colors.gray,
+  borderWidth: 1,
 }
 
-const $testReminderContainer: ViewStyle = {
-  marginHorizontal: spacing.md,
-  marginTop: spacing.md,
-  backgroundColor: colors.palette.neutral100,
-  borderRadius: 10,
-  borderWidth: 1,
-  borderColor: colors.palette.neutral300,
-  padding: spacing.md,
-  shadowColor: colors.gray,
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 2,
+const $disabledReminderButton: ViewStyle = {
+  opacity: 0.5,
 }
 
-const $todayButton: ViewStyle = {
+const $settingsButton: ViewStyle = {
   borderRadius: 10,
   backgroundColor: colors.palette.neutral100,
-  marginEnd: spacing.sm,
+  padding: spacing.sm,
+  borderWidth: 1,
+  borderColor: colors.palette.neutral100,
 }
 
 const $activeGroupContainer: ViewStyle = {

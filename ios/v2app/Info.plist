@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>LSApplicationCategoryType</key>
-	<string></string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Location details for Namaz times and Qibla direction calculation</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -44,6 +40,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -53,6 +51,19 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Location details for Namaz times and Qibla direction calculation</string>
+	<key>NSMotionUsageDescription</key>
+	<string>We need access to motion sensors to show the Qibla direction</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>This app needs notification permissions to remind you about prayer times and important religious events.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-processing</string>
+		<string>remote-notification</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -79,7 +90,5 @@
 	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSMotionUsageDescription</key>
-	<string>We need access to motion sensors to show the Qibla direction</string>
 </dict>
 </plist>

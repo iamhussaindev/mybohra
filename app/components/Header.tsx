@@ -1,5 +1,3 @@
-
-
 import { BackButton } from "app/appComponents/BackButton"
 import { Text } from "app/components"
 import { colors } from "app/theme"

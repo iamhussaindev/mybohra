@@ -41,7 +41,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   const [shadowOffset, setShadowOffset] = useState(0)
   const { openLocationBottomSheet } = useLocationBottomSheet()
 
-  const { dataStore, miqaatStore, libraryStore } = useStores()
+  const { dataStore, miqaatStore, libraryStore, reminderStore } = useStores()
   const { currentSound } = useSoundPlayer()
 
   const fetchMiqaats = async () => {
@@ -160,7 +160,15 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
             {
               name: "Namaz Times",
               description: "Namaz Times",
-              data: [<NamazUI key="namaz-times" />],
+              data: [
+                <NamazUI
+                  key="namaz-times"
+                  navigation={props.navigation}
+                  isReminderEnabled={(prayerTime) =>
+                    reminderStore.reminders.some((reminder) => reminder.prayerTime === prayerTime)
+                  }
+                />,
+              ],
             },
 
             {
@@ -227,18 +235,13 @@ const $sectionListContentContainer: ViewStyle = {
 }
 
 const $screenContainer: ViewStyle = {
-  paddingBottom: 56,
+  paddingBottom: 42,
 }
 
 const $drawer: ViewStyle = {
   backgroundColor: colors.background,
   flex: 1,
 }
-
-// const $logoImage: ImageStyle = {
-//   height: 42,
-//   width: 77,
-// }
 
 const $logoContainer: ViewStyle = {
   alignSelf: "flex-start",

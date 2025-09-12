@@ -61,23 +61,27 @@ const {
 ## Features
 
 ### 1. **30-Second Test Reminders**
+
 - Default delay of 30 seconds for quick testing
 - Customizable delay for different test scenarios
 - Real-time countdown display
 
 ### 2. **Console Logging**
+
 - Detailed console output for debugging
 - Notification trigger logs
 - Scheduling confirmation logs
 - Error handling logs
 
 ### 3. **Visual Feedback**
+
 - Live countdown timers
 - Status indicators (scheduled, triggered, cancelled)
 - Error messages and success confirmations
 - Alert dialogs for user interactions
 
 ### 4. **Management Features**
+
 - Create multiple test reminders
 - Cancel individual reminders
 - Clear all reminders at once

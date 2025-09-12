@@ -5,18 +5,21 @@ A comprehensive reminder system that allows users to set notifications for praye
 ## Features
 
 ### 🕐 Smart Prayer Time Reminders
+
 - **Location-based**: Reminders automatically adjust based on your current location
 - **Dynamic timing**: Prayer times are calculated daily based on your coordinates
 - **Flexible offsets**: Set reminders 30 minutes before, 15 minutes before, at prayer time, or up to 30 minutes after
 - **Multiple prayer times**: Support for all prayer times (Fajr, Zawaal, Zohar, Asar, Sihori, Maghrib, Nisful-Layl)
 
 ### 🔄 Repeat Options
+
 - **Daily**: Remind every day at the same prayer time
 - **Weekly**: Choose specific days of the week
 - **Monthly**: Remind monthly
 - **Once only**: One-time reminder
 
 ### 📱 Native Notifications
+
 - **Local notifications**: Works offline, no internet required
 - **Customizable**: Set custom reminder names and descriptions
 - **Persistent**: Reminders survive app restarts
@@ -27,6 +30,7 @@ A comprehensive reminder system that allows users to set notifications for praye
 ### MobX State Tree Models
 
 #### ReminderModel
+
 ```typescript
 {
   id: string                    // Unique identifier
@@ -44,6 +48,7 @@ A comprehensive reminder system that allows users to set notifications for praye
 ```
 
 #### ReminderStore
+
 - Manages all reminders
 - Handles CRUD operations
 - Automatically reschedules when location changes
@@ -52,7 +57,9 @@ A comprehensive reminder system that allows users to set notifications for praye
 ### Hooks
 
 #### useReminders()
+
 Main hook for reminder management:
+
 ```typescript
 const {
   reminders,                    // All reminders
@@ -67,7 +74,9 @@ const {
 ```
 
 #### useReminderForm()
+
 Form management hook:
+
 ```typescript
 const {
   formData,                    // Current form state
@@ -87,6 +96,7 @@ const {
 ### Notification Service
 
 #### Features
+
 - **Permission handling**: Automatically requests notification permissions
 - **Channel management**: Creates Android notification channels
 - **Scheduling**: Schedules local notifications with proper timing
@@ -94,6 +104,7 @@ const {
 - **Badge management**: Manages app icon badge counts
 
 #### Usage
+
 ```typescript
 import { 
   schedulePrayerReminder, 
@@ -117,6 +128,7 @@ await cancelNotification("reminder_123")
 ## Usage Examples
 
 ### Creating a Simple Daily Fajr Reminder
+
 ```typescript
 const { createReminder } = useReminders()
 
@@ -129,6 +141,7 @@ await createReminder({
 ```
 
 ### Creating a Weekly Reminder for Specific Days
+
 ```typescript
 await createReminder({
   name: "Weekend Maghrib",
@@ -140,6 +153,7 @@ await createReminder({
 ```
 
 ### Quick Reminder from NamazScreen
+
 ```typescript
 const handleQuickReminder = async (prayerTime: keyof ITimes) => {
   await createReminder({
@@ -154,15 +168,19 @@ const handleQuickReminder = async (prayerTime: keyof ITimes) => {
 ## Integration
 
 ### Adding to Navigation
+
 The ReminderScreen is already exported from `app/screens/index.ts` and can be added to your navigation stack.
 
 ### Location Integration
+
 The reminder system automatically integrates with the existing location system:
+
 - Uses `dataStore.currentLocation` for prayer time calculations
 - Automatically reschedules reminders when location changes significantly (>10km)
 - Maintains location context for each reminder
 
 ### Prayer Time Integration
+
 - Uses the existing `NativeModules.SalaatTimes.getPrayerTimes` for accurate calculations
 - Integrates with `usePrayerTimes` and `useLocationPrayerTimes` hooks
 - Supports all prayer times defined in `NamazTimes` interface

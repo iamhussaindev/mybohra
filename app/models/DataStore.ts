@@ -29,6 +29,15 @@ export const LocationModel = types.model("LocationModel", {
   type: types.optional(types.string, "city"), // city or spot
 })
 
+export const ReminderSettingsModel = types.model("ReminderSettingsModel", {
+  notificationType: types.optional(
+    types.enumeration("NotificationType", ["short", "long"]),
+    "short",
+  ),
+  triggerBeforeMinutes: types.optional(types.number, 5), // 5 minutes before by default
+  customOffsets: types.optional(types.map(types.number), {}), // prayerTime -> offsetMinutes
+})
+
 export const DataStoreModel = types
   .model("DataStore", {
     qiyam: types.optional(types.string, ""), // Default value for qiyam
@@ -51,8 +60,53 @@ export const DataStoreModel = types
     deviceLocationLoaded: types.optional(types.boolean, false),
     lastKnownDeviceLocation: types.maybeNull(LocationModel),
     locationChangeThreshold: types.optional(types.number, 5), // 5km threshold
+    // Past selected locations for quick access
+    pastSelectedLocations: types.optional(types.array(LocationModel), []),
+    // Reminder settings
+    reminderSettings: types.optional(ReminderSettingsModel, {}),
   })
   .actions((self) => ({
+    // Method to add a location to past selected locations
+    addToPastSelectedLocations(location: ILocation) {
+      if (!location) return
+
+      // Create a new location object to avoid MST duplicate node error
+      const newLocation = {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        city: location.city,
+        country: location.country,
+        state: location.state,
+        timezone: location.timezone,
+        type: location.type,
+      }
+
+      // Check if location already exists in past selected locations
+      const existingIndex = self.pastSelectedLocations.findIndex(
+        (pastLocation) =>
+          pastLocation.latitude === newLocation.latitude &&
+          pastLocation.longitude === newLocation.longitude &&
+          pastLocation.city === newLocation.city &&
+          pastLocation.country === newLocation.country,
+      )
+
+      if (existingIndex !== -1) {
+        // Remove existing location and add it to the beginning (most recent first)
+        self.pastSelectedLocations.splice(existingIndex, 1)
+      }
+
+      // Add to the beginning of the array (most recent first)
+      self.pastSelectedLocations.unshift(newLocation)
+
+      // Limit to 10 most recent locations to prevent array from growing too large
+      if (self.pastSelectedLocations.length > 10) {
+        self.pastSelectedLocations.splice(10)
+      }
+
+      // Save to storage
+      storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
+    },
+
     fetchNearestLocation: flow(function* (lat: number, lng: number) {
       try {
         const response = yield api.fetchLocation(lat, lng)
@@ -184,6 +238,44 @@ export const DataStoreModel = types
         type: location.type,
       }
 
+      // Add current location to past selected locations before updating
+      if (self.currentLocation) {
+        const currentLocationToAdd = {
+          latitude: self.currentLocation.latitude,
+          longitude: self.currentLocation.longitude,
+          city: self.currentLocation.city,
+          country: self.currentLocation.country,
+          state: self.currentLocation.state,
+          timezone: self.currentLocation.timezone,
+          type: self.currentLocation.type,
+        }
+
+        // Check if location already exists in past selected locations
+        const existingIndex = self.pastSelectedLocations.findIndex(
+          (pastLocation) =>
+            pastLocation.latitude === currentLocationToAdd.latitude &&
+            pastLocation.longitude === currentLocationToAdd.longitude &&
+            pastLocation.city === currentLocationToAdd.city &&
+            pastLocation.country === currentLocationToAdd.country,
+        )
+
+        if (existingIndex !== -1) {
+          // Remove existing location and add it to the beginning (most recent first)
+          self.pastSelectedLocations.splice(existingIndex, 1)
+        }
+
+        // Add to the beginning of the array (most recent first)
+        self.pastSelectedLocations.unshift(currentLocationToAdd)
+
+        // Limit to 10 most recent locations to prevent array from growing too large
+        if (self.pastSelectedLocations.length > 10) {
+          self.pastSelectedLocations.splice(10)
+        }
+
+        // Save to storage
+        storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
+      }
+
       self.currentLocation = newLocation
       self.currentLocationLoaded = true
       self.isLocationModePersistent = isPersistent
@@ -266,6 +358,44 @@ export const DataStoreModel = types
             type: response.data.type,
           }
 
+          // Add current location to past selected locations before updating
+          if (self.currentLocation) {
+            const currentLocationToAdd = {
+              latitude: self.currentLocation.latitude,
+              longitude: self.currentLocation.longitude,
+              city: self.currentLocation.city,
+              country: self.currentLocation.country,
+              state: self.currentLocation.state,
+              timezone: self.currentLocation.timezone,
+              type: self.currentLocation.type,
+            }
+
+            // Check if location already exists in past selected locations
+            const existingIndex = self.pastSelectedLocations.findIndex(
+              (pastLocation) =>
+                pastLocation.latitude === currentLocationToAdd.latitude &&
+                pastLocation.longitude === currentLocationToAdd.longitude &&
+                pastLocation.city === currentLocationToAdd.city &&
+                pastLocation.country === currentLocationToAdd.country,
+            )
+
+            if (existingIndex !== -1) {
+              // Remove existing location and add it to the beginning (most recent first)
+              self.pastSelectedLocations.splice(existingIndex, 1)
+            }
+
+            // Add to the beginning of the array (most recent first)
+            self.pastSelectedLocations.unshift(currentLocationToAdd)
+
+            // Limit to 10 most recent locations to prevent array from growing too large
+            if (self.pastSelectedLocations.length > 10) {
+              self.pastSelectedLocations.splice(10)
+            }
+
+            // Save to storage
+            storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
+          }
+
           // Always update current location for auto-detect (regardless of persistent mode)
           self.currentLocation = newLocation
           self.currentLocationLoaded = true
@@ -280,6 +410,81 @@ export const DataStoreModel = types
       } catch (error) {
         self.currentLocationLoaded = false
         self.deviceLocationLoaded = false
+      }
+    }),
+
+    // Method to load past selected locations from storage
+    loadPastSelectedLocations: flow(function* () {
+      try {
+        const savedLocations = yield storage.load("PAST_SELECTED_LOCATIONS")
+        if (savedLocations && Array.isArray(savedLocations)) {
+          self.pastSelectedLocations.replace(savedLocations)
+        }
+      } catch (error) {
+        console.log("Error loading past selected locations:", error)
+      }
+    }),
+
+    // Method to clear past selected locations
+    clearPastSelectedLocations() {
+      self.pastSelectedLocations.clear()
+      storage.save("PAST_SELECTED_LOCATIONS", [])
+    },
+
+    // Reminder settings actions
+    setNotificationType(type: "short" | "long") {
+      self.reminderSettings.notificationType = type
+      storage.save("REMINDER_SETTINGS", {
+        notificationType: type,
+        triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
+        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+      })
+    },
+
+    setTriggerBeforeMinutes(minutes: number) {
+      self.reminderSettings.triggerBeforeMinutes = minutes
+      storage.save("REMINDER_SETTINGS", {
+        notificationType: self.reminderSettings.notificationType,
+        triggerBeforeMinutes: minutes,
+        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+      })
+    },
+
+    setCustomOffset(prayerTime: string, offsetMinutes: number) {
+      self.reminderSettings.customOffsets.set(prayerTime, offsetMinutes)
+      storage.save("REMINDER_SETTINGS", {
+        notificationType: self.reminderSettings.notificationType,
+        triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
+        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+      })
+    },
+
+    clearCustomOffset(prayerTime: string) {
+      self.reminderSettings.customOffsets.delete(prayerTime)
+      storage.save("REMINDER_SETTINGS", {
+        notificationType: self.reminderSettings.notificationType,
+        triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
+        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+      })
+    },
+
+    loadReminderSettings: flow(function* () {
+      try {
+        const savedSettings = yield storage.load("REMINDER_SETTINGS")
+        if (savedSettings) {
+          self.reminderSettings.notificationType = savedSettings.notificationType || "short"
+          self.reminderSettings.triggerBeforeMinutes = savedSettings.triggerBeforeMinutes || 5
+
+          // Convert array back to map
+          if (savedSettings.customOffsets && Array.isArray(savedSettings.customOffsets)) {
+            self.reminderSettings.customOffsets.clear()
+            savedSettings.customOffsets.forEach(([key, value]: [string, number]) => {
+              self.reminderSettings.customOffsets.set(key, value)
+            })
+          }
+        }
+      } catch (error) {
+        console.error("Error loading reminder settings:", error)
       }
     }),
   }))

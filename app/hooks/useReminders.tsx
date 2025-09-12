@@ -9,6 +9,7 @@ export interface CreateReminderData {
   offsetMinutes?: number
   repeatType?: "daily" | "weekly" | "monthly" | "never"
   customDays?: number[]
+  notificationType?: "short" | "long"
 }
 
 export function useReminders() {
