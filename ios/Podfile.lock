@@ -1177,9 +1177,11 @@ PODS:
     - React-perflogger (= 0.73.4)
   - ReactNativeGetLocation (4.0.1):
     - React-Core
-  - RNCAsyncStorage (1.22.3):
+  - RNCAsyncStorage (2.2.0):
     - React-Core
   - RNCPushNotificationIOS (1.11.0):
+    - React-Core
+  - RNDeviceInfo (14.0.4):
     - React-Core
   - RNFlashList (1.6.3):
     - React-Core
@@ -1300,6 +1302,7 @@ DEPENDENCIES:
   - ReactNativeGetLocation (from `../node_modules/react-native-get-location`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCPushNotificationIOS (from `../node_modules/@react-native-community/push-notification-ios`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
@@ -1468,6 +1471,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCPushNotificationIOS:
     :path: "../node_modules/@react-native-community/push-notification-ios"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFlashList:
     :path: "../node_modules/@shopify/flash-list"
   RNGestureHandler:
@@ -1563,8 +1568,9 @@ SPEC CHECKSUMS:
   React-utils: 6e5ad394416482ae21831050928ae27348f83487
   ReactCommon: 840a955d37b7f3358554d819446bffcf624b2522
   ReactNativeGetLocation: b4379a01dff72507d9abce5f4d569b98abef7761
-  RNCAsyncStorage: 10591b9e0a91eaffee14e69b3721009759235125
+  RNCAsyncStorage: 23e56519cc41d3bade3c8d4479f7760cb1c11996
   RNCPushNotificationIOS: 64218f3c776c03d7408284a819b2abfda1834bc8
+  RNDeviceInfo: feea80a690d2bde1fe51461cf548039258bd03f2
   RNFlashList: 4b4b6b093afc0df60ae08f9cbf6ccd4c836c667a
   RNGestureHandler: 2969f62965d59a759823c9116b7c819f9dfbea74
   RNReactNativeHapticFeedback: 755ca2183358a03f7024055f6cbd8908339cabb9

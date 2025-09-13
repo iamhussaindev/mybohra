@@ -1,5 +1,7 @@
-import { Screen } from "app/components"
+import { Screen, AnalyticsDebugger } from "app/components"
+import { useAnalytics } from "app/hooks/useAnalytics"
 import { useSoundPlayer } from "app/hooks/useAudio"
+import { useRealtimeMonitoring } from "app/hooks/useRealtimeMonitoring"
 import { useStores } from "app/models"
 import MiqaatList from "app/screens/components/MiqaatList"
 import { observer } from "mobx-react-lite"
@@ -35,6 +37,7 @@ export interface HomeSection {
 
 export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(props) {
   const [open, setOpen] = useState(false)
+  const [showDebugger, setShowDebugger] = useState(false)
   const timeout = useRef<ReturnType<typeof setTimeout>>()
   const $drawerInsets = useSafeAreaInsetsStyle(["top"])
   const [showBorder, setShowBorder] = useState(false)
@@ -43,6 +46,22 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
 
   const { dataStore, miqaatStore, libraryStore, reminderStore } = useStores()
   const { currentSound } = useSoundPlayer()
+
+  // Analytics and monitoring
+  const { trackScreenView, trackDrawerOpened, trackDrawerClosed, trackEvent } = useAnalytics({
+    screenName: "Home",
+    trackScreenView: true,
+  })
+
+  const {
+    trackPageView,
+    trackButtonClick,
+    trackFeatureUsage: trackRealtimeFeature,
+  } = useRealtimeMonitoring({
+    screenName: "Home",
+    trackPageViews: true,
+    trackUserActivities: true,
+  })
 
   const fetchMiqaats = async () => {
     await miqaatStore.fetchMiqaats()
@@ -91,8 +110,14 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
       open={open}
       onOpen={() => {
         setOpen(true)
+        trackDrawerOpened()
+        trackRealtimeFeature("drawer_opened")
       }}
-      onClose={() => setOpen(false)}
+      onClose={() => {
+        setOpen(false)
+        trackDrawerClosed()
+        trackRealtimeFeature("drawer_closed")
+      }}
       drawerType={"slide"}
       drawerPosition={isRTL ? "right" : "left"}
       renderDrawerContent={() => (
@@ -115,6 +140,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
           open={open}
           setOpen={setOpen}
           onLocationPress={handleLocationPress}
+          onLongPress={__DEV__ ? () => setShowDebugger(true) : undefined}
         />
         <SectionList
           onScroll={handleScroll}
@@ -226,6 +252,11 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
           renderItem={({ item }) => item}
         />
       </Screen>
+
+      {/* Analytics Debugger - Only show in development */}
+      {__DEV__ && (
+        <AnalyticsDebugger visible={showDebugger} onClose={() => setShowDebugger(false)} />
+      )}
     </Drawer>
   )
 })

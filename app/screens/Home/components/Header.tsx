@@ -15,6 +15,7 @@ interface HeaderProps {
   showBorder?: boolean
   shadowOffset?: number
   onLocationPress?: () => void
+  onLongPress?: () => void
 }
 
 export const Header = observer(function Header(props: HeaderProps) {
@@ -31,7 +32,11 @@ export const Header = observer(function Header(props: HeaderProps) {
   return (
     <View style={[$header, props.showBorder && $border, props.showBorder && $shadow]}>
       <View style={$headerLocation}>
-        <TouchableOpacity style={$headerLocationContainer} onPress={props.onLocationPress}>
+        <TouchableOpacity
+          style={$headerLocationContainer}
+          onPress={props.onLocationPress}
+          onLongPress={props.onLongPress}
+        >
           {props.loaded ? (
             <Text
               style={$headerLocationText}

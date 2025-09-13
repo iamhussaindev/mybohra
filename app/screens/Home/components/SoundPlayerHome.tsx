@@ -1,6 +1,3 @@
-
-
-
 import { Icon, Text } from "app/components"
 import { formatTime } from "app/helpers/audio.helper"
 import { useSoundPlayer } from "app/hooks/useAudio"
@@ -8,7 +5,6 @@ import { colors, spacing } from "app/theme"
 import LottieView from "lottie-react-native"
 import React, { useEffect, useRef } from "react"
 import { Dimensions, ImageStyle, Pressable, TextStyle, View, ViewStyle } from "react-native"
-
 
 export default function SoundPlayerHome({ navigation }: { navigation: any }) {
   const { currentSound, toggleSound, state, position, duration } = useSoundPlayer()
