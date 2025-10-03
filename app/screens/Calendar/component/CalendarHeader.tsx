@@ -1,11 +1,9 @@
-
-
 import { BackButton } from "app/appComponents/BackButton"
-import { Button, Icon, Text } from "app/components"
+import { Button, Text } from "app/components"
 import { Calendar } from "app/libs/Calendar"
 import { colors } from "app/theme"
 import React from "react"
-import { ImageStyle, TextStyle, View, ViewStyle } from "react-native"
+import { TextStyle, View, ViewStyle } from "react-native"
 
 export default function CalendarHeader({
   setCalendar,
@@ -30,14 +28,14 @@ export default function CalendarHeader({
         <Text style={$calendarMonthHijri} size="md" weight="bold"></Text>
       </View>
       <View style={$headerLeft}>
-        <Button style={[$calendarRightButton, $headerButton]} onPress={handleToday}>
+        <Button preset="tinted" style={[$calendarRightButton, $headerButton]} onPress={handleToday}>
           <Text weight="bold" style={$calendarTodayButton}>
             Today
           </Text>
         </Button>
-        <Button style={[$headerButton, $settingIcon]} onPress={handleToday}>
+        {/* <Button preset="tinted" style={[$headerButton, $settingIcon]} onPress={handleToday}>
           <Icon style={$headerLeftIcon} icon="settings" size={20} />
-        </Button>
+        </Button> */}
       </View>
     </View>
   )
@@ -54,14 +52,14 @@ const $headerRight: ViewStyle = {
   width: 100,
 }
 
-const $settingIcon: ViewStyle = {
-  paddingLeft: 10,
-}
+// const $settingIcon: ViewStyle = {
+//   paddingLeft: 10,
+// }
 
-const $headerLeftIcon: ImageStyle = {
-  position: "relative",
-  top: 2,
-}
+// const $headerLeftIcon: ImageStyle = {
+//   position: "relative",
+//   top: 2,
+// }
 
 const $headerLeft: ViewStyle = {
   display: "flex",
@@ -69,6 +67,7 @@ const $headerLeft: ViewStyle = {
   justifyContent: "flex-end",
   alignItems: "center",
   width: 100,
+  backgroundColor: colors.transparent,
 }
 
 const $calendarMonthHijri: TextStyle = {
@@ -81,6 +80,7 @@ const $headerButton: ViewStyle = {
   alignItems: "center",
   justifyContent: "center",
   display: "flex",
+  backgroundColor: colors.transparent,
 }
 
 const $calendarRightButton: ViewStyle = {

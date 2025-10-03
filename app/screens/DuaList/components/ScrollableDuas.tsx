@@ -120,7 +120,7 @@ function DailyCards(props: DailyCardProps) {
               props.navigation.navigate("PdfViewer", { ...item })
             }}
             key={item.id}
-            style={$pdfCard}
+            style={({ pressed }) => [$pdfCard, pressed && $pressedCard]}
           >
             <View style={$cardStyle}>
               {!isCurrent ? (
@@ -222,6 +222,11 @@ const $pdfCard: ViewStyle = {
   flexDirection: "column",
   padding: 0,
   shadowOpacity: 0,
+}
+
+const $pressedCard: ViewStyle = {
+  backgroundColor: colors.palette.neutral200,
+  opacity: 0.8,
 }
 
 const $gap: ViewStyle = {

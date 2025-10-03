@@ -15,9 +15,9 @@ import { isRTL } from "../../i18n"
 import { AppStackScreenProps } from "../../navigators"
 import { colors, spacing } from "../../theme"
 import { useSafeAreaInsetsStyle } from "../../utils/useSafeAreaInsetsStyle"
+import DuaGridList from "../components/DuaGridList"
 
 import CurrentQiyam from "./components/CurrentQiyam"
-import DailyDuas from "./components/DailyDuas"
 import GridIcons from "./components/GridIcons"
 import { Header } from "./components/Header"
 import HeroIcons from "./components/HeroIcons"
@@ -47,17 +47,19 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   const { dataStore, miqaatStore, libraryStore, reminderStore } = useStores()
   const { currentSound } = useSoundPlayer()
 
+  // Get pinned items and merge with daily duas
+  const pinnedItems = libraryStore.getItemsByIds(dataStore.pinnedPdfIds)
+
+  // remove pinnedItems from combinedDailyDuas
+  const dailyDuas = libraryStore.homeData.filter((item) => !pinnedItems.includes(item))
+
   // Analytics and monitoring
-  const { trackScreenView, trackDrawerOpened, trackDrawerClosed, trackEvent } = useAnalytics({
+  const { trackDrawerOpened, trackDrawerClosed } = useAnalytics({
     screenName: "Home",
     trackScreenView: true,
   })
 
-  const {
-    trackPageView,
-    trackButtonClick,
-    trackFeatureUsage: trackRealtimeFeature,
-  } = useRealtimeMonitoring({
+  const { trackFeatureUsage: trackRealtimeFeature } = useRealtimeMonitoring({
     screenName: "Home",
     trackPageViews: true,
     trackUserActivities: true,
@@ -79,6 +81,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   useEffect(() => {
     ;(async function load() {
       await dataStore.fetchQiyam()
+      await dataStore.loadPinnedPdfs()
     })()
   }, [dataStore])
 
@@ -215,14 +218,35 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
               data: [dataStore.qiyamLoaded ? <CurrentQiyam qiyam={dataStore.qiyam} /> : null],
             },
             {
+              name: "Bookmark & Pinned",
+              description: "Bookmark & Pinned",
+              key: "bookmark-pinned",
+              data: [
+                pinnedItems.length > 0 ? (
+                  <DuaGridList
+                    navigation={props.navigation}
+                    items={pinnedItems}
+                    currentSound={currentSound}
+                    pinnedIds={dataStore.pinnedPdfIds}
+                    title="Bookmark & Pinned"
+                    key="daily-duas"
+                    showOptions={false}
+                  />
+                ) : null,
+              ],
+            },
+            {
               name: "Daily Duas",
               description: "daily duas",
               data: [
-                <DailyDuas
+                <DuaGridList
                   navigation={props.navigation}
-                  items={libraryStore.homeData}
+                  items={dailyDuas}
                   currentSound={currentSound}
+                  pinnedIds={dataStore.pinnedPdfIds}
+                  title="Duas for Today"
                   key="daily-duas"
+                  showOptions={false}
                 />,
               ],
             },
@@ -253,7 +277,6 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
         />
       </Screen>
 
-      {/* Analytics Debugger - Only show in development */}
       {__DEV__ && (
         <AnalyticsDebugger visible={showDebugger} onClose={() => setShowDebugger(false)} />
       )}

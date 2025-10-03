@@ -1,5 +1,3 @@
-
-
 import { Card, ListView, Text } from "app/components"
 import HijriDate from "app/libs/HijriDate"
 import { IMiqaat } from "app/models/MiqaatStore"
@@ -83,13 +81,13 @@ const $countDownContainer: ViewStyle = {
   bottom: -5,
   paddingHorizontal: spacing.xs,
   backgroundColor: colors.palette.neutral100,
-  opacity: 0.9,
+  opacity: 1,
   shadowColor: colors.palette.neutral300,
   shadowOffset: { width: 2, height: 2 },
   shadowOpacity: 0.5,
   shadowRadius: 5,
   borderRadius: 5,
-  borderColor: colors.palette.primary500,
+  borderColor: colors.border,
   borderWidth: 0.5,
 }
 
@@ -150,7 +148,7 @@ const $listHeader: TextStyle = {
 }
 
 const $cardContainer: ViewStyle = {
-  marginBottom: spacing.sm,
+  marginBottom: spacing.md,
   shadowOpacity: 0,
   paddingTop: 10,
   paddingBottom: 10,

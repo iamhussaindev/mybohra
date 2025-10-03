@@ -1,5 +1,3 @@
-
-
 import { Button, Icon, ListView, Text } from "app/components"
 import { Calendar, CalendarDay, WEEKDAYS } from "app/libs/Calendar"
 import { useStores } from "app/models"
@@ -49,7 +47,7 @@ export default function CalendarView({
           description: "HeaderControl",
           data: [
             <View key={1} style={$headerControl}>
-              <Button onPress={handlePrevious} style={$headerControlButton}>
+              <Button preset="tinted" onPress={handlePrevious} style={$headerControlButton}>
                 <Icon
                   style={$iconStyle}
                   size={24}
@@ -63,7 +61,7 @@ export default function CalendarView({
                 </Text>
                 <Text>{calendar?.gregMonth}</Text>
               </View>
-              <Button onPress={handleNext} style={$headerControlButton}>
+              <Button preset="tinted" onPress={handleNext} style={$headerControlButton}>
                 <Icon
                   style={$iconStyle}
                   size={24}
@@ -155,7 +153,7 @@ const $emptyContainerText: TextStyle = {
 }
 
 const $emptyContainer: ViewStyle = {
-  backgroundColor: colors.palette.neutral200,
+  backgroundColor: colors.gray,
   flex: 1,
   justifyContent: "center",
   alignItems: "center",
@@ -249,7 +247,7 @@ const $headerControl: ViewStyle = {
 }
 
 const $contentContainer: ViewStyle = {
-  backgroundColor: colors.palette.neutral200,
+  backgroundColor: colors.gray,
   flexGrow: 1,
   paddingBottom: 50,
 }

@@ -37,7 +37,14 @@ export type AppStackParamList = {
   Namaz: undefined
   Tabs: undefined
   Home: undefined
-  PdfViewer: undefined
+  PdfViewer: {
+    id: number
+    name: string
+    description: string | null
+    audio: string | null
+    pdf: string | null
+    metadata: any
+  }
   Counter: undefined
   SavedTasbeeh: undefined
   EventReminder: { date: HijriDate }

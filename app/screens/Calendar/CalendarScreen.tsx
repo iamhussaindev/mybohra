@@ -1,6 +1,3 @@
-
-
-
 import { Screen } from "app/components"
 import { Calendar, CalendarDay } from "app/libs/Calendar"
 import { useStores } from "app/models"
@@ -9,10 +6,8 @@ import { observer } from "mobx-react-lite"
 import React, { FC, useEffect, useState } from "react"
 import { ViewStyle } from "react-native"
 
-
 import CalendarHeader from "./component/CalendarHeader"
 import CalendarView from "./component/CalendarView"
-
 
 interface CalendarScreenProps extends AppStackScreenProps<"Calendar"> {}
 

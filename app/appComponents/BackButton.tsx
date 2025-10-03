@@ -1,5 +1,3 @@
-
-
 import { useNavigation } from "@react-navigation/native"
 import { Button, Icon } from "app/components"
 import { colors } from "app/theme"
@@ -11,8 +9,8 @@ export function BackButton({ style }: { style?: ViewStyle }) {
 
   return (
     <Button
-      preset="tinted"
       style={[$calendarLeftButton, style]}
+      pressedStyle={$pressedCalendarLeftButton}
       onPress={() => {
         if (navigation.canGoBack()) {
           navigation.goBack()
@@ -31,4 +29,8 @@ const $calendarLeftButton: ViewStyle = {
   display: "flex",
   justifyContent: "flex-end",
   backgroundColor: colors.transparent,
+}
+
+const $pressedCalendarLeftButton: ViewStyle = {
+  backgroundColor: colors.palette.neutral100,
 }

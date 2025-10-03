@@ -1,18 +1,13 @@
-import { useNavigation, useFocusEffect } from "@react-navigation/native"
-import { Icon, Screen, Text } from "app/components"
+import { useFocusEffect } from "@react-navigation/native"
+import { Icon, PDFOptionsBottomSheet, Screen } from "app/components"
 import Header from "app/components/Header"
-import { useAnalytics } from "app/hooks/useAnalytics"
 import { useSoundPlayer } from "app/hooks/useAudio"
-import { useRealtimeMonitoring } from "app/hooks/useRealtimeMonitoring"
-import { useStores } from "app/models"
-import { ILibrary } from "app/models/LibraryStore"
+import { ILibrary, useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
-import Fuse from "fuse.js"
 import { observer } from "mobx-react-lite"
-import React, { FC, useCallback, useMemo, useRef, useState, useEffect } from "react"
+import React, { FC, useCallback, useRef, useState, useEffect } from "react"
 import {
-  TextStyle,
   View,
   ViewStyle,
   Pressable,
@@ -20,33 +15,22 @@ import {
   Keyboard,
   Animated,
   SectionList,
+  Alert,
 } from "react-native"
+import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
-import DailyDuas from "../Home/components/DailyDuas"
+import DailyDuas from "../components/DuaGridList"
 import SoundPlayerHome from "../Home/components/SoundPlayerHome"
 
 interface DuaListScreenProps extends AppStackScreenProps<"DuaList"> {}
 
 export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListScreen(props) {
-  const { libraryStore } = useStores()
+  const { libraryStore, dataStore } = useStores()
   const { currentSound } = useSoundPlayer()
-  const navigation = useNavigation()
-
-  // Analytics and monitoring
-  const { trackScreenView, trackSearchPerformed, trackPdfOpened } = useAnalytics({
-    screenName: "DuaList",
-    trackScreenView: true,
-  })
-
-  const { trackPageView, trackSearch, trackFeatureUsage } = useRealtimeMonitoring({
-    screenName: "DuaList",
-    trackPageViews: true,
-    trackUserActivities: true,
-  })
   const [search, setSearch] = useState("")
   const [showSearch, setShowSearch] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
   const $searchRef = useRef<TextInput>(null)
+  const [selectedItem, setSelectedItem] = useState<ILibrary | null>(null)
 
   // Animated values
   const searchOpacity = useRef(new Animated.Value(0)).current
@@ -58,22 +42,6 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
   useEffect(() => {
     libraryStore.fetchList()
   }, [])
-
-  const list = libraryStore.allLibraryItems
-
-  const fuse = useMemo(
-    () =>
-      new Fuse(list, {
-        keys: ["name", "description", "album"],
-        threshold: 0.2,
-      }),
-    [list],
-  )
-
-  // Search the library items
-  const results = useMemo(() => {
-    return search.length > 0 ? fuse.search(search).map((res) => res.item) : list
-  }, [search, fuse, list])
 
   const animateSearchIn = useCallback(() => {
     Animated.parallel([
@@ -156,38 +124,6 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
     }
   }, [showSearch, closeSearch, animateSearchIn, animateIconPress])
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true)
-    await libraryStore.fetchList()
-    setRefreshing(false)
-  }, [libraryStore])
-
-  // Close search when item is selected
-  const handleItemClick = useCallback(
-    (item: ILibrary) => {
-      closeSearch() // Close search when item is selected
-
-      // Track item interaction
-      trackFeatureUsage("dua_item_clicked", {
-        item_name: item.name,
-        has_pdf: !!item.pdf,
-        has_audio: !!item.audio,
-      })
-
-      // Navigate to PDF screen if PDF is available
-      if (item.pdf) {
-        trackPdfOpened(item.name, "DuaListScreen")
-        console.log("PDF for:", item.name)
-      } else if (item.audio) {
-        trackFeatureUsage("audio_clicked", { audio_name: item.name, source: "DuaListScreen" })
-        console.log("Audio playback for:", item.name)
-      } else {
-        console.log("No PDF or audio for:", item.name)
-      }
-    },
-    [navigation, closeSearch, trackPdfOpened, trackFeatureUsage],
-  )
-
   // Close search when screen loses focus (back button, navigation)
   useFocusEffect(
     useCallback(() => {
@@ -211,61 +147,79 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
     }
   }, [showSearch, search, closeSearch])
 
-  const renderLibraryItem = ({ item }: { item: ILibrary }) => (
-    <Pressable style={$libraryItem} onPress={() => handleItemClick(item)}>
-      <View style={$itemContent}>
-        <View style={$itemHeader}>
-          <Text weight="bold" style={$itemName} numberOfLines={2}>
-            {item.name}
-          </Text>
-          {item.album && (
-            <Text style={$itemAlbum} numberOfLines={1}>
-              {item.album}
-            </Text>
-          )}
-        </View>
+  const handleCloseBottomSheet = useCallback(() => {
+    console.log("Closing bottom sheet")
+    setSelectedItem(null)
+    $bottomSheetRef.current?.close()
+  }, [])
 
-        {item.description && (
-          <Text style={$itemDescription} numberOfLines={2}>
-            {item.description}
-          </Text>
-        )}
+  const handlePinToHomeScreen = useCallback(
+    (item: ILibrary) => {
+      ReactNativeHapticFeedback.trigger("impactLight", {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      })
 
-        <View style={$itemFooter}>
-          <View style={$itemActions}>
-            {item.pdf && (
-              <View style={$actionBadge}>
-                <Icon icon="view" size={14} color={colors.palette.primary500} />
-                <Text style={$actionText}>PDF</Text>
-              </View>
-            )}
-            {item.audio && (
-              <View style={$actionBadge}>
-                <Icon icon="play" size={14} color={colors.palette.primary500} />
-                <Text style={$actionText}>Audio</Text>
-              </View>
-            )}
-          </View>
-
-          {item.metadata && (
-            <View style={$metadataContainer}>
-              {item.metadata.audioLength && (
-                <Text style={$metadataText}>
-                  {Math.floor(item.metadata.audioLength / 60)}:
-                  {(item.metadata.audioLength % 60).toString().padStart(2, "0")}
-                </Text>
-              )}
-              {item.metadata.pdfPageCount && (
-                <Text style={$metadataText}>{item.metadata.pdfPageCount} pages</Text>
-              )}
-            </View>
-          )}
-        </View>
-      </View>
-    </Pressable>
+      if (dataStore.isPdfPinned(item.id)) {
+        dataStore.unpinPdf(item.id)
+        Alert.alert("Unpinned", `"${item.name}" has been unpinned from your home screen.`, [
+          { text: "OK" },
+        ])
+      } else {
+        dataStore.pinPdf(item.id)
+        Alert.alert("Pinned", `"${item.name}" has been pinned to your home screen.`, [
+          { text: "OK" },
+        ])
+      }
+    },
+    [dataStore],
   )
 
-  const categories = ["Daily Duas", "Namaz", "Ramazan", "Hajj", "Eid", "Other"]
+  const handleOpenPDF = useCallback(
+    (item: ILibrary) => {
+      props.navigation.navigate("PdfViewer", { ...item })
+    },
+    [props.navigation],
+  )
+
+  const handleReportPDF = useCallback((item: ILibrary) => {
+    Alert.alert("Report PDF", `Report issues with "${item.name}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Report",
+        style: "destructive",
+        onPress: () => {
+          // TODO: Implement report functionality
+          Alert.alert("Thank you", "Your report has been submitted.")
+        },
+      },
+    ])
+  }, [])
+
+  const $bottomSheetRef = useRef<any>(null)
+
+  const handleItemLongPress = useCallback((item: ILibrary) => {
+    if (item.pdf) {
+      // Trigger haptic feedback
+      ReactNativeHapticFeedback.trigger("impactLight", {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      })
+
+      console.log("Long press detected, opening bottom sheet for:", item.name)
+      setSelectedItem(item)
+      // Small delay to ensure state is updated
+      console.log("Attempting to open bottom sheet, ref:", !!$bottomSheetRef.current)
+      // Try to expand the bottom sheet
+      try {
+        $bottomSheetRef.current?.expand()
+      } catch (error) {
+        console.log("Error expanding bottom sheet:", error)
+        // Fallback to snapToIndex - use index 1 for the expanded state
+        $bottomSheetRef.current?.snapToIndex(1)
+      }
+    }
+  }, [])
 
   return (
     <Screen
@@ -311,12 +265,22 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
                 navigation={props.navigation}
                 items={libraryStore.homeData}
                 currentSound={currentSound}
+                handleItemLongPress={handleItemLongPress}
                 key="bookmarks"
               />,
             ],
           },
         ]}
         renderItem={({ item }) => item}
+      />
+      <PDFOptionsBottomSheet
+        ref={$bottomSheetRef}
+        item={selectedItem}
+        onPinToHomeScreen={handlePinToHomeScreen}
+        onOpen={handleOpenPDF}
+        onReportPDF={handleReportPDF}
+        onClose={handleCloseBottomSheet}
+        isPinned={selectedItem ? dataStore.isPdfPinned(selectedItem.id) : false}
       />
     </Screen>
   )
@@ -333,99 +297,4 @@ const $currentSoundContainer: ViewStyle = {
 
 const $listContainer: ViewStyle = {
   paddingBottom: 40,
-}
-
-const $libraryItem: ViewStyle = {
-  backgroundColor: "rgb(255, 252, 244)",
-  marginHorizontal: 20,
-  marginVertical: 8,
-  borderRadius: 16,
-  padding: 16,
-  borderWidth: 1,
-  borderColor: colors.palette.primary200,
-  shadowColor: "rgba(0, 0, 0, 0.1)",
-  shadowOffset: {
-    width: 0,
-    height: 2,
-  },
-  shadowOpacity: 0.25,
-  shadowRadius: 3.84,
-  elevation: 5,
-}
-
-const $itemContent: ViewStyle = {
-  flex: 1,
-}
-
-const $itemHeader: ViewStyle = {
-  marginBottom: 8,
-}
-
-const $itemName: TextStyle = {
-  fontSize: 16,
-  color: "rgb(97, 79, 48)",
-  marginBottom: 4,
-}
-
-const $itemAlbum: TextStyle = {
-  fontSize: 12,
-  color: colors.palette.primary500,
-  fontWeight: "500",
-}
-
-const $itemDescription: TextStyle = {
-  fontSize: 14,
-  color: "rgb(120, 100, 70)",
-  lineHeight: 20,
-  marginBottom: 12,
-}
-
-const $itemFooter: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-}
-
-const $itemActions: ViewStyle = {
-  flexDirection: "row",
-  gap: 8,
-}
-
-const $actionBadge: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  backgroundColor: "rgb(254, 244, 227)",
-  paddingHorizontal: 8,
-  paddingVertical: 4,
-  borderRadius: 12,
-  gap: 4,
-}
-
-const $actionText: TextStyle = {
-  fontSize: 12,
-  color: colors.palette.primary500,
-  fontWeight: "500",
-}
-
-const $metadataContainer: ViewStyle = {
-  flexDirection: "row",
-  gap: 8,
-}
-
-const $metadataText: TextStyle = {
-  fontSize: 12,
-  color: "rgb(120, 100, 70)",
-}
-
-const $emptyContainer: ViewStyle = {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  paddingVertical: 60,
-}
-
-const $emptyText: TextStyle = {
-  fontSize: 16,
-  color: "rgb(120, 100, 70)",
-  textAlign: "center",
 }

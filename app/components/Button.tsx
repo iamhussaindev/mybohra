@@ -200,7 +200,7 @@ const $tintedTextStyle: TextStyle = {
 }
 
 const $tintedViewStyle: ViewStyle = {
-  backgroundColor: colors.palette.primary100,
+  backgroundColor: colors.palette.neutral100,
 }
 
 const $rightAccessoryStyle: ViewStyle = { marginStart: spacing.xs, zIndex: 1 }
@@ -237,7 +237,7 @@ const $pressedViewPresets: Record<Presets, StyleProp<ViewStyle>> = {
   default: { backgroundColor: colors.palette.primary600 },
   filled: { backgroundColor: colors.palette.primary800 },
   reversed: { backgroundColor: colors.palette.neutral700 },
-  tinted: { backgroundColor: colors.palette.neutral100 },
+  tinted: { backgroundColor: colors.palette.primary100 },
 }
 
 const $pressedTextPresets: Record<Presets, StyleProp<TextStyle>> = {

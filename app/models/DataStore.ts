@@ -64,6 +64,8 @@ export const DataStoreModel = types
     pastSelectedLocations: types.optional(types.array(LocationModel), []),
     // Reminder settings
     reminderSettings: types.optional(ReminderSettingsModel, {}),
+    // Pinned PDFs
+    pinnedPdfIds: types.optional(types.array(types.number), []),
   })
   .actions((self) => ({
     // Method to add a location to past selected locations
@@ -487,6 +489,57 @@ export const DataStoreModel = types
         console.error("Error loading reminder settings:", error)
       }
     }),
+
+    // Pinned PDFs actions
+    pinPdf(pdfId: number) {
+      if (!self.pinnedPdfIds.includes(pdfId)) {
+        self.pinnedPdfIds.push(pdfId)
+        storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+      }
+    },
+
+    unpinPdf(pdfId: number) {
+      const index = self.pinnedPdfIds.indexOf(pdfId)
+      if (index > -1) {
+        self.pinnedPdfIds.splice(index, 1)
+        storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+      }
+    },
+
+    togglePinPdf(pdfId: number) {
+      if (self.pinnedPdfIds.includes(pdfId)) {
+        const index = self.pinnedPdfIds.indexOf(pdfId)
+        if (index > -1) {
+          self.pinnedPdfIds.splice(index, 1)
+          storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+        }
+      } else {
+        if (!self.pinnedPdfIds.includes(pdfId)) {
+          self.pinnedPdfIds.push(pdfId)
+          storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+        }
+      }
+    },
+
+    isPdfPinned(pdfId: number): boolean {
+      return self.pinnedPdfIds.includes(pdfId)
+    },
+
+    loadPinnedPdfs: flow(function* () {
+      try {
+        const savedPinnedIds = yield storage.load("PINNED_PDF_IDS")
+        if (savedPinnedIds && Array.isArray(savedPinnedIds)) {
+          self.pinnedPdfIds.replace(savedPinnedIds)
+        }
+      } catch (error) {
+        console.error("Error loading pinned PDFs:", error)
+      }
+    }),
+
+    clearAllPinnedPdfs() {
+      self.pinnedPdfIds.clear()
+      storage.save("PINNED_PDF_IDS", [])
+    },
   }))
   .views((self) => ({
     // Computed view to check if data is loaded

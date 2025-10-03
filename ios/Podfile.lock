@@ -1189,7 +1189,7 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - RNReactNativeHapticFeedback (2.3.2):
+  - RNReactNativeHapticFeedback (2.3.3):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1573,7 +1573,7 @@ SPEC CHECKSUMS:
   RNDeviceInfo: feea80a690d2bde1fe51461cf548039258bd03f2
   RNFlashList: 4b4b6b093afc0df60ae08f9cbf6ccd4c836c667a
   RNGestureHandler: 2969f62965d59a759823c9116b7c819f9dfbea74
-  RNReactNativeHapticFeedback: 755ca2183358a03f7024055f6cbd8908339cabb9
+  RNReactNativeHapticFeedback: fb13f480b94c1f7db87431bbd7a644c641c25bc9
   RNReanimated: 4f9e720898495918e9ee795166fe48ff4d62667d
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNSensors: 117ba71c7eeeea0407ea0c0bb79e3495d602049b

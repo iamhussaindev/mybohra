@@ -1,5 +1,4 @@
 import { api } from "app/services/api"
-import { momentTime } from "app/utils/currentTime"
 import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
@@ -30,13 +29,8 @@ export const LibraryStoreModel = types
   })
   .actions((self) => ({
     fetchHomeData: flow(function* () {
-      const day = momentTime().isoWeekday() - 1
-      const today = days[day]
-
       try {
-        const response: any = yield api.fetch(
-          `library/list?categories[]=daily-duas&categories[]=${today}&daily=true`,
-        )
+        const response: any = yield api.fetch(`library/daily-items`)
         const data = response.data as ILibrary[]
 
         if (response.kind === "ok") {
@@ -109,6 +103,11 @@ export const LibraryStoreModel = types
 
     get allLibraryItems() {
       return self.allLibraryData
+    },
+
+    // Get items by IDs (for pinned items)
+    getItemsByIds(ids: number[]): ILibrary[] {
+      return self.allLibraryData.filter((item) => ids.includes(item.id))
     },
   }))
 
