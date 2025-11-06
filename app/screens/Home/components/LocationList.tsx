@@ -33,7 +33,7 @@ const LocationList = React.memo(
   }: {
     list: ILocation[]
     sheetRef: React.RefObject<BottomSheet>
-    handleItemClick: (item: PlainLocation, isPersistent?: boolean) => void
+    handleItemClick: (item: PlainLocation) => void
   }) => {
     const [search, setSearch] = useState("")
     const { dataStore } = useStores()
@@ -112,7 +112,7 @@ const LocationList = React.memo(
             $searchRef.current?.blur()
             // Small delay to ensure keyboard is dismissed before handling selection
             setTimeout(() => {
-              handleItemClick(item, false) // Always temporary selection from manual picker
+              handleItemClick(item)
             }, 100)
           }}
         >

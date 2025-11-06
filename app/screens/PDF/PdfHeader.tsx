@@ -1,22 +1,32 @@
-
-
-
 import { BackButton } from "app/appComponents/BackButton"
 import { Icon, Text } from "app/components"
+import { useStores } from "app/models"
 import { ILibrary } from "app/models/LibraryStore"
 import { colors, spacing } from "app/theme"
-import React, { useEffect } from "react"
+import { observer } from "mobx-react-lite"
+import React, { useEffect, useState } from "react"
 import { Pressable, TextStyle, View, ViewStyle } from "react-native"
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
-
+import ReactNativeHapticFeedback from "react-native-haptic-feedback"
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated"
 
 interface HeaderProps extends ILibrary {
   isFullscreen?: boolean
+  togglePin: () => void
 }
 
-export function Header(props: HeaderProps) {
+export const Header = observer(function Header(props: HeaderProps) {
+  const { dataStore } = useStores()
+  const [isPinned, setIsPinned] = useState<boolean>(false)
   const translateY = useSharedValue(0)
-
+  const iconScale = useSharedValue(1)
+  useEffect(() => {
+    setIsPinned(dataStore.isPdfPinned(props.id))
+  }, [dataStore.pinnedPdfIds])
   useEffect(() => {
     if (props.isFullscreen) {
       translateY.value = withTiming(-200, { duration: 100 }) // Slide up when entering fullscreen
@@ -31,6 +41,29 @@ export function Header(props: HeaderProps) {
     }
   })
 
+  const animatedIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: iconScale.value }],
+    }
+  })
+
+  const handlePinPress = () => {
+    // Haptic feedback
+    ReactNativeHapticFeedback.trigger("impactLight", {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    })
+
+    // Scale animation - press down then spring back
+    iconScale.value = withSpring(0.8, { damping: 10, stiffness: 300 }, () => {
+      iconScale.value = withSpring(1, { damping: 10, stiffness: 300 })
+    })
+
+    // Toggle pin
+    props.togglePin()
+    setIsPinned(!isPinned)
+  }
+
   return (
     <Animated.View style={[$header, animatedHeaderStyle]}>
       <BackButton style={$backButton} />
@@ -38,19 +71,25 @@ export function Header(props: HeaderProps) {
         <Text preset="bold" style={$headerTitle} text={props.name} />
       </View>
       <View style={$headerRight}>
-        <Pressable style={$headerRightIcon}>
-          <Icon color={colors.palette.neutral500} size={24} icon="bookmarkOutline" />
+        <Pressable onPress={handlePinPress} style={$headerRightIcon}>
+          <Animated.View style={animatedIconStyle}>
+            <Icon
+              color={isPinned ? colors.palette.primary500 : colors.palette.neutral500}
+              size={24}
+              icon={isPinned ? "bookmarkOutline" : "bookmarkOutline"}
+            />
+          </Animated.View>
         </Pressable>
       </View>
     </Animated.View>
   )
-}
+})
 
 const $headerTitle: TextStyle = {
   maxWidth: 200,
   textAlign: "center",
-  fontSize: 14,
-  lineHeight: 18,
+  fontSize: 18,
+  lineHeight: 20,
 }
 
 const $headerRight: ViewStyle = {

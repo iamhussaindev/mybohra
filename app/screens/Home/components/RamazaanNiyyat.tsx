@@ -1,6 +1,3 @@
-
-
-
 import { Text, Icon } from "app/components"
 import { ramazanNiyyat } from "app/data/niyyat"
 import HijriDate from "app/libs/HijriDate"
@@ -11,14 +8,16 @@ import React, { useState, useEffect, useRef } from "react"
 import { TextStyle, View, ViewStyle, Pressable } from "react-native"
 import Swipeable, { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable"
 
-
 export default function RamazaanNiyyat() {
   const hijriDate = new HijriDate()
   const day = hijriDate.day
   const month = hijriDate.month
+  const year = hijriDate.year
   const swipeableRow = useRef<SwipeableMethods>(null)
 
   const niyyat = ramazanNiyyat.find((niyyat) => niyyat.day === day && month === 9)
+  const key = `${day}_${month}_${year}`
+
   if (!niyyat) return null
 
   const start = niyyat.text.split("Saumal ")[0] + "Saumal"
@@ -31,7 +30,7 @@ export default function RamazaanNiyyat() {
   const [isSwiping, setIsSwiping] = useState(false)
 
   const loadVisibility = async () => {
-    const savedVisibility = await storage.loadString(`niyyat_visible_${day}`, "true")
+    const savedVisibility = await storage.loadString(`niyyat_visible_${key}`, "true")
     setIsVisible(savedVisibility === "true")
   }
 
@@ -123,7 +122,9 @@ export default function RamazaanNiyyat() {
       onSwipeableWillClose={() => setIsSwiping(true)}
     >
       <View style={$container}>
-        <Text style={$title}>Today's Roza Niyyat</Text>
+        <Text size="lg" style={$title}>
+          {showArabic ? "Aaj ni Roza Niyyat" : "Today's Roza Niyyat"}
+        </Text>
         <Pressable
           onPress={handleLanguageSwitch}
           style={[!showArabic && $row, showArabic && $arabicRow]}
@@ -133,18 +134,27 @@ export default function RamazaanNiyyat() {
               {niyyat.arabic}
             </Text>
           ) : (
-            <>
+            <View style={$rowEnglish}>
               <Text style={$text}>{start}</Text>
               <Text weight="bold" style={$middle}>
                 {middle}
               </Text>
               <Text style={$text}>{end}</Text>
-            </>
+            </View>
           )}
         </Pressable>
       </View>
     </Swipeable>
   )
+}
+
+const $rowEnglish: ViewStyle = {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  gap: spacing.sm,
 }
 
 const $arabicRow: ViewStyle = {
@@ -167,7 +177,8 @@ const $rightAction: ViewStyle = {
   width: 120,
   marginRight: spacing.lg,
   marginTop: spacing.lg,
-  borderRadius: 10,
+  borderRadius: 18,
+  marginBottom: spacing.lg,
 }
 
 const $row: ViewStyle = {
@@ -179,37 +190,38 @@ const $row: ViewStyle = {
 }
 
 const $title: TextStyle = {
-  fontSize: 13,
-  fontWeight: "bold",
+  fontSize: 16,
   color: colors.palette.primary500,
   marginBottom: spacing.sm,
   textAlign: "center",
 }
 
 const $text: TextStyle = {
-  fontSize: 15,
+  fontSize: 16,
   textAlign: "center",
+  fontFamily: typography.primary.bold,
 }
 
 const $middle: TextStyle = {
   fontSize: 18,
   color: colors.palette.primary500,
   fontWeight: "bold",
-  textTransform: "uppercase",
+  textTransform: "capitalize",
 }
 
 const $container: ViewStyle = {
   marginHorizontal: spacing.lg,
   height: 220,
-  borderWidth: 1,
   marginTop: spacing.lg,
-  borderRadius: 10,
-  borderColor: colors.palette.neutral300,
+  borderRadius: 18,
+
+  borderWidth: 1,
+  borderColor: colors.border,
+
   backgroundColor: colors.palette.neutral100,
-  shadowColor: colors.palette.neutral300,
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.25,
-  shadowRadius: 3.84,
+  shadowOpacity: 0.05,
+  shadowOffset: { width: 2, height: 1 },
+  marginBottom: spacing.lg,
   elevation: 5,
   paddingHorizontal: spacing.md,
   paddingVertical: spacing.md,

@@ -9,7 +9,6 @@ import TrackPlayer, {
   useProgress,
 } from "react-native-track-player"
 
-
 interface SoundPlayerContextType {
   playSound: (sound: ILibrary, startedFrom?: "PDF" | "LIBRARY") => void
   stopSound: () => void
@@ -82,9 +81,10 @@ const useProvideSoundPlayer = (): SoundPlayerContextType => {
 
   const playSound = (item: ILibrary, startedFrom?: "PDF" | "LIBRARY") => {
     TrackPlayer.reset()
+    console.log(item.audio_url, "item.audio_url")
     TrackPlayer.add({
       id: item.id,
-      url: item.audio ?? "",
+      url: item.audio_url ?? "",
       title: item.name ?? "",
       artist: item.album ?? "",
       type: TrackType.SmoothStreaming,

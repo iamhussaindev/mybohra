@@ -13,7 +13,7 @@ export interface LocationBottomSheetRef {
 }
 
 interface LocationBottomSheetProps {
-  onLocationSelect?: (location: PlainLocation, isPersistent?: boolean) => void
+  onLocationSelect?: (location: PlainLocation) => void
 }
 
 export const LocationBottomSheet = forwardRef<LocationBottomSheetRef, LocationBottomSheetProps>(
@@ -34,8 +34,8 @@ export const LocationBottomSheet = forwardRef<LocationBottomSheetRef, LocationBo
     }))
 
     const handleItemClick = useCallback(
-      (location: PlainLocation, isPersistent: boolean = false) => {
-        onLocationSelect?.(location, isPersistent)
+      (location: PlainLocation) => {
+        onLocationSelect?.(location)
         close()
       },
       [onLocationSelect, close],

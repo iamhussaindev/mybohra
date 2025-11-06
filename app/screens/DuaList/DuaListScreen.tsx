@@ -2,7 +2,8 @@ import { useFocusEffect } from "@react-navigation/native"
 import { Icon, PDFOptionsBottomSheet, Screen } from "app/components"
 import Header from "app/components/Header"
 import { useSoundPlayer } from "app/hooks/useAudio"
-import { ILibrary, useStores } from "app/models"
+import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
+import { useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
 import { observer } from "mobx-react-lite"
@@ -15,9 +16,7 @@ import {
   Keyboard,
   Animated,
   SectionList,
-  Alert,
 } from "react-native"
-import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
 import DailyDuas from "../components/DuaGridList"
 import SoundPlayerHome from "../Home/components/SoundPlayerHome"
@@ -25,12 +24,23 @@ import SoundPlayerHome from "../Home/components/SoundPlayerHome"
 interface DuaListScreenProps extends AppStackScreenProps<"DuaList"> {}
 
 export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListScreen(props) {
-  const { libraryStore, dataStore } = useStores()
+  const { libraryStore } = useStores()
   const { currentSound } = useSoundPlayer()
   const [search, setSearch] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const $searchRef = useRef<TextInput>(null)
-  const [selectedItem, setSelectedItem] = useState<ILibrary | null>(null)
+
+  // Use the PDF options bottom sheet hook
+  const {
+    bottomSheetRef,
+    selectedItem,
+    handleItemLongPress,
+    handlePinToHomeScreen,
+    handleCloseBottomSheet,
+    handleOpenPDF,
+    handleReportPDF,
+    isPinned,
+  } = usePdfOptionsBottomSheet({ navigation: props.navigation })
 
   // Animated values
   const searchOpacity = useRef(new Animated.Value(0)).current
@@ -147,80 +157,6 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
     }
   }, [showSearch, search, closeSearch])
 
-  const handleCloseBottomSheet = useCallback(() => {
-    console.log("Closing bottom sheet")
-    setSelectedItem(null)
-    $bottomSheetRef.current?.close()
-  }, [])
-
-  const handlePinToHomeScreen = useCallback(
-    (item: ILibrary) => {
-      ReactNativeHapticFeedback.trigger("impactLight", {
-        enableVibrateFallback: true,
-        ignoreAndroidSystemSettings: false,
-      })
-
-      if (dataStore.isPdfPinned(item.id)) {
-        dataStore.unpinPdf(item.id)
-        Alert.alert("Unpinned", `"${item.name}" has been unpinned from your home screen.`, [
-          { text: "OK" },
-        ])
-      } else {
-        dataStore.pinPdf(item.id)
-        Alert.alert("Pinned", `"${item.name}" has been pinned to your home screen.`, [
-          { text: "OK" },
-        ])
-      }
-    },
-    [dataStore],
-  )
-
-  const handleOpenPDF = useCallback(
-    (item: ILibrary) => {
-      props.navigation.navigate("PdfViewer", { ...item })
-    },
-    [props.navigation],
-  )
-
-  const handleReportPDF = useCallback((item: ILibrary) => {
-    Alert.alert("Report PDF", `Report issues with "${item.name}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Report",
-        style: "destructive",
-        onPress: () => {
-          // TODO: Implement report functionality
-          Alert.alert("Thank you", "Your report has been submitted.")
-        },
-      },
-    ])
-  }, [])
-
-  const $bottomSheetRef = useRef<any>(null)
-
-  const handleItemLongPress = useCallback((item: ILibrary) => {
-    if (item.pdf) {
-      // Trigger haptic feedback
-      ReactNativeHapticFeedback.trigger("impactLight", {
-        enableVibrateFallback: true,
-        ignoreAndroidSystemSettings: false,
-      })
-
-      console.log("Long press detected, opening bottom sheet for:", item.name)
-      setSelectedItem(item)
-      // Small delay to ensure state is updated
-      console.log("Attempting to open bottom sheet, ref:", !!$bottomSheetRef.current)
-      // Try to expand the bottom sheet
-      try {
-        $bottomSheetRef.current?.expand()
-      } catch (error) {
-        console.log("Error expanding bottom sheet:", error)
-        // Fallback to snapToIndex - use index 1 for the expanded state
-        $bottomSheetRef.current?.snapToIndex(1)
-      }
-    }
-  }, [])
-
   return (
     <Screen
       preset="fixed"
@@ -274,13 +210,13 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
         renderItem={({ item }) => item}
       />
       <PDFOptionsBottomSheet
-        ref={$bottomSheetRef}
+        ref={bottomSheetRef}
         item={selectedItem}
         onPinToHomeScreen={handlePinToHomeScreen}
         onOpen={handleOpenPDF}
         onReportPDF={handleReportPDF}
         onClose={handleCloseBottomSheet}
-        isPinned={selectedItem ? dataStore.isPdfPinned(selectedItem.id) : false}
+        isPinned={isPinned}
       />
     </Screen>
   )

@@ -7,7 +7,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
  */
 export async function loadString(key: string, defaultString: string): Promise<string | null> {
   try {
-    return await AsyncStorage.getItem(key)
+    const value = await AsyncStorage.getItem(key)
+    return value ?? defaultString
   } catch {
     // not sure why this would fail... even reading the RN docs I'm unclear
     return defaultString

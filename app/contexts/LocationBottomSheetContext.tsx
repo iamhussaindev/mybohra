@@ -30,14 +30,9 @@ export function LocationBottomSheetProvider({ children }: LocationBottomSheetPro
     locationBottomSheetRef.current?.close()
   }
 
-  const handleLocationSelect = async (location: PlainLocation, isPersistent = false) => {
-    if (isPersistent) {
-      await dataStore.setCurrentLocation(location, true)
-    } else {
-      // When user manually selects a location, set it as persistent
-      dataStore.setTemporaryLocation(location)
-      dataStore.setPersistentMode(true) // Auto-enable persistent mode for manual selections
-    }
+  const handleLocationSelect = async (location: PlainLocation) => {
+    // Always set the selected location (auto-updates)
+    await dataStore.setCurrentLocation(location)
     closeLocationBottomSheet()
   }
 

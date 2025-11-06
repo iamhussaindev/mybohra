@@ -63,13 +63,14 @@ function App(props: AppProps) {
   })
 
   const fetchData = async () => {
+    // Load saved location first, before fetching new location
+    await dataStore.loadCurrentLocation()
     await fetchStorageLocation()
     await fetchMiqaats()
     await hideSplashScreen()
     await fetchHomeLibrary()
     await fetchTasbeeh()
     await fetchLocations()
-    await loadLocationMode()
     await loadPastSelectedLocations()
     await dataStore.loadReminderSettings()
   }
@@ -98,10 +99,15 @@ function App(props: AppProps) {
   }
 
   const fetchStorageLocation = async () => {
-    locationStorage.fetchSavedLocations().then((location) => {
-      syncNearestLocation(location.latitude, location.longitude)
-      return location
-    })
+    locationStorage
+      .fetchSavedLocations()
+      .then((location) => {
+        syncNearestLocation(location.latitude, location.longitude)
+        return location
+      })
+      .catch((error) => {
+        console.log("error", error)
+      })
   }
 
   const fetchMiqaats = async () => {
@@ -118,10 +124,6 @@ function App(props: AppProps) {
 
   const fetchLocations = async () => {
     await dataStore.fetchLocations()
-  }
-
-  const loadLocationMode = async () => {
-    await dataStore.loadLocationMode()
   }
 
   const loadPastSelectedLocations = async () => {

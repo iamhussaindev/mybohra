@@ -2,6 +2,15 @@
 // markdown file and add links from here
 
 import {
+  DMSans_300Light as dmSansLight,
+  DMSans_400Regular as dmSansRegular,
+  DMSans_500Medium as dmSansMedium,
+  DMSans_600SemiBold as dmSansSemiBold,
+  DMSans_700Bold as dmSansBold,
+  DMSans_800ExtraBold as dmSansExtraBold,
+  DMSans_900Black as dmSansBlack,
+} from "@expo-google-fonts/dm-sans"
+import {
   SpaceGrotesk_300Light as spaceGroteskLight,
   SpaceGrotesk_400Regular as spaceGroteskRegular,
   SpaceGrotesk_500Medium as spaceGroteskMedium,
@@ -9,7 +18,6 @@ import {
   SpaceGrotesk_700Bold as spaceGroteskBold,
 } from "@expo-google-fonts/space-grotesk"
 import { Platform } from "react-native"
-
 
 export const customFontsToLoad = {
   spaceGroteskLight,
@@ -19,6 +27,14 @@ export const customFontsToLoad = {
   spaceGroteskBold,
   arabicKanz: require("../../assets/fonts/mJ.ttf"),
   amiriRegular: require("../../assets/fonts/regularamiri.ttf"),
+
+  dmSansLight,
+  dmSansRegular,
+  dmSansMedium,
+  dmSansSemiBold,
+  dmSansBold,
+  dmSansExtraBold,
+  dmSansBlack,
 
   muminoBold: require("../../assets/fonts/UberMoveText-Bold.otf"),
   muminoRegular: require("../../assets/fonts/UberMoveText-Regular.otf"),
@@ -43,6 +59,15 @@ const fonts = {
     medium: "spaceGroteskMedium",
     semiBold: "spaceGroteskSemiBold",
     bold: "spaceGroteskBold",
+  },
+  dmSans: {
+    light: "dmSansLight",
+    normal: "dmSansRegular",
+    medium: "dmSansMedium",
+    semiBold: "dmSansSemiBold",
+    bold: "dmSansBold",
+    extraBold: "dmSansExtraBold",
+    black: "dmSansBlack",
   },
   mumino: {
     // Custom font.
@@ -88,6 +113,34 @@ const fonts = {
   },
 }
 
+/**
+ * Letter spacing configuration for the entire app.
+ * This controls the spacing between letters/characters.
+ * Adjust this value to change letter spacing app-wide.
+ */
+export const letterSpacing = {
+  /**
+   * Default letter spacing for most text.
+   */
+  default: -0.2,
+  /**
+   * Tighter letter spacing for headings.
+   */
+  tight: 0,
+  /**
+   * Normal letter spacing.
+   */
+  normal: 0,
+  /**
+   * Wider letter spacing for emphasis.
+   */
+  wide: 0.5,
+  /**
+   * Extra wide letter spacing.
+   */
+  wider: 1,
+}
+
 export const typography = {
   /**
    * The fonts are available to use, but prefer using the semantic name.
@@ -100,13 +153,18 @@ export const typography = {
   /**
    * An alternate font used for perhaps titles and stuff.
    */
-  secondary: Platform.select({ ios: fonts.helveticaNeue, android: fonts.sansSerif }),
+  secondary: fonts.dmSans,
   /**
    * Lets get fancy with a monospace font!
    */
   code: Platform.select({ ios: fonts.courier, android: fonts.monospace }),
 
-  number: fonts.spaceGrotesk,
+  number: fonts.dmSans,
 
   arabic: fonts.arabic,
+
+  /**
+   * Letter spacing values for consistent spacing throughout the app.
+   */
+  letterSpacing,
 }

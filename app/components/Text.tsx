@@ -1,7 +1,14 @@
 import i18n from "i18n-js"
 import { styled } from "nativewind"
 import React from "react"
-import { StyleProp, Text as RNText, TextProps as RNTextProps, TextStyle } from "react-native"
+import {
+  StyleProp,
+  Text as RNText,
+  TextProps as RNTextProps,
+  TextStyle,
+  View,
+  ViewStyle,
+} from "react-native"
 
 import { isRTL, translate, TxKeyPath } from "../i18n"
 import { colors, typography } from "../theme"
@@ -18,7 +25,7 @@ export interface TextProps extends RNTextProps {
   /**
    * The text to display if not using `tx` or nested components.
    */
-  text?: string
+  text?: string | { text: string; props?: TextStyle }[]
   /**
    * Optional options to pass to i18n. Useful for interpolation
    * as well as explicitly setting locale or translation fallbacks.
@@ -88,9 +95,26 @@ export function Text(props: TextProps) {
 
   return (
     <StyledText {...rest} style={$styles} className={className}>
-      {content}
+      {Array.isArray(content) ? (
+        <View style={$textContainer}>
+          {content.length > 0
+            ? content.map((item, index) => (
+                <Text key={index} style={[$styles, item.props]} color={item.props?.color as string}>
+                  {item.text}
+                </Text>
+              ))
+            : null}
+        </View>
+      ) : (
+        content
+      )}
     </StyledText>
   )
+}
+
+const $textContainer: ViewStyle = {
+  flexDirection: "row",
+  flexWrap: "wrap",
 }
 
 const $sizeStyles = {
@@ -104,13 +128,17 @@ const $sizeStyles = {
 }
 
 const $fontWeightStyles = Object.entries(typography.primary).reduce((acc, [weight, fontFamily]) => {
+  // Use DM Sans for bold weight with letter spacing -1
+  if (weight === "bold") {
+    return { ...acc, [weight]: { fontFamily: typography.fonts.dmSans.bold, letterSpacing: -0.5 } }
+  }
   return { ...acc, [weight]: { fontFamily } }
 }, {}) as Record<Weights, TextStyle>
 
 const $baseStyle: StyleProp<TextStyle> = [
   $sizeStyles.sm,
   $fontWeightStyles.medium,
-  { color: colors.text },
+  { color: colors.text, letterSpacing: typography.letterSpacing.default },
 ]
 
 const $presets = {

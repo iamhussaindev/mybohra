@@ -49,6 +49,7 @@ export default function HeroIcons({ onNavigation }: { onNavigation: (screen: any
     justifyContent: "space-between",
     marginHorizontal: spacing.lg,
     marginTop: 20,
+    marginBottom: spacing.lg,
   }
 
   return (

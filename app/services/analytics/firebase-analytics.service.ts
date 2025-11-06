@@ -135,6 +135,26 @@ class FirebaseAnalyticsService {
       return false
     }
   }
+
+  /**
+   * Initialize Firebase Analytics (compatibility method)
+   */
+  async initialize(): Promise<void> {
+    console.log("📊 [Firebase Analytics] Initialized")
+    // Firebase Analytics initializes automatically, no action needed
+  }
+
+  /**
+   * Record error event (compatibility method)
+   */
+  async recordError(errorName: string, error: any, fatal: boolean = false): Promise<void> {
+    await this.logEvent("error_occurred", {
+      error_name: errorName,
+      error_message: error?.message || String(error),
+      fatal: fatal,
+      timestamp: Date.now(),
+    })
+  }
 }
 
 export const firebaseAnalyticsService = new FirebaseAnalyticsService()

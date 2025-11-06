@@ -1,164 +1,261 @@
-# Welcome to your new ignited app
+# MyBohra App
 
-[![CircleCI](https://circleci.com/gh/infinitered/ignite.svg?style=svg)](https://circleci.com/gh/infinitered/ignite)
+A React Native Expo application for the Bohra community, built with Ignite boilerplate, featuring Islamic calendar (Miqaat), prayer times, duas, tasbeeh counter, and more.
 
-## The latest and greatest boilerplate for Infinite Red opinions
+## 🚀 Quick Start
 
-This is the boilerplate that [Infinite Red](https://infinite.red) uses as a way to test bleeding-edge changes to our React Native stack.
+### Prerequisites
+- Node.js 18+
+- Yarn package manager
+- Expo CLI
+- iOS Simulator / Android Emulator
 
-Currently includes:
+### Installation
 
-- React Native
-- React Navigation
-- MobX State Tree
-- TypeScript
-- And more!
+```bash
+# Install dependencies
+yarn install
 
-## Quick Start
+# Start development server
+yarn start
 
-The Ignite boilerplate project's structure will look similar to this:
+# Run on iOS
+yarn ios
 
-```
-ignite-project
-├── app
-│   ├── components
-│   ├── config
-│   ├── i18n
-│   ├── models
-│   ├── navigators
-│   ├── screens
-│   ├── services
-│   ├── theme
-│   ├── utils
-│   └── app.tsx
-├── assets
-│   ├── icons
-│   └── images
-├── test
-│   ├── __snapshots__
-│   ├── mockFile.ts
-│   └── setup.ts
-├── README.md
-├── android
-│   ├── app
-│   ├── build.gradle
-│   ├── gradle
-│   ├── gradle.properties
-│   ├── gradlew
-│   ├── gradlew.bat
-│   ├── keystores
-│   └── settings.gradle
-├── ignite
-│   └── templates
-|       |── app-icon
-│       ├── component
-│       ├── model
-│       ├── navigator
-│       └── screen
-├── index.js
-├── ios
-│   ├── IgniteProject
-│   ├── IgniteProject-tvOS
-│   ├── IgniteProject-tvOSTests
-│   ├── IgniteProject.xcodeproj
-│   └── IgniteProjectTests
-├── .env
-└── package.json
-
+# Run on Android
+yarn android
 ```
 
-### ./app directory
+### Environment Setup
 
-Included in an Ignite boilerplate project is the `app` directory. This is a directory you would normally have to create when using vanilla React Native.
+1. Copy the example environment file:
+   ```bash
+   cp env.example .env
+   ```
 
-The inside of the `app` directory looks similar to the following:
+2. Configure your credentials in `.env`:
+   - Supabase URL and API keys
+   - Firebase credentials (for analytics)
+   - Other app configuration
 
-```
-app
-├── components
-├── config
-├── i18n
-├── models
-├── navigators
-├── screens
-├── services
-├── theme
-├── utils
-└── app.tsx
-```
+For detailed setup instructions, see **[docs/ENV_SETUP.md](docs/ENV_SETUP.md)**
 
-**components**
-This is where your reusable components live which help you build your screens.
+## 📚 Documentation
 
-**i18n**
-This is where your translations will live if you are using `react-native-i18n`.
+All project documentation is located in the **[docs/](docs/)** folder:
 
-**models**
-This is where your app's models will live. Each model has a directory which will contain the `mobx-state-tree` model file, test file, and any other supporting files like actions, types, etc.
+### Getting Started
+- **[Quick Start Guide](docs/SUPABASE_QUICK_START.md)** - Get up and running in 15 minutes
+- **[Environment Setup](docs/ENV_SETUP.md)** - Configure your development environment
+- **[Setup Checklist](docs/SUPABASE_CHECKLIST.md)** - Complete setup verification
 
-**navigators**
-This is where your `react-navigation` navigators will live.
+### Backend & Database
+- **[Supabase Setup Guide](docs/SUPABASE_SETUP.md)** - Comprehensive database setup
+- **[Migration Summary](docs/MIGRATION_SUMMARY.md)** - Understanding the Supabase migration
+- **[Firebase Setup](docs/FIREBASE_SETUP.md)** - Analytics and monitoring setup
 
-**screens**
-This is where your screen components will live. A screen is a React component which will take up the entire screen and be part of the navigation hierarchy. Each screen will have a directory containing the `.tsx` file, along with any assets or other helper files.
+### Development
+- **[Action Logger Setup](docs/ACTION_LOGGER_SETUP.md)** - Configure action logging
+- **[Test Events](docs/test-events.md)** - Testing documentation
 
-**services**
-Any services that interface with the outside world will live here (think REST APIs, Push Notifications, etc.).
+👉 **See [docs/README.md](docs/README.md) for complete documentation index**
 
-**theme**
-Here lives the theme for your application, including spacing, colors, and typography.
+## 🏗️ Tech Stack
 
-**utils**
-This is a great place to put miscellaneous helpers and utilities. Things like date helpers, formatters, etc. are often found here. However, it should only be used for things that are truly shared across your application. If a helper or utility is only used by a specific component or model, consider co-locating your helper with that component or model.
+- **Framework**: React Native + Expo
+- **State Management**: MobX State Tree
+- **Navigation**: React Navigation
+- **Database**: Supabase (PostgreSQL)
+- **API**: GraphQL + PostgREST
+- **Analytics**: Firebase Analytics
+- **Styling**: NativeWind (Tailwind CSS)
+- **Language**: TypeScript
 
-**app.tsx** This is the entry point to your app. This is where you will find the main App component which renders the rest of the application.
-
-### ./assets directory
-
-This directory is designed to organize and store various assets, making it easy for you to manage and use them in your application. The assets are further categorized into subdirectories, including `icons` and `images`:
+## 📁 Project Structure
 
 ```
-assets
-├── icons
-└── images
+mybohra-app/
+├── app/                          # Application source code
+│   ├── components/              # Reusable UI components
+│   ├── screens/                 # Screen components
+│   ├── models/                  # MobX State Tree models
+│   ├── services/               # API and external services
+│   │   ├── api/                # API service layer
+│   │   ├── supabase/          # Supabase client & types
+│   │   └── graphql/           # GraphQL queries & Apollo
+│   ├── navigators/            # Navigation configuration
+│   ├── theme/                 # Colors, typography, spacing
+│   ├── utils/                 # Helper functions
+│   ├── i18n/                  # Internationalization
+│   └── database/              # Database schema
+├── docs/                      # 📚 All documentation
+├── assets/                    # Images, fonts, icons
+├── test/                      # Test files and setup
+└── ...config files
 ```
 
-**icons**
-This is where your icon assets will live. These icons can be used for buttons, navigation elements, or any other UI components. The recommended format for icons is PNG, but other formats can be used as well.
+## 🎯 Features
 
-Ignite comes with a built-in `Icon` component. You can find detailed usage instructions in the [docs](https://github.com/infinitered/ignite/blob/master/docs/Components-Icon.md).
+- **📅 Miqaat Calendar** - View important Islamic dates and events
+- **🕌 Prayer Times** - Accurate prayer times based on location
+- **📖 Library** - Collection of duas and religious texts
+- **📿 Tasbeeh Counter** - Digital prayer bead counter
+- **📍 Location Services** - Auto-detect or manually select location
+- **🔔 Reminders** - Prayer time notifications
+- **📱 Offline Support** - Works without internet connection
+- **🌍 Multi-language** - Support for multiple languages
 
-**images**
-This is where your images will live, such as background images, logos, or any other graphics. You can use various formats such as PNG, JPEG, or GIF for your images.
+## 🛠️ Development
 
-Another valuable built-in component within Ignite is the `AutoImage` component. You can find detailed usage instructions in the [docs](https://github.com/infinitered/ignite/blob/master/docs/Components-AutoImage.md).
+### Available Scripts
 
-How to use your `icon` or `image` assets:
+```bash
+# Development
+yarn start              # Start Expo development server
+yarn ios                # Run on iOS simulator
+yarn android            # Run on Android emulator
+yarn web                # Run in web browser
 
+# Code Quality
+yarn lint               # Run ESLint
+yarn lint:fix           # Fix linting issues
+yarn format             # Format code with Prettier
+yarn compile            # TypeScript type checking
+
+# Testing
+yarn test               # Run all tests
+yarn test:watch         # Run tests in watch mode
+yarn test:coverage      # Generate coverage report
+yarn test:unit          # Run unit tests only
+yarn test:integration   # Run integration tests only
+
+# Build
+yarn build:ios:dev      # Build iOS development
+yarn build:android:dev  # Build Android development
+yarn build:ios:prod     # Build iOS production
+yarn build:android:prod # Build Android production
 ```
-import { Image } from 'react-native';
 
-const MyComponent = () => {
-  return (
-    <Image source={require('../assets/images/my_image.png')} />
-  );
-};
+### Database Schema
+
+The database schema is defined in `app/database/database.sql` and includes:
+- **data** - Configuration and version management
+- **location** - Cities and coordinates
+- **library** - Duas and religious content
+- **miqaat** - Islamic calendar dates
+- **tasbeeh** - Prayer beads collection
+- **user** - User profiles
+
+## 🔐 Environment Variables
+
+Required environment variables (see `.env.example`):
+
+```env
+# Supabase
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_SUPABASE_ANON_KEY=
+EXPO_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=
+
+# Firebase (Analytics)
+EXPO_PUBLIC_FIREBASE_API_KEY=
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=
+EXPO_PUBLIC_FIREBASE_APP_ID=
+# ... (see env.example for complete list)
+
+# App Configuration
+EXPO_PUBLIC_APP_NAME=My Bohra
+EXPO_PUBLIC_APP_VERSION=1.0.0
+EXPO_PUBLIC_DEBUG_MODE=true
 ```
 
-### ./ignite directory
+## 🧪 Testing
 
-The `ignite` directory stores all things Ignite, including CLI and boilerplate items. Here you will find templates you can customize to help you get started with React Native.
+```bash
+# Run all tests
+yarn test
 
-### ./test directory
+# Run specific test suites
+yarn test:models      # Test MobX models
+yarn test:helpers     # Test helper functions
+yarn test:utils       # Test utility functions
+yarn test:components  # Test React components
 
-This directory will hold your Jest configs and mocks.
+# Coverage report
+yarn test:coverage
+```
 
-## Running Maestro end-to-end tests
+## 🚢 Deployment
 
-Follow our [Maestro Setup](https://ignitecookbook.com/docs/recipes/MaestroSetup) recipe from the [Ignite Cookbook](https://ignitecookbook.com/)!
+### iOS Deployment
 
-## Previous Boilerplates
+```bash
+# Build for development device
+yarn build:ios:dev
 
-- [2018 aka Bowser](https://github.com/infinitered/ignite-bowser)
-- [2017 aka Andross](https://github.com/infinitered/ignite-andross)
-- [2016 aka Ignite 1.0](https://github.com/infinitered/ignite-ir-boilerplate-2016)# muminoapp
+# Build for production
+yarn build:ios:prod
+```
+
+### Android Deployment
+
+```bash
+# Build for development device
+yarn build:android:dev
+
+# Build for production
+yarn build:android:prod
+```
+
+For detailed deployment instructions, refer to the [Expo documentation](https://docs.expo.dev/build/introduction/).
+
+## 📱 Supported Platforms
+
+- ✅ iOS 13.0+
+- ✅ Android 6.0+ (API 23+)
+- 🚧 Web (limited support)
+
+## 🤝 Contributing
+
+1. Create a feature branch from `main`
+2. Make your changes
+3. Ensure tests pass: `yarn test`
+4. Ensure no linting errors: `yarn lint`
+5. Create a pull request
+
+### Code Style
+
+- Follow the existing code style
+- Use TypeScript for all new files
+- Write tests for new features
+- Update documentation as needed
+- Document all new MD files in `docs/` folder
+
+## 📝 License
+
+[Add your license here]
+
+## 🆘 Support
+
+For setup help and troubleshooting:
+1. Check the [docs/](docs/) folder for relevant guides
+2. Review console logs for error messages
+3. Check Supabase dashboard for API issues
+4. Verify environment variables are set correctly
+
+## 🔗 Useful Links
+
+- [Expo Documentation](https://docs.expo.dev)
+- [React Native Documentation](https://reactnative.dev)
+- [Supabase Documentation](https://supabase.com/docs)
+- [MobX State Tree](https://mobx-state-tree.js.org)
+- [React Navigation](https://reactnavigation.org)
+
+## 📞 Contact
+
+[Add your contact information here]
+
+---
+
+**Built with ❤️ for the Bohra community**
+
+**Latest Update**: Migrated to Supabase backend - See [docs/MIGRATION_SUMMARY.md](docs/MIGRATION_SUMMARY.md)

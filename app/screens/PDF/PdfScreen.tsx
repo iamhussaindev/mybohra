@@ -1,15 +1,14 @@
-
-
 import Slider from "@react-native-community/slider"
 import { Icon, Screen, Text } from "app/components"
 import { formatTime } from "app/helpers/audio.helper"
 import { useSoundPlayer } from "app/hooks/useAudio"
+import { useStores } from "app/models"
 import { ILibrary } from "app/models/LibraryStore"
 import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
 import { observer } from "mobx-react-lite"
 import React, { FC, useEffect, useRef, useState } from "react"
-import { Dimensions, TextStyle, TouchableHighlight, ViewStyle } from "react-native"
+import { Alert, Dimensions, TextStyle, TouchableHighlight, ViewStyle } from "react-native"
 import Pdf from "react-native-pdf"
 import * as Progress from "react-native-progress"
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
@@ -25,6 +24,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
   const [loading, setLoading] = useState(true)
   const $pdfRef = useRef<Pdf>(null)
 
+  const { dataStore } = useStores()
   const translateY = useSharedValue(0)
 
   useEffect(() => {
@@ -45,10 +45,10 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
     return null
   }
 
-  const item: ILibrary = props.route.params
+  const item: ILibrary = props.route.params as unknown as ILibrary
 
   const source = {
-    uri: item.pdf ?? "",
+    uri: item.pdf_url ?? "",
     cache: true,
   }
 
@@ -80,6 +80,16 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
 
   const buffering = state === State.Buffering && isCurrent
 
+  const togglePin = async () => {
+    const wasPinned = dataStore.isPdfPinned(item.id)
+    await dataStore.togglePinPdf(item.id)
+    Alert.alert(
+      wasPinned ? "Unpinned" : "Pinned",
+      `"${item.name}" has been ${wasPinned ? "unpinned" : "pinned"} to your home screen.`,
+      [{ text: "OK" }],
+    )
+  }
+
   return (
     <Screen
       preset="fixed"
@@ -87,8 +97,8 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
       safeAreaEdges={["top"]}
       style={isFullscreen ? $fullscreenContainer : $container}
     >
-      <Header isFullscreen={isFullscreen} {...item} />
-      {!loading && item.audio && (
+      <Header isFullscreen={isFullscreen} togglePin={togglePin} {...item} />
+      {!loading && item.audio_url && (
         <>
           <Animated.View
             style={[$player, $animatedHeaderStyle, showPlayer ? $playerVisible : $playerHidden]}

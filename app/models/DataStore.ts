@@ -1,23 +1,10 @@
-import { api } from "app/services/api"
+import { VERSION_KEYS } from "app/constants/version-keys"
+import { apiSupabase } from "app/services/api"
 import { PlainLocation } from "app/types/location"
 import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
-import { Alert } from "react-native"
 
-// Helper function to calculate distance between two coordinates in kilometers
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371 // Earth's radius in kilometers
-  const dLat = (lat2 - lat1) * (Math.PI / 180)
-  const dLon = (lon2 - lon1) * (Math.PI / 180)
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
-}
+export const QIYAM_KEY = "current_qiyam"
 
 export const LocationModel = types.model("LocationModel", {
   latitude: types.optional(types.number, 19.076), // mumbai latitude
@@ -46,8 +33,6 @@ export const DataStoreModel = types
     currentLocationLoaded: types.optional(types.boolean, false),
     locations: types.optional(types.array(LocationModel), []),
     locationsLoaded: types.optional(types.boolean, false),
-    // Location mode management
-    isLocationModePersistent: types.optional(types.boolean, false), // true = manual/persistent, false = auto/temporary
     deviceLocation: types.optional(LocationModel, {
       latitude: 19.076,
       longitude: 72.8777,
@@ -58,8 +43,6 @@ export const DataStoreModel = types
       type: "city",
     }), // Store the device's auto-detected location
     deviceLocationLoaded: types.optional(types.boolean, false),
-    lastKnownDeviceLocation: types.maybeNull(LocationModel),
-    locationChangeThreshold: types.optional(types.number, 5), // 5km threshold
     // Past selected locations for quick access
     pastSelectedLocations: types.optional(types.array(LocationModel), []),
     // Reminder settings
@@ -67,198 +50,62 @@ export const DataStoreModel = types
     // Pinned PDFs
     pinnedPdfIds: types.optional(types.array(types.number), []),
   })
-  .actions((self) => ({
-    // Method to add a location to past selected locations
-    addToPastSelectedLocations(location: ILocation) {
-      if (!location) return
+  .actions((self) => {
+    // Helper: Normalize location object to avoid MST duplicate node errors
+    const normalizeLocation = (location: any) => ({
+      latitude: location.latitude,
+      longitude: location.longitude,
+      city: location.city,
+      country: location.country,
+      state: location.state ?? null,
+      timezone: location.timezone ?? "Asia/Kolkata",
+      type: location.type ?? "city",
+    })
 
-      // Create a new location object to avoid MST duplicate node error
-      const newLocation = {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        city: location.city,
-        country: location.country,
-        state: location.state,
-        timezone: location.timezone,
-        type: location.type,
-      }
-
-      // Check if location already exists in past selected locations
-      const existingIndex = self.pastSelectedLocations.findIndex(
-        (pastLocation) =>
-          pastLocation.latitude === newLocation.latitude &&
-          pastLocation.longitude === newLocation.longitude &&
-          pastLocation.city === newLocation.city &&
-          pastLocation.country === newLocation.country,
-      )
-
-      if (existingIndex !== -1) {
-        // Remove existing location and add it to the beginning (most recent first)
-        self.pastSelectedLocations.splice(existingIndex, 1)
-      }
-
-      // Add to the beginning of the array (most recent first)
-      self.pastSelectedLocations.unshift(newLocation)
-
-      // Limit to 10 most recent locations to prevent array from growing too large
-      if (self.pastSelectedLocations.length > 10) {
-        self.pastSelectedLocations.splice(10)
-      }
-
-      // Save to storage
-      storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
-    },
-
-    fetchNearestLocation: flow(function* (lat: number, lng: number) {
+    // Helper: Load location from storage as fallback
+    const loadLocationFromStorage = flow(function* () {
       try {
-        const response = yield api.fetchLocation(lat, lng)
-        if (response.kind === "ok") {
-          // Create a new location object to avoid MST duplicate node error
-          const newLocation = {
-            latitude: response.data.latitude,
-            longitude: response.data.longitude,
-            city: response.data.city,
-            country: response.data.country,
-            state: response.data.state,
-            timezone: response.data.timezone,
-            type: response.data.type,
-          }
-
-          // Check if this is a significant location change
-          const hasSignificantChange =
-            self.lastKnownDeviceLocation &&
-            calculateDistance(
-              self.lastKnownDeviceLocation.latitude,
-              self.lastKnownDeviceLocation.longitude,
-              newLocation.latitude,
-              newLocation.longitude,
-            ) > self.locationChangeThreshold
-
-          // Store as device location
-          self.deviceLocation = newLocation
-          self.deviceLocationLoaded = true
-
-          // If there's a significant change and we're in persistent mode, show alert
-          if (hasSignificantChange && self.isLocationModePersistent) {
-            // Show alert for location change
-            const currentLocationText = `${self.currentLocation.city}, ${self.currentLocation.country}`
-            const newLocationText = `${newLocation.city}, ${newLocation.country}`
-
-            Alert.alert(
-              "Location Changed",
-              `You've moved to ${newLocationText}. Would you like to update your location from ${currentLocationText}?`,
-              [
-                {
-                  text: "Keep Current",
-                  style: "cancel",
-                  onPress: () => {
-                    // User chose to keep current location - do nothing
-                  },
-                },
-                {
-                  text: "Update Location",
-                  onPress: () => {
-                    // User chose to update - set as persistent location
-                    self.currentLocation = newLocation
-                    self.currentLocationLoaded = true
-                    self.isLocationModePersistent = true
-                    storage.save("LOCATION_MODE_PERSISTENT", true)
-                  },
-                },
-              ],
-              { cancelable: true },
-            )
-          } else if (!self.isLocationModePersistent) {
-            // Auto-update if not in persistent mode
-            self.currentLocation = newLocation
-            self.currentLocationLoaded = true
-          }
-
-          // Update last known device location
-          self.lastKnownDeviceLocation = newLocation
+        const savedLocation = yield storage.load("CURRENT_LOCATION")
+        if (savedLocation) {
+          self.currentLocation = normalizeLocation(savedLocation)
+          self.currentLocationLoaded = true
+          return true
         }
       } catch (error) {
-        self.currentLocationLoaded = false
-        self.deviceLocationLoaded = false
+        console.log("Error loading location from storage:", error)
       }
-    }),
-    fetchLocations: flow(function* () {
-      try {
-        const response = yield api.fetchLocations()
+      return false
+    })
 
-        if (response.kind === "ok") {
-          const list = yield storage.load("LOCATIONS")
-          const storedVersion = yield storage.load("LOCATIONS_VERSION")
+    // Helper: Ensure we have a valid location (load from storage if needed)
+    const ensureLocationLoaded = flow(function* () {
+      if (self.currentLocationLoaded) return true
+      return yield loadLocationFromStorage()
+    })
 
-          const version = yield api.fetchVersion("LOCATION")
+    return {
+      // Method to add a location to past selected locations
+      addToPastSelectedLocations(location: ILocation) {
+        if (!location) return
 
-          if (list && list.length > 0 && storedVersion === version.data?.version) {
-            self.locations = list
-          } else {
-            try {
-              const response = yield api.fetchLocations()
-
-              if (response.kind === "ok") {
-                self.locations = response.data
-                yield storage.save("LOCATIONS", response.data)
-                yield storage.save("LOCATIONS_VERSION", version.data?.version)
-              }
-            } catch (error) {
-              console.log(error)
-            }
-          }
-        }
-      } catch (error) {
-        console.log(error)
-      }
-    }),
-
-    fetchQiyam: flow(function* () {
-      self.qiyamLoaded = true
-      try {
-        const response = yield api.fetchData({ key: "QIYAM" })
-        if (response.kind === "ok") {
-          self.qiyam = response.data.value
-        }
-        // self.qiyam = response.e // Assuming the API response has a qiyam property
-      } catch (error) {
-        console.log(error)
-      } finally {
-        self.qiyamLoaded = true
-      }
-    }),
-
-    setCurrentLocation: flow(function* (location: PlainLocation, isPersistent = false) {
-      // Create a new location object to avoid MST duplicate node error
-      const newLocation = {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        city: location.city,
-        country: location.country,
-        state: location.state,
-        timezone: location.timezone,
-        type: location.type,
-      }
-
-      // Add current location to past selected locations before updating
-      if (self.currentLocation) {
-        const currentLocationToAdd = {
-          latitude: self.currentLocation.latitude,
-          longitude: self.currentLocation.longitude,
-          city: self.currentLocation.city,
-          country: self.currentLocation.country,
-          state: self.currentLocation.state,
-          timezone: self.currentLocation.timezone,
-          type: self.currentLocation.type,
+        // Create a new location object to avoid MST duplicate node error
+        const newLocation = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          city: location.city,
+          country: location.country,
+          state: location.state,
+          timezone: location.timezone,
+          type: location.type,
         }
 
         // Check if location already exists in past selected locations
         const existingIndex = self.pastSelectedLocations.findIndex(
           (pastLocation) =>
-            pastLocation.latitude === currentLocationToAdd.latitude &&
-            pastLocation.longitude === currentLocationToAdd.longitude &&
-            pastLocation.city === currentLocationToAdd.city &&
-            pastLocation.country === currentLocationToAdd.country,
+            pastLocation.latitude === newLocation.latitude &&
+            pastLocation.longitude === newLocation.longitude &&
+            pastLocation.city === newLocation.city &&
+            pastLocation.country === newLocation.country,
         )
 
         if (existingIndex !== -1) {
@@ -267,7 +114,7 @@ export const DataStoreModel = types
         }
 
         // Add to the beginning of the array (most recent first)
-        self.pastSelectedLocations.unshift(currentLocationToAdd)
+        self.pastSelectedLocations.unshift(newLocation)
 
         // Limit to 10 most recent locations to prevent array from growing too large
         if (self.pastSelectedLocations.length > 10) {
@@ -276,271 +123,341 @@ export const DataStoreModel = types
 
         // Save to storage
         storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
-      }
+      },
 
-      self.currentLocation = newLocation
-      self.currentLocationLoaded = true
-      self.isLocationModePersistent = isPersistent
+      fetchNearestLocation: flow(function* (lat: number, lng: number) {
+        try {
+          const response = yield apiSupabase.fetchLocation(lat, lng)
 
-      const version = yield api.fetchVersion("LOCATION")
+          if (response.kind === "ok") {
+            // Normalize location object
+            const newLocation = normalizeLocation(response.data)
 
-      // Save location and mode to storage
-      yield storage.save("CURRENT_LOCATION", newLocation)
-      yield storage.save("CURRENT_LOCATION_VERSION", version.data?.version)
-      yield storage.save("LOCATION_MODE_PERSISTENT", isPersistent)
-    }),
+            // Store as device location
+            self.deviceLocation = newLocation
+            self.deviceLocationLoaded = true
 
-    // Method to set temporary location (for quick checking)
-    setTemporaryLocation(location: PlainLocation) {
-      // Create a new location object to avoid MST duplicate node error
-      const newLocation = {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        city: location.city,
-        country: location.country,
-        state: location.state,
-        timezone: location.timezone,
-        type: location.type,
-      }
+            // Always auto-update current location with device location
+            self.currentLocation = newLocation
+            self.currentLocationLoaded = true
 
-      self.currentLocation = newLocation
-      self.currentLocationLoaded = true
-      // Don't change the persistent mode - keep it as is
-    },
-
-    // Method to revert to device location
-    revertToDeviceLocation: flow(function* () {
-      if (self.deviceLocationLoaded) {
-        self.currentLocation = self.deviceLocation
-        self.currentLocationLoaded = true
-        self.isLocationModePersistent = false
-
-        // Save the mode change to storage
-        yield storage.save("LOCATION_MODE_PERSISTENT", false)
-      }
-    }),
-
-    // Method to toggle persistent mode
-    toggleLocationMode: flow(function* () {
-      self.isLocationModePersistent = !self.isLocationModePersistent
-      yield storage.save("LOCATION_MODE_PERSISTENT", self.isLocationModePersistent)
-    }),
-
-    // Method to load saved location mode from storage
-    loadLocationMode: flow(function* () {
-      try {
-        const savedMode = yield storage.load("LOCATION_MODE_PERSISTENT")
-        if (savedMode !== null) {
-          self.isLocationModePersistent = savedMode
+            // Save to storage so it persists
+            yield storage.save("CURRENT_LOCATION", newLocation)
+          } else {
+            // Response not ok - ensure we have a location from storage
+            console.log("fetchNearestLocation: API response failed, checking storage")
+            yield ensureLocationLoaded()
+          }
+        } catch (error) {
+          console.log("fetchNearestLocation error:", error)
+          self.deviceLocationLoaded = false
+          // Ensure we have a location as fallback
+          yield ensureLocationLoaded()
         }
-      } catch (error) {
-        console.log("Error loading location mode:", error)
-      }
-    }),
+      }),
+      fetchLocations: flow(function* () {
+        try {
+          const response = yield apiSupabase.fetchLocations()
 
-    // Method to set persistent mode when user manually selects a location
-    setPersistentMode(isPersistent = true) {
-      self.isLocationModePersistent = isPersistent
-      storage.save("LOCATION_MODE_PERSISTENT", isPersistent)
-    },
+          if (response.kind === "ok") {
+            const list = yield storage.load("LOCATIONS")
+            const storedVersion = yield storage.load("LOCATIONS_VERSION")
 
-    // Method specifically for auto-detect that always updates current location
-    autoDetectLocation: flow(function* (lat: number, lng: number) {
-      try {
-        const response = yield api.fetchLocation(lat, lng)
-        if (response.kind === "ok") {
-          // Create a new location object to avoid MST duplicate node error
-          const newLocation = {
-            latitude: response.data.latitude,
-            longitude: response.data.longitude,
-            city: response.data.city,
-            country: response.data.country,
-            state: response.data.state,
-            timezone: response.data.timezone,
-            type: response.data.type,
+            const version = yield apiSupabase.fetchVersion(VERSION_KEYS.LOCATION_VERSION)
+
+            if (list && list.length > 0 && storedVersion === version.data?.version) {
+              self.locations = list
+            } else {
+              try {
+                const response = yield apiSupabase.fetchLocations()
+
+                if (response.kind === "ok") {
+                  self.locations = response.data
+                  yield storage.save("LOCATIONS", response.data)
+                  yield storage.save("LOCATIONS_VERSION", version.data?.version)
+                }
+              } catch (error) {
+                console.log(error)
+              }
+            }
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      }),
+
+      fetchQiyam: flow(function* () {
+        self.qiyamLoaded = false
+        try {
+          const response = yield apiSupabase.fetchData({ key: QIYAM_KEY })
+          if (response.kind === "ok" && response.data?.value) {
+            self.qiyam = response.data.value
+            self.qiyamLoaded = true
+          } else {
+            console.log("Qiyam fetch failed or empty:", response)
+            self.qiyamLoaded = false
+          }
+        } catch (error) {
+          console.log("Error fetching qiyam:", error)
+          self.qiyamLoaded = false
+        }
+      }),
+
+      setCurrentLocation: flow(function* (location: PlainLocation) {
+        // Normalize location object
+        const newLocation = normalizeLocation(location)
+
+        // Add current location to past selected locations before updating
+        if (self.currentLocation) {
+          const currentLocationToAdd = {
+            latitude: self.currentLocation.latitude,
+            longitude: self.currentLocation.longitude,
+            city: self.currentLocation.city,
+            country: self.currentLocation.country,
+            state: self.currentLocation.state,
+            timezone: self.currentLocation.timezone,
+            type: self.currentLocation.type,
           }
 
-          // Add current location to past selected locations before updating
-          if (self.currentLocation) {
-            const currentLocationToAdd = {
-              latitude: self.currentLocation.latitude,
-              longitude: self.currentLocation.longitude,
-              city: self.currentLocation.city,
-              country: self.currentLocation.country,
-              state: self.currentLocation.state,
-              timezone: self.currentLocation.timezone,
-              type: self.currentLocation.type,
+          // Check if location already exists in past selected locations
+          const existingIndex = self.pastSelectedLocations.findIndex(
+            (pastLocation) =>
+              pastLocation.latitude === currentLocationToAdd.latitude &&
+              pastLocation.longitude === currentLocationToAdd.longitude &&
+              pastLocation.city === currentLocationToAdd.city &&
+              pastLocation.country === currentLocationToAdd.country,
+          )
+
+          if (existingIndex !== -1) {
+            // Remove existing location and add it to the beginning (most recent first)
+            self.pastSelectedLocations.splice(existingIndex, 1)
+          }
+
+          // Add to the beginning of the array (most recent first)
+          self.pastSelectedLocations.unshift(currentLocationToAdd)
+
+          // Limit to 10 most recent locations to prevent array from growing too large
+          if (self.pastSelectedLocations.length > 10) {
+            self.pastSelectedLocations.splice(10)
+          }
+
+          // Save to storage
+          storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
+        }
+
+        self.currentLocation = newLocation
+        self.currentLocationLoaded = true
+
+        const version = yield apiSupabase.fetchVersion(VERSION_KEYS.LOCATION_VERSION)
+
+        // Save location to storage
+        yield storage.save("CURRENT_LOCATION", newLocation)
+        yield storage.save("CURRENT_LOCATION_VERSION", version.data?.version)
+      }),
+
+      // Method specifically for auto-detect that always updates current location
+      autoDetectLocation: flow(function* (lat: number, lng: number) {
+        try {
+          const response = yield apiSupabase.fetchLocation(lat, lng)
+          if (response.kind === "ok") {
+            // Normalize location object
+            const newLocation = normalizeLocation(response.data)
+
+            // Add current location to past selected locations before updating
+            if (self.currentLocation) {
+              const currentLocationToAdd = {
+                latitude: self.currentLocation.latitude,
+                longitude: self.currentLocation.longitude,
+                city: self.currentLocation.city,
+                country: self.currentLocation.country,
+                state: self.currentLocation.state,
+                timezone: self.currentLocation.timezone,
+                type: self.currentLocation.type,
+              }
+
+              // Check if location already exists in past selected locations
+              const existingIndex = self.pastSelectedLocations.findIndex(
+                (pastLocation) =>
+                  pastLocation.latitude === currentLocationToAdd.latitude &&
+                  pastLocation.longitude === currentLocationToAdd.longitude &&
+                  pastLocation.city === currentLocationToAdd.city &&
+                  pastLocation.country === currentLocationToAdd.country,
+              )
+
+              if (existingIndex !== -1) {
+                // Remove existing location and add it to the beginning (most recent first)
+                self.pastSelectedLocations.splice(existingIndex, 1)
+              }
+
+              // Add to the beginning of the array (most recent first)
+              self.pastSelectedLocations.unshift(currentLocationToAdd)
+
+              // Limit to 10 most recent locations to prevent array from growing too large
+              if (self.pastSelectedLocations.length > 10) {
+                self.pastSelectedLocations.splice(10)
+              }
+
+              // Save to storage
+              storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
             }
 
-            // Check if location already exists in past selected locations
-            const existingIndex = self.pastSelectedLocations.findIndex(
-              (pastLocation) =>
-                pastLocation.latitude === currentLocationToAdd.latitude &&
-                pastLocation.longitude === currentLocationToAdd.longitude &&
-                pastLocation.city === currentLocationToAdd.city &&
-                pastLocation.country === currentLocationToAdd.country,
-            )
+            // Always update current location for auto-detect
+            self.currentLocation = newLocation
+            self.currentLocationLoaded = true
 
-            if (existingIndex !== -1) {
-              // Remove existing location and add it to the beginning (most recent first)
-              self.pastSelectedLocations.splice(existingIndex, 1)
-            }
-
-            // Add to the beginning of the array (most recent first)
-            self.pastSelectedLocations.unshift(currentLocationToAdd)
-
-            // Limit to 10 most recent locations to prevent array from growing too large
-            if (self.pastSelectedLocations.length > 10) {
-              self.pastSelectedLocations.splice(10)
-            }
+            // Also update device location
+            self.deviceLocation = newLocation
+            self.deviceLocationLoaded = true
 
             // Save to storage
-            storage.save("PAST_SELECTED_LOCATIONS", self.pastSelectedLocations)
+            yield storage.save("CURRENT_LOCATION", newLocation)
+          } else {
+            // Response not ok - ensure we have a location from storage
+            console.log("autoDetectLocation: API response failed, checking storage")
+            yield ensureLocationLoaded()
           }
-
-          // Always update current location for auto-detect (regardless of persistent mode)
-          self.currentLocation = newLocation
-          self.currentLocationLoaded = true
-
-          // Also update device location
-          self.deviceLocation = newLocation
-          self.deviceLocationLoaded = true
-
-          // Update last known device location
-          self.lastKnownDeviceLocation = newLocation
+        } catch (error) {
+          console.log("autoDetectLocation error:", error)
+          self.deviceLocationLoaded = false
+          // Ensure we have a location as fallback
+          yield ensureLocationLoaded()
         }
-      } catch (error) {
-        self.currentLocationLoaded = false
-        self.deviceLocationLoaded = false
-      }
-    }),
+      }),
 
-    // Method to load past selected locations from storage
-    loadPastSelectedLocations: flow(function* () {
-      try {
-        const savedLocations = yield storage.load("PAST_SELECTED_LOCATIONS")
-        if (savedLocations && Array.isArray(savedLocations)) {
-          self.pastSelectedLocations.replace(savedLocations)
-        }
-      } catch (error) {
-        console.log("Error loading past selected locations:", error)
-      }
-    }),
+      // Method to load current location from storage
+      loadCurrentLocation: flow(function* () {
+        const loaded = yield loadLocationFromStorage()
 
-    // Method to clear past selected locations
-    clearPastSelectedLocations() {
-      self.pastSelectedLocations.clear()
-      storage.save("PAST_SELECTED_LOCATIONS", [])
-    },
+        return loaded
+      }),
 
-    // Reminder settings actions
-    setNotificationType(type: "short" | "long") {
-      self.reminderSettings.notificationType = type
-      storage.save("REMINDER_SETTINGS", {
-        notificationType: type,
-        triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
-        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
-      })
-    },
-
-    setTriggerBeforeMinutes(minutes: number) {
-      self.reminderSettings.triggerBeforeMinutes = minutes
-      storage.save("REMINDER_SETTINGS", {
-        notificationType: self.reminderSettings.notificationType,
-        triggerBeforeMinutes: minutes,
-        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
-      })
-    },
-
-    setCustomOffset(prayerTime: string, offsetMinutes: number) {
-      self.reminderSettings.customOffsets.set(prayerTime, offsetMinutes)
-      storage.save("REMINDER_SETTINGS", {
-        notificationType: self.reminderSettings.notificationType,
-        triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
-        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
-      })
-    },
-
-    clearCustomOffset(prayerTime: string) {
-      self.reminderSettings.customOffsets.delete(prayerTime)
-      storage.save("REMINDER_SETTINGS", {
-        notificationType: self.reminderSettings.notificationType,
-        triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
-        customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
-      })
-    },
-
-    loadReminderSettings: flow(function* () {
-      try {
-        const savedSettings = yield storage.load("REMINDER_SETTINGS")
-        if (savedSettings) {
-          self.reminderSettings.notificationType = savedSettings.notificationType || "short"
-          self.reminderSettings.triggerBeforeMinutes = savedSettings.triggerBeforeMinutes || 5
-
-          // Convert array back to map
-          if (savedSettings.customOffsets && Array.isArray(savedSettings.customOffsets)) {
-            self.reminderSettings.customOffsets.clear()
-            savedSettings.customOffsets.forEach(([key, value]: [string, number]) => {
-              self.reminderSettings.customOffsets.set(key, value)
-            })
+      // Method to load past selected locations from storage
+      loadPastSelectedLocations: flow(function* () {
+        try {
+          const savedLocations = yield storage.load("PAST_SELECTED_LOCATIONS")
+          if (savedLocations && Array.isArray(savedLocations)) {
+            self.pastSelectedLocations.replace(savedLocations)
           }
+        } catch (error) {
+          console.log("Error loading past selected locations:", error)
         }
-      } catch (error) {
-        console.error("Error loading reminder settings:", error)
-      }
-    }),
+      }),
 
-    // Pinned PDFs actions
-    pinPdf(pdfId: number) {
-      if (!self.pinnedPdfIds.includes(pdfId)) {
-        self.pinnedPdfIds.push(pdfId)
-        storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
-      }
-    },
+      // Method to clear past selected locations
+      clearPastSelectedLocations() {
+        self.pastSelectedLocations.clear()
+        storage.save("PAST_SELECTED_LOCATIONS", [])
+      },
 
-    unpinPdf(pdfId: number) {
-      const index = self.pinnedPdfIds.indexOf(pdfId)
-      if (index > -1) {
-        self.pinnedPdfIds.splice(index, 1)
-        storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
-      }
-    },
+      // Reminder settings actions
+      setNotificationType(type: "short" | "long") {
+        self.reminderSettings.notificationType = type
+        storage.save("REMINDER_SETTINGS", {
+          notificationType: type,
+          triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
+          customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+        })
+      },
 
-    togglePinPdf(pdfId: number) {
-      if (self.pinnedPdfIds.includes(pdfId)) {
+      setTriggerBeforeMinutes(minutes: number) {
+        self.reminderSettings.triggerBeforeMinutes = minutes
+        storage.save("REMINDER_SETTINGS", {
+          notificationType: self.reminderSettings.notificationType,
+          triggerBeforeMinutes: minutes,
+          customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+        })
+      },
+
+      setCustomOffset(prayerTime: string, offsetMinutes: number) {
+        self.reminderSettings.customOffsets.set(prayerTime, offsetMinutes)
+        storage.save("REMINDER_SETTINGS", {
+          notificationType: self.reminderSettings.notificationType,
+          triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
+          customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+        })
+      },
+
+      clearCustomOffset(prayerTime: string) {
+        self.reminderSettings.customOffsets.delete(prayerTime)
+        storage.save("REMINDER_SETTINGS", {
+          notificationType: self.reminderSettings.notificationType,
+          triggerBeforeMinutes: self.reminderSettings.triggerBeforeMinutes,
+          customOffsets: Array.from(self.reminderSettings.customOffsets.entries()),
+        })
+      },
+
+      loadReminderSettings: flow(function* () {
+        try {
+          const savedSettings = yield storage.load("REMINDER_SETTINGS")
+          if (savedSettings) {
+            self.reminderSettings.notificationType = savedSettings.notificationType || "short"
+            self.reminderSettings.triggerBeforeMinutes = savedSettings.triggerBeforeMinutes || 5
+
+            // Convert array back to map
+            if (savedSettings.customOffsets && Array.isArray(savedSettings.customOffsets)) {
+              self.reminderSettings.customOffsets.clear()
+              savedSettings.customOffsets.forEach(([key, value]: [string, number]) => {
+                self.reminderSettings.customOffsets.set(key, value)
+              })
+            }
+          }
+        } catch (error) {
+          console.error("Error loading reminder settings:", error)
+        }
+      }),
+
+      // Pinned PDFs actions
+      pinPdf(pdfId: number) {
+        if (!self.pinnedPdfIds.includes(pdfId)) {
+          self.pinnedPdfIds.push(pdfId)
+          storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+        }
+      },
+
+      unpinPdf(pdfId: number) {
         const index = self.pinnedPdfIds.indexOf(pdfId)
         if (index > -1) {
           self.pinnedPdfIds.splice(index, 1)
           storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
         }
-      } else {
-        if (!self.pinnedPdfIds.includes(pdfId)) {
-          self.pinnedPdfIds.push(pdfId)
-          storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+      },
+
+      togglePinPdf(pdfId: number) {
+        if (self.pinnedPdfIds.includes(pdfId)) {
+          const index = self.pinnedPdfIds.indexOf(pdfId)
+          if (index > -1) {
+            self.pinnedPdfIds.splice(index, 1)
+            storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+          }
+        } else {
+          if (!self.pinnedPdfIds.includes(pdfId)) {
+            self.pinnedPdfIds.push(pdfId)
+            storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+          }
         }
-      }
-    },
+      },
 
-    isPdfPinned(pdfId: number): boolean {
-      return self.pinnedPdfIds.includes(pdfId)
-    },
+      isPdfPinned(pdfId: number): boolean {
+        return self.pinnedPdfIds.includes(pdfId)
+      },
 
-    loadPinnedPdfs: flow(function* () {
-      try {
-        const savedPinnedIds = yield storage.load("PINNED_PDF_IDS")
-        if (savedPinnedIds && Array.isArray(savedPinnedIds)) {
-          self.pinnedPdfIds.replace(savedPinnedIds)
+      loadPinnedPdfs: flow(function* () {
+        try {
+          const savedPinnedIds = yield storage.load("PINNED_PDF_IDS")
+          if (savedPinnedIds && Array.isArray(savedPinnedIds)) {
+            self.pinnedPdfIds.replace(savedPinnedIds)
+          }
+        } catch (error) {
+          console.error("Error loading pinned PDFs:", error)
         }
-      } catch (error) {
-        console.error("Error loading pinned PDFs:", error)
-      }
-    }),
+      }),
 
-    clearAllPinnedPdfs() {
-      self.pinnedPdfIds.clear()
-      storage.save("PINNED_PDF_IDS", [])
-    },
-  }))
+      clearAllPinnedPdfs() {
+        self.pinnedPdfIds.clear()
+        storage.save("PINNED_PDF_IDS", [])
+      },
+    }
+  })
   .views((self) => ({
     // Computed view to check if data is loaded
     get isDataLoaded() {

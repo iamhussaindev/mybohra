@@ -1,6 +1,7 @@
+import { VERSION_KEYS } from "app/constants/version-keys"
 import { setupTitle } from "app/helpers/miqaat.helper"
 import HijriDate from "app/libs/HijriDate"
-import { api } from "app/services/api"
+import { apiSupabase } from "app/services/api"
 import { timeInMilliseconds } from "app/utils/common"
 import { momentTime } from "app/utils/currentTime"
 import * as storage from "app/utils/storage"
@@ -22,11 +23,11 @@ export const MiqaatModel = types.model("MiqaatModel", {
   type: types.optional(
     types.enumeration("MiqaatType", [
       "URS",
-      "MILAAD",
+      "MILAD",
       "SHAHADAT",
-      "WASHEK",
+      "WASHEQ",
       "EID",
-      "PEHLI",
+      "PEHLI_RAAT",
       "ASHARA",
       "IMPORTANT_NIGHT",
       "OTHER",
@@ -45,17 +46,35 @@ export const MiqaatStoreModel = types
       const list = yield storage.load("MIQAAT")
       const storedVersion = yield storage.load("MIQAAT_VERSION")
 
-      const version = yield api.fetchVersion("MIQAAT")
+      const version = yield apiSupabase.fetchVersion(VERSION_KEYS.MIQAAT_VERSION)
 
       if (list && list.length > 0 && storedVersion === version.data?.version) {
         self.list = list
       } else {
         try {
-          const response = yield api.fetchMiqaats()
+          const response = yield apiSupabase.fetchMiqaats()
 
           if (response.kind === "ok") {
-            self.list = response.data?.miqaats
-            yield storage.save("MIQAAT", response.data?.miqaats)
+            // Transform the data to match the old model format
+            const transformedData = response.data?.miqaats.map((item: any) => ({
+              id: item.id,
+              date: item.date || 0,
+              dateNight: item.date_night,
+              description: item.description,
+              isNight: item.phase === "NIGHT",
+              name: item.name,
+              location: item.location || "",
+              month: item.month || 0,
+              monthNight: item.month_night,
+              phase: item.phase?.toLowerCase() || "day",
+              priority: item.priority,
+              isImportant: item.important || false,
+              type: item.type || "OTHER",
+              info: item.html,
+            }))
+
+            self.list = transformedData
+            yield storage.save("MIQAAT", transformedData)
             yield storage.save("MIQAAT_VERSION", version.data?.version)
           }
         } catch (error) {
@@ -79,7 +98,6 @@ export const MiqaatStoreModel = types
 
       const checkToday = (miqaat: IMiqaat) => {
         const checkToday = miqaat.date === date.day && miqaat.month === date.month
-        // const checkTonight = miqaat.dateNight === date.day && miqaat.monthNight === date.month
         return checkToday
       }
 
@@ -98,7 +116,6 @@ export const MiqaatStoreModel = types
       const checkToNight = (miqaat: IMiqaat) => {
         const checkTonight =
           miqaat.dateNight === hijriDate.day && miqaat.monthNight === hijriDate.month
-
         return checkTonight
       }
 
@@ -124,6 +141,7 @@ export const MiqaatStoreModel = types
       const upcomingMiqaats = self.list.filter((miqaat) => {
         const isImportant = miqaat.isImportant
         const miqaatDate = momentTime(HijriDate.fromMiqaat(miqaat).toGregorian())
+
         const today = momentTime()
 
         const isUpcoming = miqaatDate.isAfter(today)
@@ -147,8 +165,6 @@ export const MiqaatStoreModel = types
       return self.list
     },
   }))
-
-// Create an instance of MiqaatStore
 
 export interface MiqaatStore extends Instance<typeof MiqaatStoreModel> {}
 export interface MiqaatStoreSnapshot extends SnapshotOut<typeof MiqaatStoreModel> {}

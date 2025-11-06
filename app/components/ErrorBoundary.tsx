@@ -1,7 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react"
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 
-import { expoAnalyticsService as analyticsService } from "../services/analytics/expo-analytics.service"
+import { firebaseAnalyticsService as analyticsService } from "../services/analytics/firebase-analytics.service"
 import { colors } from "../theme"
 
 interface Props {

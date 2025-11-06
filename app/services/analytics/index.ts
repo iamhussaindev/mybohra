@@ -1,2 +1,3 @@
-export * from "./expo-analytics.service"
-export { default as analyticsService } from "./expo-analytics.service"
+// Only export Firebase Analytics - manual analytics removed
+export * from "./firebase-analytics.service"
+export { default as analyticsService } from "./firebase-analytics.service"

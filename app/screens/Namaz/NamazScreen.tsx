@@ -5,7 +5,16 @@ import {
   IconChevronRight,
   IconCurrentLocationFilled,
 } from "@tabler/icons-react-native"
-import { BottomSheetDrawer, Icon, IconTypes, ListView, Screen, Switch, Text } from "app/components"
+import {
+  BottomSheetDrawer,
+  Icon,
+  IconTypes,
+  ListView,
+  Screen,
+  Switch,
+  Text,
+  Skeleton,
+} from "app/components"
 import Header from "app/components/Header"
 import { useLocationBottomSheet } from "app/contexts/LocationBottomSheetContext"
 import { ITimes, CurrentGhari } from "app/helpers/namaz.helper"
@@ -14,7 +23,7 @@ import { usePrayerTimesWithDate } from "app/hooks/usePrayerTimesWithDate"
 import { useReminders } from "app/hooks/useReminders"
 import { useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
-import { colors, spacing } from "app/theme"
+import { colors, spacing, typography } from "app/theme"
 import { getFormattedTime } from "app/utils/common"
 import { momentTime } from "app/utils/currentTime"
 import { observer } from "mobx-react-lite"
@@ -153,7 +162,7 @@ const $itemTextName: TextStyle = {
 
 const $itemText: TextStyle = {
   fontSize: 20,
-  fontFamily: "spaceGroteskBold",
+  fontFamily: typography.primary.bold,
 }
 
 interface NamazScreenProps extends AppStackScreenProps<"Namaz"> {}
@@ -270,9 +279,13 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen({
                       color={colors.palette.neutral800}
                       size={24}
                     />
-                    <Text size="md" key="location" color={colors.palette.neutral800}>
-                      {dataStore.currentLocation.city}
-                    </Text>
+                    {dataStore.currentLocationLoaded ? (
+                      <Text size="md" key="location" color={colors.palette.neutral800}>
+                        {dataStore.currentLocation.city}
+                      </Text>
+                    ) : (
+                      <Skeleton width={100} height={16} borderRadius={4} />
+                    )}
                   </View>
 
                   <View style={$editButton}>

@@ -1,5 +1,5 @@
-
-import { api } from "app/services/api"
+import { VERSION_KEYS } from "app/constants/version-keys"
+import { apiSupabase } from "app/services/api"
 import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
@@ -37,16 +37,30 @@ export const TasbeehStoreModel = types
         const list = yield storage.load("TASBEEH")
         const storedVersion = yield storage.load("TASBEEH_VERSION")
 
-        const version = yield api.fetchVersion("TASBEEH")
+        const version = yield apiSupabase.fetchVersion(VERSION_KEYS.TASBEEH_VERSION)
 
         if (list && list.length > 0 && storedVersion === version.data?.version) {
           self.list = list
         } else {
           try {
-            const response = yield api.fetch("tasbeeh")
+            const response = yield apiSupabase.fetch("tasbeeh")
             if (response.kind === "ok") {
-              self.list = response.data
-              yield storage.save("TASBEEH", response.data)
+              // Transform data to match the model format
+              const transformedData = response.data.map((item: any) => ({
+                id: item.id,
+                name: item.name,
+                text: item.text,
+                arabicText: item.arabic_text,
+                image: item.image,
+                audio: item.audio,
+                type: item.type,
+                count: item.count,
+                tags: item.tags || [],
+              }))
+
+              self.list = transformedData
+              yield storage.save("TASBEEH", transformedData)
+              yield storage.save("TASBEEH_VERSION", version.data?.version)
             }
           } catch (error) {
             console.log(error)
@@ -131,8 +145,6 @@ export const TasbeehStoreModel = types
       return self.list.find((tasbeeh) => tasbeeh.id === self.selectedTasbeehId) || null
     },
   }))
-
-// Create an instance of DataStore
 
 export interface TasbeehStore extends Instance<typeof TasbeehStoreModel> {}
 export interface TasbeehStoreSnapshot extends SnapshotOut<typeof TasbeehStoreModel> {}

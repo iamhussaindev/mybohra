@@ -1,14 +1,14 @@
 import { IconDotsVertical } from "@tabler/icons-react-native"
 import { Text } from "app/components"
-import { useAnalytics } from "app/hooks/useAnalytics"
-import { useRealtimeMonitoring } from "app/hooks/useRealtimeMonitoring"
+import { useSoundPlayer } from "app/hooks/useAudio"
+// Removed manual analytics - using Firebase only
 import { ILibrary } from "app/models/LibraryStore"
 import { colors, spacing } from "app/theme"
 import LottieView from "lottie-react-native"
-import React from "react"
+import React, { useEffect, useRef } from "react"
 import { Dimensions, TextStyle, View, ViewStyle, ImageStyle, Pressable, Image } from "react-native"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
-import { Track } from "react-native-track-player"
+import { State, Track } from "react-native-track-player"
 
 const screenWidth = Dimensions.get("window").width
 
@@ -41,12 +41,7 @@ export default function DuaGridList({
   pinnedIds?: number[]
   showOptions?: boolean
 }) {
-  // Analytics and monitoring
-  const { trackFeatureUsage } = useRealtimeMonitoring({
-    screenName: "DuaGridList",
-    trackPageViews: true,
-    trackUserActivities: true,
-  })
+  // Removed manual analytics - using Firebase only
 
   return (
     <View style={$container}>
@@ -56,7 +51,7 @@ export default function DuaGridList({
           <View key={rowIndex} style={$rowContainer}>
             {row.map((item, itemIndex) => (
               <DuaCard
-                key={item.id}
+                key={item.id + itemIndex}
                 currentSoundId={currentSound?.id ?? -1}
                 navigation={navigation}
                 item={item}
@@ -77,13 +72,7 @@ export default function DuaGridList({
                       ignoreAndroidSystemSettings: false,
                     })
 
-                    // Track long press event even without bottom sheet
-                    trackFeatureUsage("dua_card_long_pressed_default", {
-                      item_id: item.id,
-                      item_name: item.name,
-                      has_pdf: !!item.pdf,
-                      columns: columns || 2,
-                    })
+                    // Removed manual analytics - using Firebase only
                     console.log("Long press detected, opening bottom sheet for:", item.name)
                   })
                 }
@@ -120,46 +109,15 @@ interface DailyCardProps {
 
 function DuaCard(props: DailyCardProps) {
   const isCurrentPlaying = props.item.id === props.currentSoundId
-
-  // Analytics tracking
-  const { trackPdfOpened } = useAnalytics({
-    screenName: "DuaGridList",
-    trackScreenView: false,
-  })
-
-  const { trackFeatureUsage } = useRealtimeMonitoring({
-    screenName: "DuaGridList",
-    trackPageViews: false,
-    trackUserActivities: true,
-  })
+  const { state } = useSoundPlayer()
+  // Removed manual analytics - using Firebase only
 
   const handlePress = () => {
-    // Track PDF opened event
-    if (props.item.pdf) {
-      trackPdfOpened(props.item.name, "DuaGridList")
-    }
-
-    // Track feature usage
-    trackFeatureUsage("dua_card_clicked", {
-      item_id: props.item.id,
-      item_name: props.item.name,
-      has_pdf: !!props.item.pdf,
-      has_audio: !!props.item.audio,
-      columns: props.columns || 2,
-    })
-
+    // Removed manual analytics - using Firebase only
     props.navigation.navigate("PdfViewer", { ...props.item })
   }
 
   const handleLongPress = () => {
-    // Track long press event
-    trackFeatureUsage("dua_card_long_pressed", {
-      item_id: props.item.id,
-      item_name: props.item.name,
-      has_pdf: !!props.item.pdf,
-      columns: props.columns || 2,
-    })
-
     // Trigger haptic feedback
     ReactNativeHapticFeedback.trigger("impactLight", {
       enableVibrateFallback: true,
@@ -168,6 +126,16 @@ function DuaCard(props: DailyCardProps) {
 
     props.onLongPress(props.item)
   }
+
+  const $soundAnimation = useRef<LottieView>(null)
+
+  useEffect(() => {
+    if (state === State.Playing && isCurrentPlaying) {
+      $soundAnimation.current?.play()
+    } else {
+      $soundAnimation.current?.pause()
+    }
+  }, [state])
 
   return (
     <Pressable
@@ -193,6 +161,7 @@ function DuaCard(props: DailyCardProps) {
             source={require("../../../assets/animation/music.json")}
             autoPlay
             loop
+            ref={$soundAnimation}
           />
         )}
         <Text style={$cardText} text={props.item.name} />
@@ -207,7 +176,7 @@ function DuaCard(props: DailyCardProps) {
           onPress={props.showOptions ? handleLongPress : undefined}
           style={$longPressButton}
         >
-          <IconDotsVertical size={12} color={colors.palette.primary500} />
+          <IconDotsVertical size={18} color={colors.palette.neutral900} />
         </Pressable>
       )}
     </Pressable>
@@ -219,19 +188,10 @@ const $longPressButton: ViewStyle = {
   right: 0,
   bottom: 10,
   padding: spacing.sm,
+  zIndex: 100,
+  alignItems: "center",
+  justifyContent: "center",
 }
-
-// const $pinnedIcon: ViewStyle = {
-//   position: "absolute",
-//   top: 8, // middle of the card
-//   right: 8,
-//   borderRadius: 24,
-//   backgroundColor: colors.white,
-
-//   elevation: 5,
-//   alignItems: "center",
-//   justifyContent: "center",
-// }
 
 const $cardContent: ViewStyle = {
   flexDirection: "row",
@@ -254,8 +214,8 @@ const $cardPdfImage: ImageStyle = {
 }
 
 const $cardLottie: ViewStyle = {
-  height: 50,
-  width: 50,
+  height: 24,
+  width: 24,
   position: "relative",
   zIndex: 100,
 }

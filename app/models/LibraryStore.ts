@@ -1,4 +1,6 @@
-import { api } from "app/services/api"
+import { VERSION_KEYS } from "app/constants/version-keys"
+import HijriDate from "app/libs/HijriDate"
+import { apiSupabase } from "app/services/api"
 import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
@@ -14,34 +16,40 @@ export const LibraryModel = types.model("LibraryModel", {
   id: types.identifierNumber,
   name: types.string,
   description: types.maybeNull(types.string),
-  audio: types.maybeNull(types.string),
-  pdf: types.maybeNull(types.string),
+  audio_url: types.maybeNull(types.string),
+  pdf_url: types.maybeNull(types.string),
+  youtube_url: types.maybeNull(types.string),
   metadata: types.maybeNull(MetadataModel),
   album: types.maybeNull(types.string),
+  tags: types.maybeNull(types.array(types.string)),
+  categories: types.maybeNull(types.array(types.string)),
+  search_text: types.maybeNull(types.string),
+  search_vector: types.maybeNull(types.string),
+  created_at: types.maybeNull(types.string),
+  updated_at: types.maybeNull(types.string),
 })
-
-const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 export const LibraryStoreModel = types
   .model("LibraryStore", {
-    homeData: types.array(LibraryModel),
+    homeData: types.optional(types.array(LibraryModel), []),
     allLibraryData: types.array(LibraryModel),
   })
   .actions((self) => ({
     fetchHomeData: flow(function* () {
       try {
-        const response: any = yield api.fetch(`library/daily-items`)
-        const data = response.data as ILibrary[]
+        const date = new HijriDate()
+        const response: any = yield apiSupabase.fetchDailyDuasByDate({
+          date: date.day,
+          month: date.month,
+        })
 
         if (response.kind === "ok") {
-          self.homeData = data as any
-          yield storage.save("LIBRARY_HOME", data)
+          self.homeData = response.data as any
         }
       } catch (error) {
-        console.log(error)
+        console.log("Error fetching daily items:", error)
       }
     }),
-
     fetchList: flow(function* () {
       try {
         // First, check if we have cached data and version
@@ -49,10 +57,13 @@ export const LibraryStoreModel = types
         const storedVersion = yield storage.load("DUA_LIST_VERSION")
 
         // Fetch current version from API
-        const versionResponse = yield api.fetchVersion("DUA_LIST")
+        const versionResponse = yield apiSupabase.fetchVersion(VERSION_KEYS.DUA_VERSION)
 
         if (versionResponse.kind === "ok") {
           const currentVersion = versionResponse.data?.version
+
+          console.log(currentVersion, "currentVersion")
+          console.log(storedVersion, "storedVersion")
 
           // If we have cached data and versions match, use cached data
           if (cachedData && cachedData.length > 0 && storedVersion === currentVersion) {
@@ -61,7 +72,7 @@ export const LibraryStoreModel = types
           }
 
           // If versions don't match or no cached data, fetch fresh data
-          const response: any = yield api.fetch("library/all")
+          const response: any = yield apiSupabase.fetch("library/all")
 
           if (response.kind === "ok") {
             const data = response.data as ILibrary[]
@@ -73,7 +84,7 @@ export const LibraryStoreModel = types
           }
         } else {
           // If version check fails, try to fetch data anyway
-          const response: any = yield api.fetch("library/all")
+          const response: any = yield apiSupabase.fetch("library/all")
 
           if (response.kind === "ok") {
             const data = response.data as ILibrary[]
@@ -110,8 +121,6 @@ export const LibraryStoreModel = types
       return self.allLibraryData.filter((item) => ids.includes(item.id))
     },
   }))
-
-// Create an instance of LibraryStore
 
 export interface LibraryStore extends Instance<typeof LibraryStoreModel> {}
 export interface LibraryStoreSnapshot extends SnapshotOut<typeof LibraryStoreModel> {}

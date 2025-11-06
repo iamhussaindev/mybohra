@@ -54,7 +54,7 @@ export default observer(function NextNamaz(props: NextNamazProps) {
 
   const $container: ViewStyle = {
     height: 60,
-    marginTop: spacing.lg,
+    // marginTop: spacing.lg,
     paddingStart: spacing.xxl,
     paddingEnd: spacing.lg,
     justifyContent: "center",

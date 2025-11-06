@@ -41,9 +41,12 @@ export type AppStackParamList = {
     id: number
     name: string
     description: string | null
-    audio: string | null
-    pdf: string | null
+    audio_url: string | null
+    pdf_url: string | null
+    youtube_url: string | null
     metadata: any
+    tags: string[] | null
+    categories: string[] | null
   }
   Counter: undefined
   SavedTasbeeh: undefined
@@ -73,7 +76,7 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 const AppStack = observer(function AppStack() {
   return (
     <Stack.Navigator
-      initialRouteName="DuaList"
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,

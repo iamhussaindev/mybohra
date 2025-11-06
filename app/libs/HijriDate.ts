@@ -208,6 +208,7 @@ export default class HijriDate {
     const msc = (sec - Math.floor(sec)) * 1000
     const month = e < 14 ? e - 2 : e - 14
     const year = month < 2 ? c - 4715 : c - 4716
+
     return new Date(year, month, day, hrs, min, sec, msc)
   }
 

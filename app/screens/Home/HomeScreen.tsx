@@ -1,7 +1,6 @@
-import { Screen, AnalyticsDebugger } from "app/components"
-import { useAnalytics } from "app/hooks/useAnalytics"
+import { PDFOptionsBottomSheet, Screen } from "app/components"
 import { useSoundPlayer } from "app/hooks/useAudio"
-import { useRealtimeMonitoring } from "app/hooks/useRealtimeMonitoring"
+import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import { useStores } from "app/models"
 import MiqaatList from "app/screens/components/MiqaatList"
 import { observer } from "mobx-react-lite"
@@ -37,7 +36,6 @@ export interface HomeSection {
 
 export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(props) {
   const [open, setOpen] = useState(false)
-  const [showDebugger, setShowDebugger] = useState(false)
   const timeout = useRef<ReturnType<typeof setTimeout>>()
   const $drawerInsets = useSafeAreaInsetsStyle(["top"])
   const [showBorder, setShowBorder] = useState(false)
@@ -47,23 +45,25 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   const { dataStore, miqaatStore, libraryStore, reminderStore } = useStores()
   const { currentSound } = useSoundPlayer()
 
+  // Use the PDF options bottom sheet hook
+  const {
+    bottomSheetRef,
+    selectedItem,
+    handleItemLongPress,
+    handlePinToHomeScreen,
+    handleCloseBottomSheet,
+    handleOpenPDF,
+    handleReportPDF,
+    isPinned,
+  } = usePdfOptionsBottomSheet({ navigation: props.navigation })
+
   // Get pinned items and merge with daily duas
   const pinnedItems = libraryStore.getItemsByIds(dataStore.pinnedPdfIds)
 
   // remove pinnedItems from combinedDailyDuas
-  const dailyDuas = libraryStore.homeData.filter((item) => !pinnedItems.includes(item))
+  const dailyDuas = libraryStore.homeData.filter((item) => !pinnedItems.includes(item)) ?? []
 
-  // Analytics and monitoring
-  const { trackDrawerOpened, trackDrawerClosed } = useAnalytics({
-    screenName: "Home",
-    trackScreenView: true,
-  })
-
-  const { trackFeatureUsage: trackRealtimeFeature } = useRealtimeMonitoring({
-    screenName: "Home",
-    trackPageViews: true,
-    trackUserActivities: true,
-  })
+  // Removed manual analytics - using Firebase only
 
   const fetchMiqaats = async () => {
     await miqaatStore.fetchMiqaats()
@@ -71,6 +71,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
 
   const fetchHomeLibrary = async () => {
     await libraryStore.fetchHomeData()
+    await libraryStore.fetchList()
   }
 
   const fetchData = async () => {
@@ -109,178 +110,188 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   }
 
   return (
-    <Drawer
-      open={open}
-      onOpen={() => {
-        setOpen(true)
-        trackDrawerOpened()
-        trackRealtimeFeature("drawer_opened")
-      }}
-      onClose={() => {
-        setOpen(false)
-        trackDrawerClosed()
-        trackRealtimeFeature("drawer_closed")
-      }}
-      drawerType={"slide"}
-      drawerPosition={isRTL ? "right" : "left"}
-      renderDrawerContent={() => (
-        <View style={[$drawer, $drawerInsets]}>
-          <View style={$logoContainer} />
-        </View>
-      )}
-    >
-      <Screen
-        backgroundColor={colors.background}
-        preset="fixed"
-        safeAreaEdges={["top"]}
-        contentContainerStyle={$screenContainer}
+    <>
+      <Drawer
+        open={open}
+        onOpen={() => {
+          setOpen(true)
+        }}
+        onClose={() => {
+          setOpen(false)
+        }}
+        drawerType={"slide"}
+        drawerPosition={isRTL ? "right" : "left"}
+        renderDrawerContent={() => (
+          <View style={[$drawer, $drawerInsets]}>
+            <View style={$logoContainer} />
+          </View>
+        )}
       >
-        <Header
-          showBorder={showBorder}
-          shadowOffset={shadowOffset}
-          loaded={dataStore?.currentLocationLoaded}
-          currentLocation={dataStore?.currentLocation}
-          open={open}
-          setOpen={setOpen}
-          onLocationPress={handleLocationPress}
-          onLongPress={__DEV__ ? () => setShowDebugger(true) : undefined}
-        />
-        <SectionList
-          onScroll={handleScroll}
-          ref={listRef}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={false}
-              onRefresh={() => {
-                fetchData()
-              }}
-            />
-          }
-          contentContainerStyle={$sectionListContentContainer}
-          stickySectionHeadersEnabled={false}
-          sections={[
-            {
-              name: "Current Sound",
-              description: "Current Sound",
-              data: [
-                currentSound ? (
-                  <SoundPlayerHome navigation={props.navigation} key="current-sound" />
-                ) : null,
-              ],
-            },
-            {
-              name: "Hero Icons",
-              description: "Hero Icons",
-              data: [
-                <HeroIcons
-                  key="hero-icons"
-                  onNavigation={(screen: "Calendar" | "Home" | "Namaz") => {
-                    props.navigation.navigate(screen)
-                  }}
-                />,
-              ],
-            },
-            {
-              name: "Ramazan Niyyat",
-              description: "Ramazan Niyyat",
-              data: [<RamazaanNiyyat key="ramazan-niyyat" />],
-            },
-            {
-              name: "Namaz Times",
-              description: "Namaz Times",
-              data: [
-                <NamazUI
-                  key="namaz-times"
-                  navigation={props.navigation}
-                  isReminderEnabled={(prayerTime) =>
-                    reminderStore.reminders.some((reminder) => reminder.prayerTime === prayerTime)
-                  }
-                />,
-              ],
-            },
-
-            {
-              name: "Grid Icons",
-              description: "Grid Icons",
-              data: [
-                <GridIcons
-                  onNavigation={(screen: "Counter") => {
-                    props.navigation.navigate(screen)
-                  }}
-                  key="grid_icons"
-                />,
-              ],
-            },
-            {
-              name: "Qiyam",
-              description: "Qiyam",
-              data: [dataStore.qiyamLoaded ? <CurrentQiyam qiyam={dataStore.qiyam} /> : null],
-            },
-            {
-              name: "Bookmark & Pinned",
-              description: "Bookmark & Pinned",
-              key: "bookmark-pinned",
-              data: [
-                pinnedItems.length > 0 ? (
-                  <DuaGridList
+        <Screen
+          backgroundColor={colors.background}
+          preset="fixed"
+          safeAreaEdges={["top"]}
+          contentContainerStyle={$screenContainer}
+        >
+          <Header
+            showBorder={showBorder}
+            shadowOffset={shadowOffset}
+            loaded={dataStore?.currentLocationLoaded}
+            currentLocation={dataStore?.currentLocation}
+            open={open}
+            setOpen={setOpen}
+            onLocationPress={handleLocationPress}
+          />
+          <SectionList
+            onScroll={handleScroll}
+            ref={listRef}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={false}
+                onRefresh={() => {
+                  fetchData()
+                }}
+              />
+            }
+            contentContainerStyle={$sectionListContentContainer}
+            stickySectionHeadersEnabled={false}
+            sections={[
+              {
+                name: "Current Sound",
+                description: "Current Sound",
+                data: [
+                  currentSound ? (
+                    <SoundPlayerHome navigation={props.navigation} key="current-sound" />
+                  ) : null,
+                ],
+              },
+              {
+                name: "Hero Icons",
+                description: "Hero Icons",
+                data: [
+                  <HeroIcons
+                    key="hero-icons"
+                    onNavigation={(screen: "Calendar" | "Home" | "Namaz") => {
+                      props.navigation.navigate(screen)
+                    }}
+                  />,
+                ],
+              },
+              {
+                name: "Ramazan Niyyat",
+                description: "Ramazan Niyyat",
+                data: [<RamazaanNiyyat key="ramazan-niyyat" />],
+              },
+              {
+                name: "Namaz Times",
+                description: "Namaz Times",
+                data: [
+                  <NamazUI
+                    key="namaz-times"
                     navigation={props.navigation}
-                    items={pinnedItems}
-                    currentSound={currentSound}
-                    pinnedIds={dataStore.pinnedPdfIds}
-                    title="Bookmark & Pinned"
-                    key="daily-duas"
-                    showOptions={false}
-                  />
-                ) : null,
-              ],
-            },
-            {
-              name: "Daily Duas",
-              description: "daily duas",
-              data: [
-                <DuaGridList
-                  navigation={props.navigation}
-                  items={dailyDuas}
-                  currentSound={currentSound}
-                  pinnedIds={dataStore.pinnedPdfIds}
-                  title="Duas for Today"
-                  key="daily-duas"
-                  showOptions={false}
-                />,
-              ],
-            },
-            {
-              name: "Miqaat",
-              description: "Miqaat",
-              data: [
-                miqaatStore.miqaatsToday.length > 0 ? (
-                  <MiqaatList title="Miqaats Today" list={miqaatStore.miqaatsToday} />
-                ) : null,
-              ],
-            },
-            {
-              name: "Upcoming Miqaats",
-              description: "Miqaat",
-              data: [
-                miqaatStore.upcomingMiqaats.length ? (
-                  <MiqaatList
-                    showCount
-                    title="Upcoming Miqaats"
-                    list={miqaatStore.upcomingMiqaats}
-                  />
-                ) : null,
-              ],
-            },
-          ]}
-          renderItem={({ item }) => item}
-        />
-      </Screen>
+                    isReminderEnabled={(prayerTime) =>
+                      reminderStore.reminders.some((reminder) => reminder.prayerTime === prayerTime)
+                    }
+                  />,
+                ],
+              },
 
-      {__DEV__ && (
-        <AnalyticsDebugger visible={showDebugger} onClose={() => setShowDebugger(false)} />
-      )}
-    </Drawer>
+              {
+                name: "Grid Icons",
+                description: "Grid Icons",
+                data: [
+                  <GridIcons
+                    onNavigation={(screen: "Counter") => {
+                      props.navigation.navigate(screen)
+                    }}
+                    key="grid_icons"
+                  />,
+                ],
+              },
+              {
+                name: "Qiyam",
+                description: "Qiyam",
+                data: [
+                  dataStore.qiyamLoaded && dataStore.qiyam ? (
+                    <CurrentQiyam qiyam={dataStore.qiyam} key="qiyam" />
+                  ) : null,
+                ],
+              },
+              {
+                name: "Bookmark & Pinned",
+                description: "Bookmark & Pinned",
+                key: "bookmark-pinned",
+                data: [
+                  pinnedItems.length > 0 ? (
+                    <DuaGridList
+                      navigation={props.navigation}
+                      handleItemLongPress={handleItemLongPress}
+                      items={pinnedItems}
+                      currentSound={currentSound}
+                      pinnedIds={dataStore.pinnedPdfIds}
+                      title="Bookmark & Pinned"
+                      key="daily-duas"
+                      showOptions={true}
+                    />
+                  ) : null,
+                ],
+              },
+              {
+                name: "Daily Duas",
+                description: "daily duas",
+                data: [
+                  dailyDuas.length > 0 ? (
+                    <DuaGridList
+                      navigation={props.navigation}
+                      handleItemLongPress={handleItemLongPress}
+                      items={dailyDuas}
+                      currentSound={currentSound}
+                      pinnedIds={dataStore.pinnedPdfIds}
+                      title="Daily Duas & Hafti"
+                      key="daily-duas"
+                      showOptions={true}
+                    />
+                  ) : null,
+                ],
+              },
+              {
+                name: "Miqaat",
+                description: "Miqaat",
+                data: [
+                  miqaatStore.miqaatsToday.length > 0 ? (
+                    <MiqaatList title="Miqaats Today" list={miqaatStore.miqaatsToday} />
+                  ) : null,
+                ],
+              },
+              {
+                name: "Upcoming Miqaats",
+                description: "Miqaat",
+                data: [
+                  miqaatStore.upcomingMiqaats.length ? (
+                    <MiqaatList
+                      showCount
+                      title="Upcoming Miqaats"
+                      list={miqaatStore.upcomingMiqaats}
+                    />
+                  ) : null,
+                ],
+              },
+            ]}
+            renderItem={({ item }) => item}
+          />
+        </Screen>
+      </Drawer>
+      <PDFOptionsBottomSheet
+        ref={bottomSheetRef}
+        item={selectedItem}
+        onPinToHomeScreen={handlePinToHomeScreen}
+        onOpen={handleOpenPDF}
+        onReportPDF={handleReportPDF}
+        onClose={handleCloseBottomSheet}
+        isPinned={isPinned}
+      />
+    </>
   )
 })
 

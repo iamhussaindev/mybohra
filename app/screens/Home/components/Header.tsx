@@ -1,4 +1,4 @@
-import { Icon, Text } from "app/components"
+import { Icon, Text, Skeleton } from "app/components"
 import { ILocation } from "app/models/DataStore"
 import { colors, spacing } from "app/theme"
 import { observer } from "mobx-react-lite"
@@ -44,7 +44,9 @@ export const Header = observer(function Header(props: HeaderProps) {
               size="md"
               text={`${props.currentLocation.city}`}
             />
-          ) : null}
+          ) : (
+            <Skeleton width={120} height={18} borderRadius={4} />
+          )}
           <View style={$headerLocationIcon}>
             <Icon style={$headerLocationIconStyle} size={18} icon="caretLeft" />
           </View>
@@ -101,4 +103,5 @@ const $header: ViewStyle = {
   justifyContent: "space-between",
   backgroundColor: colors.background,
   alignItems: "center",
+  paddingVertical: spacing.xs,
 }

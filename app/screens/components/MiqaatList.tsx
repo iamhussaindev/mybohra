@@ -25,7 +25,7 @@ export function MiqaatCard({
         </View>
         {showCount && (
           <View style={$countDownContainer}>
-            <Text style={$countDownText}>
+            <Text weight="medium" style={$countDownText}>
               {HijriDate.fromMiqaat(item).toMoment().fromNow(true)}
             </Text>
           </View>
@@ -78,7 +78,7 @@ const $countDownText: TextStyle = {
 const $countDownContainer: ViewStyle = {
   position: "absolute",
   left: 8,
-  bottom: -5,
+  top: -5,
   paddingHorizontal: spacing.xs,
   backgroundColor: colors.palette.neutral100,
   opacity: 1,
@@ -92,8 +92,8 @@ const $countDownContainer: ViewStyle = {
 }
 
 const $cardDescriptionText: TextStyle = {
-  fontSize: 13,
-  color: colors.palette.neutral600,
+  fontSize: 14,
+  color: colors.palette.neutral900,
   flexWrap: "wrap",
   flex: 1,
   lineHeight: 20,
@@ -106,7 +106,7 @@ const $cardDescription: ViewStyle = {
 }
 
 const $cardTitle: TextStyle = {
-  fontSize: 15,
+  fontSize: 16,
   width: "80%",
   lineHeight: 20,
   flexWrap: "wrap",
