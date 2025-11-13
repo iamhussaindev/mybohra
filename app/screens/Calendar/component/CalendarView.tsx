@@ -15,11 +15,13 @@ export default function CalendarView({
   setCalendar,
   selectedDate,
   setSelectedDate,
+  highlight,
 }: {
   calendar: Calendar
   setCalendar: any
   selectedDate?: CalendarDay
   setSelectedDate: any
+  highlight?: { key: string; trigger: number } | null
 }) {
   function handlePrevious() {
     setCalendar(calendar?.previousMonth())
@@ -33,6 +35,10 @@ export default function CalendarView({
 
   const { miqaatStore } = useStores()
   const miqaats = miqaatStore?.miqaatsOnDay(selectedDate?.date)
+
+  const selectedDateString = `${selectedDate?.gregorian?.format("dddd,")} ${
+    selectedDate?.date?.day
+  } ${selectedDate?.date?.getMonthName()} ${selectedDate?.date?.year}`
 
   return (
     <SectionList
@@ -94,6 +100,7 @@ export default function CalendarView({
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
                 week={week}
+                highlight={highlight}
               />
             )),
         },
@@ -107,12 +114,8 @@ export default function CalendarView({
                   ListHeaderComponent={
                     <View style={$miqaatHeader}>
                       <View style={$miqaatHeaderContainer}>
-                        <Text weight="bold" style={$miqaatHeaderText}>
-                          Miqaats on {selectedDate?.date?.day} {selectedDate?.date?.getMonthName()}{" "}
-                          {selectedDate?.date?.year}
-                        </Text>
-                        <Text style={$miqaatHeaderDescription}>
-                          {selectedDate?.gregorian?.format("dddd, Do MMMM YYYY")}
+                        <Text weight="bold" style={$miqaatHeaderDescription}>
+                          {selectedDateString}
                         </Text>
                       </View>
                     </View>
@@ -121,7 +124,7 @@ export default function CalendarView({
                   estimatedItemSize={100}
                   contentContainerStyle={$miqaatsList}
                   data={miqaats}
-                  renderItem={(item) => <MiqaatCard item={item.item} />}
+                  renderItem={(item) => <MiqaatCard isCalendar={true} item={item.item} />}
                 />
               </View>
             ) : selectedDate ? (
@@ -153,7 +156,7 @@ const $emptyContainerText: TextStyle = {
 }
 
 const $emptyContainer: ViewStyle = {
-  backgroundColor: colors.gray,
+  backgroundColor: colors.white,
   flex: 1,
   justifyContent: "center",
   alignItems: "center",
@@ -173,19 +176,11 @@ const $miqaatHeader: ViewStyle = {
   alignItems: "center",
 }
 
-const $miqaatHeaderText: TextStyle = {
-  borderLeftColor: colors.palette.primary500,
-  borderLeftWidth: 4,
-  color: colors.palette.neutral900,
-  fontSize: 16,
-}
-
 const $miqaatHeaderDescription: TextStyle = {
   borderLeftColor: colors.palette.primary500,
   borderLeftWidth: 4,
   color: colors.palette.neutral800,
-  fontSize: 13,
-  marginTop: -spacing.xxs,
+  fontSize: 18,
 }
 
 const $miqaatsList: ViewStyle = {
@@ -195,7 +190,7 @@ const $miqaatsList: ViewStyle = {
 
 const $weekHeader: ViewStyle = {
   height: 40,
-  width: screenWidth / 7,
+  width: (screenWidth - spacing.xs * 2) / 7,
   justifyContent: "center",
   alignItems: "center",
 }
@@ -215,9 +210,8 @@ const $weekHeaderText: TextStyle = {
 
 const $weekContainer: ViewStyle = {
   flexDirection: "row",
-  backgroundColor: colors.palette.neutral100,
-  borderBottomColor: colors.palette.neutral200,
-  borderBottomWidth: 1,
+  backgroundColor: colors.white,
+  paddingHorizontal: spacing.xs,
 }
 
 const $headerControlButton: ViewStyle = {
@@ -247,7 +241,7 @@ const $headerControl: ViewStyle = {
 }
 
 const $contentContainer: ViewStyle = {
-  backgroundColor: colors.gray,
+  backgroundColor: colors.white,
   flexGrow: 1,
   paddingBottom: 50,
 }

@@ -1,26 +1,44 @@
-import { Card, ListView, Text } from "app/components"
+import { ListView, SBox, Text } from "app/components"
 import HijriDate from "app/libs/HijriDate"
 import { IMiqaat } from "app/models/MiqaatStore"
 import { colors, spacing } from "app/theme"
 import React from "react"
-import { View, ViewStyle, Image, ImageStyle, TextStyle } from "react-native"
+import { View, ViewStyle, Image, ImageStyle, TextStyle, Dimensions } from "react-native"
+
+const screenWidth = Dimensions.get("window").width
 
 export function MiqaatCard({
+  isCalendar,
   item,
   style,
   showCount,
 }: {
   showCount?: boolean
+  isCalendar?: boolean
   item: IMiqaat
   style?: ViewStyle
 }) {
   return (
-    <Card style={[$cardContainer, style]}>
+    <SBox
+      width={!isCalendar ? screenWidth - spacing.lg * 2 : screenWidth - spacing.md * 2}
+      minHeight={80}
+      cornerRadius={0.5}
+      borderRadius={8}
+      cornerRadiusX={0.2}
+      style={$cardStyle}
+      cornerRadiusY={0.2}
+      borderColor={colors.border}
+      backgroundColor={colors.white}
+      innerStyle={[$cardContainer, style]}
+    >
       <View style={$cardContent}>
         <View style={$cardImageContainer}>
           <Image
+            source={
+              item.image ? { uri: item.image } : require("../../../assets/images/event_icon.png")
+            }
             style={[$cardImage, showCount && { borderColor: colors.transparent }]}
-            source={require("../../../assets/images/event_icon.png")}
+            resizeMode="cover"
           />
         </View>
         {showCount && (
@@ -31,7 +49,13 @@ export function MiqaatCard({
           </View>
         )}
         <View style={$cardDescription}>
-          <Text weight="medium" style={$cardTitle} text={item.name} />
+          <Text
+            weight="medium"
+            style={$cardTitle}
+            text={item.name}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          />
           {item.description ? (
             <Text
               weight="normal"
@@ -41,7 +65,7 @@ export function MiqaatCard({
           ) : null}
         </View>
       </View>
-    </Card>
+    </SBox>
   )
 }
 
@@ -107,7 +131,7 @@ const $cardDescription: ViewStyle = {
 
 const $cardTitle: TextStyle = {
   fontSize: 16,
-  width: "80%",
+  width: "90%",
   lineHeight: 20,
   flexWrap: "wrap",
 }
@@ -117,6 +141,7 @@ const $cardContent: ViewStyle = {
   alignItems: "center",
   justifyContent: "space-between",
   flexGrow: 1,
+  width: "100%",
 }
 
 export default function MiqaatList({
@@ -142,20 +167,23 @@ export default function MiqaatList({
 }
 
 const $listHeader: TextStyle = {
-  marginBottom: spacing.sm,
+  marginBottom: spacing.md,
   width: "100%",
   paddingHorizontal: spacing.lg,
 }
 
 const $cardContainer: ViewStyle = {
-  marginBottom: spacing.md,
-  shadowOpacity: 0,
   paddingTop: 10,
   paddingBottom: 10,
   minHeight: 10,
-  borderColor: colors.border,
-  borderWidth: 1,
-  borderRadius: 12,
+  paddingHorizontal: spacing.xs,
+}
+
+const $cardStyle: ViewStyle = {
+  paddingTop: 10,
+  paddingBottom: 20,
+  minHeight: 10,
+  marginBottom: spacing.md,
 }
 
 const $listContainer: ViewStyle = {

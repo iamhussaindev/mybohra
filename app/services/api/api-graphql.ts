@@ -2,6 +2,8 @@
  * This is the new Supabase-based API service that replaces the REST API
  * It uses Supabase's PostgREST API through the JavaScript client
  */
+import * as storage from "app/utils/storage"
+
 import { DEFAULT_VERSIONS } from "../../constants/version-keys"
 import { supabase } from "../supabase"
 import type { Database } from "../supabase/types"
@@ -98,7 +100,7 @@ export class ApiSupabase {
   /**
    * Fetch location by coordinates
    */
-  async fetchLocation(
+  async fetchNearestLocation(
     lat: number,
     lng: number,
   ): Promise<
@@ -109,9 +111,19 @@ export class ApiSupabase {
     | GeneralApiProblem
   > {
     try {
-      // Using Supabase PostgREST directly as it's more efficient than GraphQL for this
-      // We'll find the nearest location by calculating distance
-      const { data, error } = await supabase.from("location").select("*").limit(100) // Get top 100 to find nearest
+      const cachedLocations = await storage.load("LOCATIONS")
+      if (Array.isArray(cachedLocations) && cachedLocations.length > 0) {
+        const nearestFromCache = this.findNearestLocation(
+          lat,
+          lng,
+          cachedLocations as LocationRow[],
+        )
+        if (nearestFromCache) {
+          return { kind: "ok", data: nearestFromCache }
+        }
+      }
+
+      const { data, error } = await supabase.from("location").select("*")
 
       if (error) {
         console.error("Error fetching location:", error)
@@ -122,24 +134,9 @@ export class ApiSupabase {
         return { kind: "not-found" }
       }
 
-      // Find nearest location
-      let nearest = data[0] as LocationRow
-      let minDistance = this.calculateDistance(lat, lng, nearest.latitude, nearest.longitude)
-
-      for (const location of data) {
-        const distance = this.calculateDistance(
-          lat,
-          lng,
-          (location as LocationRow).latitude,
-          (location as LocationRow).longitude,
-        )
-        if (distance < minDistance) {
-          minDistance = distance
-          nearest = location
-        }
-      }
-
-      return { kind: "ok", data: nearest }
+      await storage.save("LOCATIONS", data)
+      const nearest = this.findNearestLocation(lat, lng, data as LocationRow[])
+      return nearest ? { kind: "ok", data: nearest } : { kind: "not-found" }
     } catch (error) {
       console.error("Error fetching location:", error)
       return { kind: "bad-data" }
@@ -149,6 +146,36 @@ export class ApiSupabase {
   /**
    * Helper function to calculate distance between two coordinates
    */
+  private findNearestLocation(
+    lat: number,
+    lng: number,
+    locations: LocationRow[],
+  ): LocationRow | null {
+    if (!locations || locations.length === 0) return null
+
+    let nearest: LocationRow | null = null
+    let minDistance = Number.POSITIVE_INFINITY
+
+    for (const location of locations) {
+      if (
+        location?.latitude === undefined ||
+        location?.longitude === undefined ||
+        location.latitude === null ||
+        location.longitude === null
+      ) {
+        continue
+      }
+
+      const distance = this.calculateDistance(lat, lng, location.latitude, location.longitude)
+      if (distance < minDistance) {
+        minDistance = distance
+        nearest = location
+      }
+    }
+
+    return nearest
+  }
+
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371 // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * (Math.PI / 180)

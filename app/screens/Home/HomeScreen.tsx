@@ -71,6 +71,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
 
   const fetchHomeLibrary = async () => {
     await libraryStore.fetchHomeData()
+    await dataStore.fetchQiyam()
     await libraryStore.fetchList()
   }
 
@@ -81,7 +82,6 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
 
   useEffect(() => {
     ;(async function load() {
-      await dataStore.fetchQiyam()
       await dataStore.loadPinnedPdfs()
     })()
   }, [dataStore])

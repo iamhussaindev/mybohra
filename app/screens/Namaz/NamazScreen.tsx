@@ -18,6 +18,7 @@ import {
 import Header from "app/components/Header"
 import { useLocationBottomSheet } from "app/contexts/LocationBottomSheetContext"
 import { ITimes, CurrentGhari } from "app/helpers/namaz.helper"
+import { shadowProps } from "app/helpers/shadow.helper"
 import { useNextNamaz } from "app/hooks/useNextNamaz"
 import { usePrayerTimesWithDate } from "app/hooks/usePrayerTimesWithDate"
 import { useReminders } from "app/hooks/useReminders"
@@ -147,7 +148,8 @@ const $lastItem: ViewStyle = {
 }
 
 const $itemContainer: ViewStyle = {
-  padding: spacing.md,
+  paddingHorizontal: spacing.md,
+  paddingVertical: spacing.xs,
   borderBottomWidth: 1,
   borderBottomColor: colors.gray,
   display: "flex",
@@ -173,6 +175,8 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen({
   const { openLocationBottomSheet } = useLocationBottomSheet()
   const { createReminder, deleteReminder, reminders } = useReminders()
   const [prayerTime, setPrayerTime] = useState<keyof ITimes | null>(null)
+
+  console.log("reminders", reminders)
 
   const handleQuickReminder = async (prayerTime: keyof ITimes, value: boolean) => {
     // Check if any reminder exists for this prayer time (enabled or disabled)
@@ -382,14 +386,9 @@ const $locationContainer: ViewStyle = {
   backgroundColor: colors.white,
   paddingHorizontal: spacing.sm,
   paddingVertical: spacing.xs,
-  shadowColor: colors.gray,
-  shadowOffset: { width: 0, height: 5 },
-  shadowOpacity: 1,
-  shadowRadius: 10,
+  ...shadowProps,
   borderRadius: 10,
   elevation: 5,
-  borderColor: colors.gray,
-  borderWidth: 1,
 }
 
 const $disabledReminderButton: ViewStyle = {
@@ -419,15 +418,8 @@ const $listContainer: ViewStyle = {
   margin: spacing.md,
   marginBottom: spacing.sm,
   padding: spacing.xxs,
-  shadowColor: colors.gray,
-  shadowOffset: { width: 0, height: 5 },
-  shadowOpacity: 1,
-  shadowRadius: 10,
+  ...shadowProps,
   borderRadius: 10,
-  backgroundColor: colors.palette.neutral100,
-  elevation: 5,
-  borderColor: colors.gray,
-  borderWidth: 1,
 }
 
 const $screenContainer: ViewStyle = {

@@ -1,4 +1,4 @@
-import { Card, Text } from "app/components"
+import { SBox, Text } from "app/components"
 import { colors, spacing } from "app/theme"
 import React from "react"
 import { Dimensions, Image, ImageStyle, TextStyle, View, ViewStyle } from "react-native"
@@ -8,30 +8,31 @@ const screenWidth = Dimensions.get("window").width
 function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }) {
   const $heroTitle: TextStyle = {
     color: colors.text,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.xxs,
   }
 
   const $heroImage: ImageStyle = {
-    width: "80%",
-    height: "80%",
-    objectFit: "cover",
+    width: screenWidth / 3 - 64,
+    height: screenWidth / 3 - 64,
+    objectFit: "contain",
   }
 
   const $heroCard: ViewStyle = {
     width: screenWidth / 3 - 25,
     height: screenWidth / 3 - 25,
     justifyContent: "center",
+    paddingTop: spacing.xxs,
     flexDirection: "column",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 5 },
-    alignItems: "center",
-    backgroundColor: colors.white,
-    borderRadius: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
   }
+
   return (
-    <Card
+    <SBox
+      backgroundColor={colors.palette.neutral100}
+      borderColor={colors.border}
+      borderRadius={8}
+      cornerRadius={0.75}
+      height={screenWidth / 3 - 25}
+      width={screenWidth / 3 - 25}
       onPress={() => {
         props.onNavigation()
       }}
@@ -39,7 +40,7 @@ function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }
     >
       <Text style={$heroTitle} weight="bold" text={props.text} />
       <Image source={props.icon} style={$heroImage} />
-    </Card>
+    </SBox>
   )
 }
 

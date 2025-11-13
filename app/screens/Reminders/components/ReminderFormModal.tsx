@@ -1,15 +1,15 @@
-import { observer } from "mobx-react-lite"
-import React, { FC, useEffect } from "react"
-import { View, Modal, ScrollView, Pressable } from "react-native"
 import { IconX } from "@tabler/icons-react-native"
 import { Button } from "app/components/Button"
 import { Screen } from "app/components/Screen"
 import { Text } from "app/components/Text"
 import { TextField } from "app/components/TextField"
-import { useReminders } from "app/hooks/useReminders"
-import { useReminderForm } from "app/hooks/useReminderForm"
 import { namazLabels } from "app/helpers/namaz.helper"
+import { useReminderForm } from "app/hooks/useReminderForm"
+import { useReminders } from "app/hooks/useReminders"
 import { colors, spacing } from "app/theme"
+import { observer } from "mobx-react-lite"
+import React, { FC, useEffect } from "react"
+import { View, Modal, ScrollView, Pressable } from "react-native"
 
 interface ReminderFormModalProps {
   isVisible: boolean

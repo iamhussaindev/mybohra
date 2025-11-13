@@ -1,5 +1,5 @@
 import { IconDotsVertical } from "@tabler/icons-react-native"
-import { Text } from "app/components"
+import { SBox, Text } from "app/components"
 import { useSoundPlayer } from "app/hooks/useAudio"
 // Removed manual analytics - using Firebase only
 import { ILibrary } from "app/models/LibraryStore"
@@ -138,19 +138,18 @@ function DuaCard(props: DailyCardProps) {
   }, [state])
 
   return (
-    <Pressable
+    <SBox
       onPress={handlePress}
-      onLongPress={props.showOptions ? handleLongPress : undefined}
-      style={({ pressed }) => [
-        { width: (screenWidth - spacing.lg * 2 - 10) / (props.columns ?? 2) },
-        $cardStyle,
-        !isCurrentPlaying
-          ? { backgroundColor: colors.white }
-          : {
-              backgroundColor: colors.white,
-            },
-        pressed && $pressedCard,
-      ]}
+      width={(screenWidth - spacing.lg * 2 - 10) / (props.columns ?? 2)}
+      height={60}
+      style={$cardContainer}
+      innerStyle={$cardStyle}
+      cornerRadius={0.5}
+      borderRadius={8}
+      cornerRadiusX={0.3}
+      cornerRadiusY={0.3}
+      borderColor={colors.border}
+      backgroundColor={!isCurrentPlaying ? colors.white : colors.white}
     >
       <View style={$cardContent}>
         {!isCurrentPlaying ? (
@@ -179,14 +178,15 @@ function DuaCard(props: DailyCardProps) {
           <IconDotsVertical size={18} color={colors.palette.neutral900} />
         </Pressable>
       )}
-    </Pressable>
+    </SBox>
   )
 }
 
 const $longPressButton: ViewStyle = {
   position: "absolute",
+  height: 60,
   right: 0,
-  bottom: 10,
+  top: -20,
   padding: spacing.sm,
   zIndex: 100,
   alignItems: "center",
@@ -220,38 +220,25 @@ const $cardLottie: ViewStyle = {
   zIndex: 100,
 }
 
-const $cardStyle: ViewStyle = {
-  borderWidth: 1,
-  borderColor: colors.border,
-  borderRadius: 10,
-  paddingHorizontal: 10,
-  borderCurve: "continuous",
+const $cardContainer: ViewStyle = {
+  position: "relative",
+  zIndex: 100,
+  marginBottom: spacing.sm,
+}
 
-  height: 60,
-  display: "flex",
-  justifyContent: "center",
-  shadowColor: colors.gray,
-  backgroundColor: colors.white,
-  shadowOffset: {
-    width: 2,
-    height: 2,
-  },
-  shadowOpacity: 0.9,
-  shadowRadius: 3.84,
-  elevation: 5,
-  marginBottom: 10,
+const $cardStyle: ViewStyle = {
+  justifyContent: "flex-start",
+  paddingHorizontal: 16,
+  alignItems: "flex-start",
+  width: "100%",
+  position: "relative",
 }
 
 const $cardText: TextStyle = {
-  fontSize: 12,
+  fontSize: 14,
   lineHeight: 14,
   flexWrap: "wrap",
   maxWidth: "70%",
-}
-
-const $pressedCard: ViewStyle = {
-  backgroundColor: colors.gray,
-  opacity: 0.8,
 }
 
 const $emptySpace: ViewStyle = {

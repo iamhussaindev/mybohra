@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "v2app.app"
+               BuildableName = "mybohra.app"
                BlueprintName = "v2app"
                ReferencedContainer = "container:v2app.xcodeproj">
             </BuildableReference>
@@ -49,20 +49,20 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "NO">
+      allowLocationSimulation = "YES">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "v2app.app"
+            BuildableName = "mybohra.app"
             BlueprintName = "v2app"
             ReferencedContainer = "container:v2app.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <LocationScenarioReference
-         identifier = "Mumbai, India"
-         referenceType = "1">
+         identifier = "../location-morph.gpx"
+         referenceType = "0">
       </LocationScenarioReference>
    </LaunchAction>
    <ProfileAction
@@ -76,7 +76,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "v2app.app"
+            BuildableName = "mybohra.app"
             BlueprintName = "v2app"
             ReferencedContainer = "container:v2app.xcodeproj">
          </BuildableReference>

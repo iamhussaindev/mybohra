@@ -1,4 +1,4 @@
-import { Card, Text } from "app/components"
+import { SBox, Text } from "app/components"
 import { CurrentGhari } from "app/helpers/namaz.helper"
 import { colors, spacing } from "app/theme"
 import { getFormattedTime } from "app/utils/common"
@@ -72,21 +72,27 @@ function NamazCard(props: {
 }) {
   return (
     <>
-      <Card
+      <SBox
+        height={75}
+        width={screenWidth / 3 - 36}
+        cornerRadius={0.5}
+        borderRadius={8}
+        backgroundColor={
+          props.activeIndex === props.index ? colors.palette.primary10 : colors.palette.neutral100
+        }
+        borderColor={props.activeIndex === props.index ? colors.palette.primary200 : colors.border}
         onPress={() => {
           props.navigation.navigate("Namaz", {
             prayerTime: props.time,
           })
         }}
-        style={[
-          $namazCard,
-          props.index === 0 && $firstNamazCard,
-          props.index === 4 && $lastNamazCard,
-        ]}
+        style={[props.index === 0 && $firstNamazCard, props.index === 4 && $lastNamazCard]}
       >
         {props.activeIndex === props.index ? (
           <View style={$currentGhariContainer}>
-            <Text style={$currentGhariText}>{props.isNext ? "Next" : "Current"} Ghari</Text>
+            <Text color={colors.palette.neutral100} weight="medium" style={$currentGhariText}>
+              {props.isNext ? "Next" : "Current"}
+            </Text>
           </View>
         ) : null}
         <View style={[$grContainer, props.activeIndex === props.index && $activeNamazCard]}>
@@ -103,7 +109,7 @@ function NamazCard(props: {
             {getFormattedTime(props.time)}
           </Text>
         </View>
-      </Card>
+      </SBox>
     </>
   )
 }
@@ -123,34 +129,38 @@ const $currentGhariContainer: ViewStyle = {
   justifyContent: "center",
   paddingLeft: 7,
   width: 75,
-  backgroundColor: colors.tint,
+  backgroundColor: colors.palette.primary500,
   zIndex: 20,
-  borderRadius: 5,
+  borderRadius: 8,
   borderWidth: 0,
+  borderCurve: "continuous",
 }
 
 const $currentGhariText: TextStyle = {
-  color: colors.palette.neutral100,
-  fontSize: 10,
-  lineHeight: 18,
+  color: colors.white,
+  fontSize: 12,
+  lineHeight: 16,
   textAlign: "center",
 }
 
 const $grContainer: ViewStyle = {
-  width: 110,
+  width: screenWidth / 3 - 36,
   height: 75,
   minHeight: 75,
   justifyContent: "center",
   flexDirection: "column",
   alignItems: "center",
   padding: 0,
-  borderRadius: 15,
+  borderRadius: 8,
+  borderCurve: "continuous",
   position: "relative",
 }
 
 const $activeNamazCard: ViewStyle = {
-  borderColor: colors.tint,
-  borderWidth: 1,
+  // borderColor: colors.tint,
+  // borderWidth: 0.5,
+  // borderCurve: "continuous",
+  // backgroundColor: colors.palette.primary10,
 }
 
 const $firstNamazCard: ViewStyle = {
@@ -159,19 +169,6 @@ const $firstNamazCard: ViewStyle = {
 
 const $lastNamazCard: ViewStyle = {
   marginRight: spacing.lg,
-}
-
-const $namazCard: ViewStyle = {
-  width: 110,
-  height: 75,
-  minHeight: 75,
-  justifyContent: "center",
-  flexDirection: "column",
-  marginBottom: 10,
-  alignItems: "center",
-  padding: 0,
-  shadowOpacity: 0,
-  borderColor: colors.border,
 }
 
 const $namazLabel: TextStyle = {

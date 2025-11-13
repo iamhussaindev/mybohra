@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react-hooks"
 import { useLocationCoords } from "app/hooks/useLocationCoords"
-import { setupRootStore } from "app/models"
+
 import { mockLocation } from "../utils/testUtils"
 
 // Mock the useStores hook

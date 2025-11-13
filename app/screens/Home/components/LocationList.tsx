@@ -5,6 +5,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet"
 import { IconCurrentLocationFilled } from "@tabler/icons-react-native"
 import { Icon, Text, Button } from "app/components"
+import { shadowProps } from "app/helpers/shadow.helper"
 import { useStores } from "app/models"
 import { ILocation } from "app/models/DataStore"
 import { colors, spacing, typography } from "app/theme"
@@ -41,6 +42,8 @@ const LocationList = React.memo(
     const $searchRef = useRef<TextInput>(null)
     // Convert list to plain objects for Fuse search
     const plainList = useMemo(() => list.map(toPlainLocation), [list])
+
+    console.log("plainList", plainList)
 
     const fuse = useMemo(
       () =>
@@ -375,19 +378,12 @@ const $searchContainer: ViewStyle = {
   flexDirection: "row",
   alignItems: "center",
   backgroundColor: colors.palette.neutral100,
-  borderRadius: 12,
   marginTop: spacing.sm,
   borderWidth: 1,
   paddingHorizontal: spacing.md,
   borderColor: colors.palette.neutral300,
-  shadowColor: "rgba(0, 0, 0, 0.1)",
-  shadowOffset: {
-    width: 0,
-    height: 2,
-  },
-  shadowOpacity: 0.1,
-  shadowRadius: 3.84,
-  elevation: 3,
+  ...shadowProps,
+  borderRadius: spacing.sm,
 }
 
 const $searchIcon: ImageStyle = {

@@ -1,7 +1,7 @@
-import { getSnapshot, applySnapshot } from "mobx-state-tree"
 import { DataStoreModel } from "app/models/DataStore"
 import { PlainLocation } from "app/types/location"
-import { mockLocation, createMockLocation } from "../utils/testUtils"
+
+import { createMockLocation } from "../utils/testUtils"
 
 describe("DataStore", () => {
   let store: any

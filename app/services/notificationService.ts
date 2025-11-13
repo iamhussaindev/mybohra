@@ -1,6 +1,6 @@
 /* eslint-disable react-native/split-platform-components */
 import PushNotificationIOS from "@react-native-community/push-notification-ios"
-import { Platform, PermissionsAndroid } from "react-native"
+import { PermissionsAndroid, Platform } from "react-native"
 import PushNotification, { Importance } from "react-native-push-notification"
 
 // Check if PushNotification is available
@@ -106,7 +106,6 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
         sound: true,
       })
 
-      console.log("iOS notification permission status:", authStatus)
       return authStatus.alert === true || authStatus.badge === true || authStatus.sound === true
     } catch (err) {
       console.warn("Error requesting iOS notification permissions:", err)
@@ -153,22 +152,6 @@ export const schedulePrayerReminder = async (
         repeatType = undefined
         break
     }
-
-    // Log detailed notification parameters
-    console.log("🔔 ====== SCHEDULING NOTIFICATION ======")
-    console.log(`📱 ID: ${notification.id}`)
-    console.log(`📝 Title: ${notification.title}`)
-    console.log(`💬 Message: ${notification.body}`)
-    console.log(`⏰ Trigger Date: ${triggerDate.toISOString()}`)
-    console.log(`🔄 Repeat Type: ${repeatType || "none"}`)
-    console.log(`⏱️  Repeat Time: ${repeatTime || "none"}`)
-    console.log(`📅 Custom Days: ${JSON.stringify(notification.customDays)}`)
-    console.log(`🎵 Sound: default`)
-    console.log(`📳 Vibrate: true`)
-    console.log(`🔊 Priority: high`)
-    console.log(`📢 Importance: high`)
-    console.log(`📺 Channel ID: prayer-reminders`)
-    console.log("========================================")
 
     // Determine sound based on notification type
     const soundName =
@@ -305,7 +288,6 @@ export const checkNotificationPermissions = async (): Promise<{
     try {
       return new Promise((resolve) => {
         PushNotificationIOS.checkPermissions((permissions) => {
-          console.log("Current iOS notification permissions:", permissions)
           resolve({
             alert: permissions.alert === true,
             badge: permissions.badge === true,

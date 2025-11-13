@@ -1,11 +1,21 @@
+import { REMINDER_DEBUG_MODE, REMINDER_DEBUG_TEST_DELAY_SECONDS } from "app/constants/debug"
 import { reminderDataBodies, reminderDataNames } from "app/data/reminderData"
 import { NamazTimes } from "app/helpers/namaz.helper"
 import { schedulePrayerReminder, cancelNotification } from "app/services/notificationService"
+import { testReminderService } from "app/services/testReminderService"
 import { PlainLocation } from "app/types/location"
 import { momentTime } from "app/utils/currentTime"
 import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 import { NativeModules } from "react-native"
+
+const MAX_SCHEDULE_DAYS = 30
+const MIN_REMAINING_NOTIFICATIONS = 10
+
+const ScheduledNotificationModel = types.model("ScheduledNotificationModel", {
+  id: types.string,
+  triggerTime: types.number,
+})
 
 export const ReminderModel = types.model("ReminderModel", {
   id: types.identifier,
@@ -31,6 +41,7 @@ export const ReminderModel = types.model("ReminderModel", {
     types.enumeration("NotificationType", ["short", "long"]),
     "short",
   ),
+  scheduledNotifications: types.optional(types.array(ScheduledNotificationModel), []),
 })
 
 export const ReminderStoreModel = types
@@ -38,126 +49,56 @@ export const ReminderStoreModel = types
     reminders: types.optional(types.array(ReminderModel), []),
     isLoaded: types.optional(types.boolean, false),
   })
-  .actions((self) => ({
-    // Helper function to calculate distance between two coordinates
-    calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-      const R = 6371 // Earth's radius in kilometers
-      const dLat = (lat2 - lat1) * (Math.PI / 180)
-      const dLon = (lon2 - lon1) * (Math.PI / 180)
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) *
-          Math.cos(lat2 * (Math.PI / 180)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2)
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-      return R * c
-    },
+  .actions((self) => {
+    const formatScheduleId = (reminderId: string, targetMoment: ReturnType<typeof momentTime>) =>
+      `${reminderId}_${targetMoment.format("YYYYMMDD")}`
 
-    scheduleReminder: flow(function* (reminder: Instance<typeof ReminderModel>) {
-      if (!reminder.isEnabled) return
+    const fetchTriggerTime = (
+      reminder: Instance<typeof ReminderModel>,
+      targetMoment: ReturnType<typeof momentTime>,
+    ): Promise<number | null> => {
+      return new Promise((resolve) => {
+        NativeModules.SalaatTimes.getPrayerTimes(
+          reminder.location.latitude,
+          reminder.location.longitude,
+          targetMoment.clone().startOf("day").toISOString(),
+          (times: NamazTimes) => {
+            const prayerTime = times?.[reminder.prayerTime as keyof NamazTimes]
+            if (!prayerTime) {
+              resolve(null)
+              return
+            }
 
-      try {
-        // Calculate next trigger time
-        const currentDate = momentTime()
-        const dateString = currentDate.toISOString()
+            const [hours, minutes] = prayerTime.split(":").map((value) => parseInt(value, 10))
+            const triggerMoment = targetMoment
+              .clone()
+              .hour(hours)
+              .minute(minutes)
+              .second(0)
+              .millisecond(0)
+              .add(reminder.offsetMinutes ?? 0, "minutes")
 
-        const nextTriggerTime = yield new Promise((resolve) => {
-          NativeModules.SalaatTimes.getPrayerTimes(
-            reminder.location.latitude,
-            reminder.location.longitude,
-            dateString,
-            (times: NamazTimes) => {
-              const prayerTime = times[reminder.prayerTime as keyof NamazTimes]
-              if (!prayerTime) {
-                resolve(null)
-                return
-              }
+            if (triggerMoment.isBefore(momentTime())) {
+              resolve(null)
+              return
+            }
 
-              const [hours, minutes] = prayerTime.split(":").map((t) => parseInt(t))
-              const triggerTime = momentTime()
-                .hour(hours)
-                .minute(minutes)
-                .second(0)
-                .millisecond(0)
-                .add(reminder.offsetMinutes, "minutes")
-
-              // If the time has passed today, move to next occurrence based on repeat type
-              if (triggerTime.isBefore(currentDate)) {
-                switch (reminder.repeatType) {
-                  case "daily":
-                    triggerTime.add(1, "day")
-                    break
-                  case "weekly":
-                    if (reminder.customDays.length > 0) {
-                      const currentDay = currentDate.day()
-                      const nextDay =
-                        reminder.customDays.find((day) => day > currentDay) ||
-                        reminder.customDays[0]
-                      const daysToAdd =
-                        nextDay > currentDay ? nextDay - currentDay : 7 - currentDay + nextDay
-                      triggerTime.add(daysToAdd, "days")
-                    } else {
-                      triggerTime.add(1, "week")
-                    }
-                    break
-                  case "monthly":
-                    triggerTime.add(1, "month")
-                    break
-                  case "never":
-                    resolve(null)
-                    return
-                }
-              }
-
-              resolve(triggerTime.valueOf())
-            },
-          )
-        })
-
-        if (nextTriggerTime) {
-          reminder.nextTriggerTime = nextTriggerTime
-          yield schedulePrayerReminder({
-            id: reminder.id,
-            title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
-            body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
-            triggerTime: nextTriggerTime,
-            repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
-            customDays: reminder.customDays.slice(),
-            notificationType: reminder.notificationType as "short" | "long",
-          })
-        }
-      } catch (error) {
-        console.error("Error scheduling reminder:", error)
-      }
-    }),
-
-    addReminder: flow(function* (reminderData: {
-      name: string
-      prayerTime: keyof NamazTimes
-      offsetMinutes?: number
-      repeatType?: "daily" | "weekly" | "monthly" | "never"
-      customDays?: number[]
-      location: PlainLocation
-      notificationType?: "short" | "long"
-    }) {
-      const id = `reminder_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-      const reminder = ReminderModel.create({
-        id,
-        name: reminderData.name,
-        prayerTime: reminderData.prayerTime,
-        offsetMinutes: reminderData.offsetMinutes || 0,
-        repeatType: reminderData.repeatType || "daily",
-        customDays: reminderData.customDays || [],
-        location: reminderData.location,
-        createdAt: Date.now(),
-        notificationType: reminderData.notificationType || "short",
+            resolve(triggerMoment.valueOf())
+          },
+        )
       })
+    }
 
-      self.reminders.push(reminder)
+    const updateNextTriggerTime = (reminder: Instance<typeof ReminderModel>) => {
+      const upcoming = reminder.scheduledNotifications
+        .map((notification) => notification.triggerTime)
+        .filter((triggerTime) => triggerTime > Date.now())
+        .sort((a, b) => a - b)[0]
 
-      // Save reminders
+      reminder.nextTriggerTime = upcoming ?? null
+    }
+
+    const persistReminders = flow(function* () {
       try {
         const remindersData = self.reminders.map((r) => ({
           id: r.id,
@@ -166,494 +107,344 @@ export const ReminderStoreModel = types
           offsetMinutes: r.offsetMinutes,
           isEnabled: r.isEnabled,
           repeatType: r.repeatType,
-          customDays: r.customDays,
+          customDays: r.customDays.slice(),
           location: r.location,
           createdAt: r.createdAt,
           lastTriggered: r.lastTriggered,
           nextTriggerTime: r.nextTriggerTime,
+          notificationType: r.notificationType,
+          scheduledNotifications: r.scheduledNotifications.map((n) => ({
+            id: n.id,
+            triggerTime: n.triggerTime,
+          })),
         }))
         yield storage.save("REMINDERS", remindersData)
       } catch (error) {
         console.error("Error saving reminders:", error)
       }
+    })
 
-      // Schedule reminder inline
-      if (reminder.isEnabled) {
+    const cancelReminderNotifications = flow(function* (reminder: Instance<typeof ReminderModel>) {
+      if (reminder.scheduledNotifications.length === 0) return false
+
+      for (const notification of reminder.scheduledNotifications.slice()) {
         try {
-          const currentDate = momentTime()
-          const dateString = currentDate.toISOString()
+          yield cancelNotification(notification.id)
+        } catch (error) {
+          console.error("Error canceling reminder notification:", error)
+        }
+      }
 
-          const nextTriggerTime = yield new Promise((resolve) => {
-            NativeModules.SalaatTimes.getPrayerTimes(
-              reminder.location.latitude,
-              reminder.location.longitude,
-              dateString,
-              (times: NamazTimes) => {
-                const prayerTime = times[reminder.prayerTime as keyof NamazTimes]
-                if (!prayerTime) {
-                  resolve(null)
-                  return
-                }
+      reminder.scheduledNotifications.clear()
+      updateNextTriggerTime(reminder)
+      return true
+    })
 
-                const [hours, minutes] = prayerTime.split(":").map((t) => parseInt(t))
-                const triggerTime = momentTime()
-                  .hour(hours)
-                  .minute(minutes)
-                  .second(0)
-                  .millisecond(0)
+    const scheduleReminderBatch = flow(function* (
+      reminder: Instance<typeof ReminderModel>,
+      options?: { replace?: boolean; startMoment?: ReturnType<typeof momentTime> },
+    ) {
+      const replace = options?.replace ?? false
+      const referenceMoment = options?.startMoment
+        ? options.startMoment.clone().startOf("day")
+        : reminder.scheduledNotifications.length > 0 && !replace
+        ? momentTime(
+            new Date(
+              reminder.scheduledNotifications[
+                reminder.scheduledNotifications.length - 1
+              ].triggerTime,
+            ),
+          )
+            .add(1, "day")
+            .startOf("day")
+        : momentTime().startOf("day")
 
-                // Next line is for testing a reminder notification immediately
-                // const triggerTime = momentTime().add(30, "second")
+      if (replace) {
+        yield cancelReminderNotifications(reminder)
+      }
 
-                if (triggerTime.isBefore(currentDate)) {
-                  switch (reminder.repeatType) {
-                    case "daily":
-                      triggerTime.add(1, "day")
-                      break
-                    case "weekly":
-                      if (reminder.customDays.length > 0) {
-                        const currentDay = currentDate.day()
-                        const nextDay =
-                          reminder.customDays.find((day) => day > currentDay) ||
-                          reminder.customDays[0]
-                        const daysToAdd =
-                          nextDay > currentDay ? nextDay - currentDay : 7 - currentDay + nextDay
-                        triggerTime.add(daysToAdd, "days")
-                      } else {
-                        triggerTime.add(1, "week")
-                      }
-                      break
-                    case "monthly":
-                      triggerTime.add(1, "month")
-                      break
-                    case "never":
-                      resolve(null)
-                      return
-                  }
-                }
+      const newNotifications: { id: string; triggerTime: number }[] = []
+      let dayOffset = 0
+      let attempts = 0
+      const maxAttempts = MAX_SCHEDULE_DAYS * 3
 
-                resolve(triggerTime.valueOf())
-              },
-            )
-          })
+      while (newNotifications.length < MAX_SCHEDULE_DAYS && attempts < maxAttempts) {
+        const targetMoment = referenceMoment.clone().add(dayOffset, "day")
+        const notificationId = formatScheduleId(reminder.id, targetMoment)
 
-          if (nextTriggerTime) {
-            reminder.nextTriggerTime = nextTriggerTime
+        const alreadyScheduled =
+          replace === false &&
+          reminder.scheduledNotifications.some((notification) => notification.id === notificationId)
+
+        if (!alreadyScheduled) {
+          const triggerTime: number | null = yield fetchTriggerTime(reminder, targetMoment)
+          if (triggerTime) {
             yield schedulePrayerReminder({
-              id: reminder.id,
+              id: notificationId,
               title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
               body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
-              triggerTime: nextTriggerTime,
-              repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
-              customDays: reminder.customDays.slice(),
+              triggerTime,
+              repeatType: "never",
               notificationType: reminder.notificationType as "short" | "long",
             })
+
+            newNotifications.push({ id: notificationId, triggerTime })
           }
-        } catch (error) {
-          console.error("Error scheduling reminder:", error)
+        }
+
+        dayOffset += 1
+        attempts += 1
+      }
+
+      if (newNotifications.length > 0) {
+        if (replace) {
+          reminder.scheduledNotifications.replace(newNotifications)
+        } else {
+          reminder.scheduledNotifications.push(...newNotifications)
+        }
+
+        reminder.scheduledNotifications.replace(
+          reminder.scheduledNotifications.slice().sort((a, b) => a.triggerTime - b.triggerTime),
+        )
+        updateNextTriggerTime(reminder)
+        return true
+      }
+
+      updateNextTriggerTime(reminder)
+      return false
+    })
+
+    const pruneExpiredNotifications = (reminder: Instance<typeof ReminderModel>) => {
+      const now = Date.now()
+      const futureNotifications = reminder.scheduledNotifications.filter(
+        (notification) => notification.triggerTime > now,
+      )
+
+      if (futureNotifications.length !== reminder.scheduledNotifications.length) {
+        reminder.scheduledNotifications.replace(futureNotifications)
+        updateNextTriggerTime(reminder)
+        return true
+      }
+
+      updateNextTriggerTime(reminder)
+      return false
+    }
+
+    const ensureCoverageForReminder = flow(function* (reminder: Instance<typeof ReminderModel>) {
+      let changed = pruneExpiredNotifications(reminder)
+
+      if (!reminder.isEnabled) {
+        return changed
+      }
+
+      if (reminder.scheduledNotifications.length < MIN_REMAINING_NOTIFICATIONS) {
+        const lastNotification =
+          reminder.scheduledNotifications[reminder.scheduledNotifications.length - 1]
+
+        const startMoment = lastNotification
+          ? momentTime(new Date(lastNotification.triggerTime)).add(1, "day").startOf("day")
+          : momentTime().startOf("day")
+
+        const scheduled = yield scheduleReminderBatch(reminder, {
+          replace: false,
+          startMoment,
+        })
+
+        if (scheduled) {
+          changed = true
         }
       }
-    }),
 
-    updateReminder: flow(function* (
-      id: string,
-      updates: Partial<{
+      return changed
+    })
+
+    const triggerDebugReminder = (reminder: Instance<typeof ReminderModel>) => {
+      if (!REMINDER_DEBUG_MODE) return
+      const reminderName = reminder.name
+      Promise.resolve()
+        .then(() =>
+          testReminderService.createTestReminder(
+            `${reminderName} (Debug)`,
+            REMINDER_DEBUG_TEST_DELAY_SECONDS,
+          ),
+        )
+        .catch((error) => {
+          console.warn("Error scheduling debug reminder:", error)
+        })
+    }
+
+    return {
+      // Helper function to calculate distance between two coordinates
+      calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+        const R = 6371 // Earth's radius in kilometers
+        const dLat = (lat2 - lat1) * (Math.PI / 180)
+        const dLon = (lon2 - lon1) * (Math.PI / 180)
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(lat1 * (Math.PI / 180)) *
+            Math.cos(lat2 * (Math.PI / 180)) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2)
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return R * c
+      },
+
+      addReminder: flow(function* (reminderData: {
         name: string
         prayerTime: keyof NamazTimes
-        offsetMinutes: number
-        isEnabled: boolean
-        repeatType: "daily" | "weekly" | "monthly" | "never"
-        customDays: number[]
-      }>,
-    ) {
-      const reminder = self.reminders.find((r) => r.id === id)
-      if (reminder) {
+        offsetMinutes?: number
+        repeatType?: "daily" | "weekly" | "monthly" | "never"
+        customDays?: number[]
+        location: PlainLocation
+        notificationType?: "short" | "long"
+      }) {
+        const id = `reminder_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+        const reminder = ReminderModel.create({
+          id,
+          name: reminderData.name,
+          prayerTime: reminderData.prayerTime,
+          offsetMinutes: reminderData.offsetMinutes || 0,
+          repeatType: reminderData.repeatType || "daily",
+          customDays: reminderData.customDays || [],
+          location: reminderData.location,
+          createdAt: Date.now(),
+          notificationType: reminderData.notificationType || "short",
+        })
+
+        self.reminders.push(reminder)
+
+        if (reminder.isEnabled) {
+          yield scheduleReminderBatch(reminder, { replace: true })
+          triggerDebugReminder(reminder)
+        }
+
+        yield persistReminders()
+      }),
+
+      updateReminder: flow(function* (
+        id: string,
+        updates: Partial<{
+          name: string
+          prayerTime: keyof NamazTimes
+          offsetMinutes: number
+          isEnabled: boolean
+          repeatType: "daily" | "weekly" | "monthly" | "never"
+          customDays: number[]
+        }>,
+      ) {
+        const reminder = self.reminders.find((r) => r.id === id)
+        if (!reminder) return
+
+        const wasEnabled = reminder.isEnabled
         Object.assign(reminder, updates)
 
-        // Save reminders
-        try {
-          const remindersData = self.reminders.map((r) => ({
-            id: r.id,
-            name: r.name,
-            prayerTime: r.prayerTime,
-            offsetMinutes: r.offsetMinutes,
-            isEnabled: r.isEnabled,
-            repeatType: r.repeatType,
-            customDays: r.customDays,
-            location: r.location,
-            createdAt: r.createdAt,
-            lastTriggered: r.lastTriggered,
-            nextTriggerTime: r.nextTriggerTime,
-          }))
-          yield storage.save("REMINDERS", remindersData)
-        } catch (error) {
-          console.error("Error saving reminders:", error)
+        if (reminder.isEnabled) {
+          yield scheduleReminderBatch(reminder, { replace: true })
+          if (!wasEnabled) {
+            triggerDebugReminder(reminder)
+          }
+        } else {
+          yield cancelReminderNotifications(reminder)
         }
 
-        // Schedule reminder inline
+        yield persistReminders()
+      }),
+
+      deleteReminder: flow(function* (id: string) {
+        const index = self.reminders.findIndex((r) => r.id === id)
+        if (index === -1) return
+
+        const reminder = self.reminders[index]
+        yield cancelReminderNotifications(reminder)
+
+        self.reminders.splice(index, 1)
+        yield persistReminders()
+      }),
+
+      toggleReminder: flow(function* (id: string) {
+        const reminder = self.reminders.find((r) => r.id === id)
+        if (!reminder) return
+
+        reminder.isEnabled = !reminder.isEnabled
+
         if (reminder.isEnabled) {
-          try {
-            const currentDate = momentTime()
-            const dateString = currentDate.toISOString()
+          yield scheduleReminderBatch(reminder, { replace: true })
+          triggerDebugReminder(reminder)
+        } else {
+          yield cancelReminderNotifications(reminder)
+        }
 
-            const nextTriggerTime = yield new Promise((resolve) => {
-              NativeModules.SalaatTimes.getPrayerTimes(
-                reminder.location.latitude,
-                reminder.location.longitude,
-                dateString,
-                (times: NamazTimes) => {
-                  const prayerTime = times[reminder.prayerTime as keyof NamazTimes]
-                  if (!prayerTime) {
-                    resolve(null)
-                    return
-                  }
+        yield persistReminders()
+      }),
 
-                  const [hours, minutes] = prayerTime.split(":").map((t) => parseInt(t))
-                  const triggerTime = momentTime()
-                    .hour(hours)
-                    .minute(minutes)
-                    .second(0)
-                    .millisecond(0)
-                    .add(reminder.offsetMinutes, "minutes")
-
-                  if (triggerTime.isBefore(currentDate)) {
-                    switch (reminder.repeatType) {
-                      case "daily":
-                        triggerTime.add(1, "day")
-                        break
-                      case "weekly":
-                        if (reminder.customDays.length > 0) {
-                          const currentDay = currentDate.day()
-                          const nextDay =
-                            reminder.customDays.find((day) => day > currentDay) ||
-                            reminder.customDays[0]
-                          const daysToAdd =
-                            nextDay > currentDay ? nextDay - currentDay : 7 - currentDay + nextDay
-                          triggerTime.add(daysToAdd, "days")
-                        } else {
-                          triggerTime.add(1, "week")
-                        }
-                        break
-                      case "monthly":
-                        triggerTime.add(1, "month")
-                        break
-                      case "never":
-                        resolve(null)
-                        return
-                    }
-                  }
-
-                  resolve(triggerTime.valueOf())
-                },
-              )
-            })
-
-            if (nextTriggerTime) {
-              reminder.nextTriggerTime = nextTriggerTime
-              yield schedulePrayerReminder({
-                id: reminder.id,
-                title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
-                body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
-                triggerTime: nextTriggerTime,
-                repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
-                customDays: reminder.customDays.slice(),
-                notificationType: reminder.notificationType as "short" | "long",
-              })
-            }
-          } catch (error) {
-            console.error("Error scheduling reminder:", error)
+      cancelReminderNotification: flow(function* (id: string) {
+        for (const reminder of self.reminders) {
+          const idx = reminder.scheduledNotifications.findIndex(
+            (notification) => notification.id === id,
+          )
+          if (idx !== -1) {
+            reminder.scheduledNotifications.splice(idx, 1)
+            updateNextTriggerTime(reminder)
           }
         }
-      }
-    }),
 
-    deleteReminder: flow(function* (id: string) {
-      const index = self.reminders.findIndex((r) => r.id === id)
-      if (index !== -1) {
-        // Cancel existing notification
         try {
           yield cancelNotification(id)
         } catch (error) {
           console.error("Error canceling reminder notification:", error)
         }
 
-        self.reminders.splice(index, 1)
+        yield persistReminders()
+      }),
 
-        // Save reminders
-        try {
-          const remindersData = self.reminders.map((r) => ({
-            id: r.id,
-            name: r.name,
-            prayerTime: r.prayerTime,
-            offsetMinutes: r.offsetMinutes,
-            isEnabled: r.isEnabled,
-            repeatType: r.repeatType,
-            customDays: r.customDays,
-            location: r.location,
-            createdAt: r.createdAt,
-            lastTriggered: r.lastTriggered,
-            nextTriggerTime: r.nextTriggerTime,
-          }))
-          yield storage.save("REMINDERS", remindersData)
-        } catch (error) {
-          console.error("Error saving reminders:", error)
-        }
-      }
-    }),
+      rescheduleAllReminders: flow(function* (currentLocation: PlainLocation) {
+        for (const reminder of self.reminders) {
+          reminder.location = currentLocation
+          yield cancelReminderNotifications(reminder)
 
-    toggleReminder: flow(function* (id: string) {
-      const reminder = self.reminders.find((r) => r.id === id)
-      if (reminder) {
-        reminder.isEnabled = !reminder.isEnabled
-
-        // Save reminders
-        try {
-          const remindersData = self.reminders.map((r) => ({
-            id: r.id,
-            name: r.name,
-            prayerTime: r.prayerTime,
-            offsetMinutes: r.offsetMinutes,
-            isEnabled: r.isEnabled,
-            repeatType: r.repeatType,
-            customDays: r.customDays,
-            location: r.location,
-            createdAt: r.createdAt,
-            lastTriggered: r.lastTriggered,
-            nextTriggerTime: r.nextTriggerTime,
-          }))
-          yield storage.save("REMINDERS", remindersData)
-        } catch (error) {
-          console.error("Error saving reminders:", error)
-        }
-
-        if (reminder.isEnabled) {
-          // Schedule reminder inline
           if (reminder.isEnabled) {
-            try {
-              const currentDate = momentTime()
-              const dateString = currentDate.toISOString()
-
-              const nextTriggerTime = yield new Promise((resolve) => {
-                NativeModules.SalaatTimes.getPrayerTimes(
-                  reminder.location.latitude,
-                  reminder.location.longitude,
-                  dateString,
-                  (times: NamazTimes) => {
-                    const prayerTime = times[reminder.prayerTime as keyof NamazTimes]
-                    if (!prayerTime) {
-                      resolve(null)
-                      return
-                    }
-
-                    const [hours, minutes] = prayerTime.split(":").map((t) => parseInt(t))
-                    const triggerTime = momentTime()
-                      .hour(hours)
-                      .minute(minutes)
-                      .second(0)
-                      .millisecond(0)
-                      .add(reminder.offsetMinutes, "minutes")
-
-                    if (triggerTime.isBefore(currentDate)) {
-                      switch (reminder.repeatType) {
-                        case "daily":
-                          triggerTime.add(1, "day")
-                          break
-                        case "weekly":
-                          if (reminder.customDays.length > 0) {
-                            const currentDay = currentDate.day()
-                            const nextDay =
-                              reminder.customDays.find((day) => day > currentDay) ||
-                              reminder.customDays[0]
-                            const daysToAdd =
-                              nextDay > currentDay ? nextDay - currentDay : 7 - currentDay + nextDay
-                            triggerTime.add(daysToAdd, "days")
-                          } else {
-                            triggerTime.add(1, "week")
-                          }
-                          break
-                        case "monthly":
-                          triggerTime.add(1, "month")
-                          break
-                        case "never":
-                          resolve(null)
-                          return
-                      }
-                    }
-
-                    resolve(triggerTime.valueOf())
-                  },
-                )
-              })
-
-              if (nextTriggerTime) {
-                reminder.nextTriggerTime = nextTriggerTime
-                yield schedulePrayerReminder({
-                  id: reminder.id,
-                  title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
-                  body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
-                  triggerTime: nextTriggerTime,
-                  repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
-                  customDays: reminder.customDays.slice(),
-                  notificationType: reminder.notificationType as "short" | "long",
-                })
-              }
-            } catch (error) {
-              console.error("Error scheduling reminder:", error)
-            }
-          }
-        } else {
-          try {
-            const { cancelNotification } = require("app/services/notificationService")
-            yield cancelNotification(id)
-          } catch (error) {
-            console.error("Error canceling reminder notification:", error)
+            yield scheduleReminderBatch(reminder, { replace: true })
+            triggerDebugReminder(reminder)
           }
         }
-      }
-    }),
 
-    cancelReminderNotification: flow(function* (id: string) {
-      try {
-        yield cancelNotification(id)
-      } catch (error) {
-        console.error("Error canceling reminder notification:", error)
-      }
-    }),
+        yield persistReminders()
+      }),
 
-    rescheduleAllReminders: flow(function* (currentLocation: PlainLocation) {
-      // Reschedule all reminders when location changes
-      for (const reminder of self.reminders) {
-        if (reminder.isEnabled) {
-          // Update location if it's significantly different
-          // Calculate distance inline
-          const R = 6371 // Earth's radius in kilometers
-          const dLat = (currentLocation.latitude - reminder.location.latitude) * (Math.PI / 180)
-          const dLon = (currentLocation.longitude - reminder.location.longitude) * (Math.PI / 180)
-          const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(reminder.location.latitude * (Math.PI / 180)) *
-              Math.cos(currentLocation.latitude * (Math.PI / 180)) *
-              Math.sin(dLon / 2) *
-              Math.sin(dLon / 2)
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-          const distance = R * c
+      ensureFutureSchedules: flow(function* () {
+        let updated = false
 
-          if (distance > 10) {
-            // 10km threshold
-            reminder.location = currentLocation
-          }
-
-          // Schedule reminder inline
-          if (reminder.isEnabled) {
-            try {
-              const currentDate = momentTime()
-              const dateString = currentDate.toISOString()
-
-              const nextTriggerTime = yield new Promise((resolve) => {
-                NativeModules.SalaatTimes.getPrayerTimes(
-                  reminder.location.latitude,
-                  reminder.location.longitude,
-                  dateString,
-                  (times: NamazTimes) => {
-                    const prayerTime = times[reminder.prayerTime as keyof NamazTimes]
-                    if (!prayerTime) {
-                      resolve(null)
-                      return
-                    }
-
-                    const [hours, minutes] = prayerTime.split(":").map((t) => parseInt(t))
-                    const triggerTime = momentTime()
-                      .hour(hours)
-                      .minute(minutes)
-                      .second(0)
-                      .millisecond(0)
-                      .add(reminder.offsetMinutes, "minutes")
-
-                    if (triggerTime.isBefore(currentDate)) {
-                      switch (reminder.repeatType) {
-                        case "daily":
-                          triggerTime.add(1, "day")
-                          break
-                        case "weekly":
-                          if (reminder.customDays.length > 0) {
-                            const currentDay = currentDate.day()
-                            const nextDay =
-                              reminder.customDays.find((day) => day > currentDay) ||
-                              reminder.customDays[0]
-                            const daysToAdd =
-                              nextDay > currentDay ? nextDay - currentDay : 7 - currentDay + nextDay
-                            triggerTime.add(daysToAdd, "days")
-                          } else {
-                            triggerTime.add(1, "week")
-                          }
-                          break
-                        case "monthly":
-                          triggerTime.add(1, "month")
-                          break
-                        case "never":
-                          resolve(null)
-                          return
-                      }
-                    }
-
-                    resolve(triggerTime.valueOf())
-                  },
-                )
-              })
-
-              if (nextTriggerTime) {
-                reminder.nextTriggerTime = nextTriggerTime
-                yield schedulePrayerReminder({
-                  id: reminder.id,
-                  title: reminderDataNames[reminder.prayerTime as keyof typeof reminderDataNames],
-                  body: reminderDataBodies[reminder.prayerTime as keyof typeof reminderDataBodies],
-                  triggerTime: nextTriggerTime,
-                  repeatType: reminder.repeatType as "daily" | "weekly" | "monthly" | "never",
-                  customDays: reminder.customDays.slice(),
-                  notificationType: reminder.notificationType as "short" | "long",
-                })
-              }
-            } catch (error) {
-              console.error("Error scheduling reminder:", error)
-            }
+        for (const reminder of self.reminders) {
+          const changed = yield ensureCoverageForReminder(reminder)
+          if (changed) {
+            updated = true
           }
         }
-      }
 
-      // Save reminders
-      try {
-        const remindersData = self.reminders.map((r) => ({
-          id: r.id,
-          name: r.name,
-          prayerTime: r.prayerTime,
-          offsetMinutes: r.offsetMinutes,
-          isEnabled: r.isEnabled,
-          repeatType: r.repeatType,
-          customDays: r.customDays,
-          location: r.location,
-          createdAt: r.createdAt,
-          lastTriggered: r.lastTriggered,
-          nextTriggerTime: r.nextTriggerTime,
-        }))
-        yield storage.save("REMINDERS", remindersData)
-      } catch (error) {
-        console.error("Error saving reminders:", error)
-      }
-    }),
-
-    loadReminders: flow(function* () {
-      try {
-        const savedReminders = yield storage.load("REMINDERS")
-        if (savedReminders && Array.isArray(savedReminders)) {
-          self.reminders.replace(savedReminders)
+        if (updated) {
+          yield persistReminders()
         }
-        self.isLoaded = true
-      } catch (error) {
-        console.error("Error loading reminders:", error)
-        self.isLoaded = true
-      }
-    }),
-  }))
+      }),
+
+      loadReminders: flow(function* () {
+        try {
+          const savedReminders = yield storage.load("REMINDERS")
+          if (savedReminders && Array.isArray(savedReminders)) {
+            const hydrated = savedReminders.map((reminder: any) => ({
+              ...reminder,
+              scheduledNotifications: reminder.scheduledNotifications ?? [],
+            }))
+            self.reminders.replace(hydrated)
+          }
+          self.isLoaded = true
+        } catch (error) {
+          console.error("Error loading reminders:", error)
+          self.isLoaded = true
+        }
+      }),
+    }
+  })
   .views((self) => ({
     get enabledReminders() {
       return self.reminders.filter((reminder) => reminder.isEnabled)

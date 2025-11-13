@@ -10270,6 +10270,13 @@ react-freeze@^1.0.0:
   resolved "https://registry.yarnpkg.com/react-freeze/-/react-freeze-1.0.4.tgz#cbbea2762b0368b05cbe407ddc9d518c57c6f3ad"
   integrity sha512-r4F0Sec0BLxWicc7HEyo2x3/2icUTrRmDjaaRyzzn+7aDyFZliszMDOgLVwSnQnYENOlL1o569Ze2HZefk8clA==
 
+react-ios-corners@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/react-ios-corners/-/react-ios-corners-1.0.0.tgz#eb46317dabe2c22b2fa21ef57a4a73ec4f1ceb3f"
+  integrity sha512-bx89xUW/3ezVIx37V6vpe1S9ATGkHfC9CTjpXgJyo4QIIaVxRirRbWHUUF5Gli3Lj4HKZzbXKmtTxJuWqTzwmw==
+  dependencies:
+    react "^17.0.1"
+
 "react-is@^16.12.0 || ^17.0.0 || ^18.0.0", react-is@^18.0.0, react-is@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-18.2.0.tgz#199431eeaaa2e09f86427efbb4f1473edb47609b"
@@ -10401,10 +10408,10 @@ react-native-sound-player@^0.14.3:
   resolved "https://registry.yarnpkg.com/react-native-sound-player/-/react-native-sound-player-0.14.3.tgz#cc45bc515531e06b3c4f931d5cb3a6afcc591c26"
   integrity sha512-I5VeG8YuwTTMX6CPkZfNL6lWay6GmR3HzuxXjhhpUKHV5K2XWXKJ+YKJAz6dBnJoNshl4EQOo4ox8bQD6/+zPA==
 
-react-native-svg@^15.6.0:
-  version "15.6.0"
-  resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-15.6.0.tgz#13b2af53b1701597df301122b869b61918e1e9a5"
-  integrity sha512-TUtR+h+yi1ODsd8FHdom1TpjfWOmnaK5pri5rnSBXnMqpzq8o2zZfonHTjPX+nS3wb/Pu2XsoARgYaHNjVWXhQ==
+react-native-svg@^15.14.0:
+  version "15.14.0"
+  resolved "https://registry.yarnpkg.com/react-native-svg/-/react-native-svg-15.14.0.tgz#e5e7e18bfc2be29347631734a1af409b63c582eb"
+  integrity sha512-B3gYc7WztcOT4N54AtUutbe0Nuqqh/nkresY0fAXzUHYLsWuIu/yGiCCD3DKfAs6GLv5LFtWTu7N333Q+e3bkg==
   dependencies:
     css-select "^5.1.0"
     css-tree "^1.1.3"
@@ -10513,6 +10520,14 @@ react@18.2.0:
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
   dependencies:
     loose-envify "^1.1.0"
+
+react@^17.0.1:
+  version "17.0.2"
+  resolved "https://registry.yarnpkg.com/react/-/react-17.0.2.tgz#d0b5cc516d29eb3eee383f75b62864cfb6800037"
+  integrity sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
 
 reactotron-core-client@2.9.2, reactotron-core-client@^2.8.13:
   version "2.9.2"

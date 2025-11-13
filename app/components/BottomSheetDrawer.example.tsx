@@ -1,8 +1,8 @@
 // Example usage of BottomSheetDrawer component
 
+import { BottomSheetDrawer } from "app/components"
 import React, { useRef } from "react"
 import { Pressable, Text, View } from "react-native"
-import { BottomSheetDrawer } from "app/components"
 
 export function BottomSheetDrawerExample() {
   const bottomSheetRef = useRef<React.ElementRef<typeof BottomSheetDrawer>>(null)

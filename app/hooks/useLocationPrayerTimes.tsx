@@ -1,4 +1,3 @@
-import { NamazTimes } from "app/helpers/namaz.helper"
 import { useLocationCoords } from "app/hooks/useLocationCoords"
 import { usePrayerTimes } from "app/hooks/usePrayerTimes"
 import { currentTime } from "app/utils/currentTime"

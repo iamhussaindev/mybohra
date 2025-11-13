@@ -28,6 +28,8 @@
         <data android:scheme="v2app"/>
         <data android:scheme="com.muminoapp.all"/>
         <data android:scheme="exp+v2app"/>
+        <data android:scheme="mybohra"/>
+        <data android:scheme="exp+mybohra"/>
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>

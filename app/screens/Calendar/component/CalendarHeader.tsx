@@ -1,9 +1,11 @@
+import { useNavigation } from "@react-navigation/native"
 import { BackButton } from "app/appComponents/BackButton"
-import { Button, Text } from "app/components"
+import { Button, Icon, Text } from "app/components"
 import { Calendar } from "app/libs/Calendar"
+import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
 import React from "react"
-import { TextStyle, View, ViewStyle } from "react-native"
+import { Pressable, TextStyle, View, ViewStyle } from "react-native"
 
 export default function CalendarHeader({
   setCalendar,
@@ -14,9 +16,15 @@ export default function CalendarHeader({
   setCalendar: any
   setSelectedDate: any
 }) {
+  const navigation = useNavigation<AppStackScreenProps<"Calendar">["navigation"]>()
+
   const handleToday = () => {
     setCalendar(new Calendar({ miqaats: calendar.miqaats }))
     setSelectedDate(calendar.getToday)
+  }
+
+  const handleOpenSearch = () => {
+    navigation.navigate("CalendarSearch")
   }
 
   return (
@@ -28,14 +36,14 @@ export default function CalendarHeader({
         <Text style={$calendarMonthHijri} size="md" weight="bold"></Text>
       </View>
       <View style={$headerLeft}>
-        <Button preset="tinted" style={[$calendarRightButton, $headerButton]} onPress={handleToday}>
+        <Pressable onPress={handleOpenSearch} style={$headerIconButton} hitSlop={8}>
+          <Icon icon="search" size={20} color={colors.palette.neutral900} />
+        </Pressable>
+        <Button rounded={false} style={[$calendarRightButton, $headerButton]} onPress={handleToday}>
           <Text weight="bold" style={$calendarTodayButton}>
             Today
           </Text>
         </Button>
-        {/* <Button preset="tinted" style={[$headerButton, $settingIcon]} onPress={handleToday}>
-          <Icon style={$headerLeftIcon} icon="settings" size={20} />
-        </Button> */}
       </View>
     </View>
   )
@@ -48,8 +56,13 @@ const $calendarTodayButton: TextStyle = {
 const $headerRight: ViewStyle = {
   display: "flex",
   flexDirection: "row",
-  justifyContent: "space-between",
-  width: 100,
+  alignItems: "center",
+  justifyContent: "flex-start",
+  gap: 12,
+}
+
+const $headerIconButton: ViewStyle = {
+  padding: 8,
 }
 
 // const $settingIcon: ViewStyle = {

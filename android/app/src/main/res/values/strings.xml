@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">v2app</string>
+  <string name="app_name">mybohra</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">true</string>
   <string name="ExpoLocalization_supportsRTL" translatable="false">undefined</string>

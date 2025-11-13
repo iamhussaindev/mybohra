@@ -1,6 +1,6 @@
-import React from "react"
 import { render } from "@testing-library/react-native"
 import { Text } from "app/components/Text"
+import React from "react"
 
 describe("Text", () => {
   describe("rendering", () => {

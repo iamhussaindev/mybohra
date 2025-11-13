@@ -31,6 +31,7 @@ export const DataStoreModel = types
     qiyamLoaded: types.optional(types.boolean, false), // Error message
     currentLocation: LocationModel,
     currentLocationLoaded: types.optional(types.boolean, false),
+    currentLocationVersion: types.optional(types.number, 0),
     locations: types.optional(types.array(LocationModel), []),
     locationsLoaded: types.optional(types.boolean, false),
     deviceLocation: types.optional(LocationModel, {
@@ -62,12 +63,33 @@ export const DataStoreModel = types
       type: location.type ?? "city",
     })
 
+    const locationsMatch = (locationA: any, locationB: any) => {
+      if (!locationA || !locationB) return false
+
+      const normalizedA = normalizeLocation(locationA)
+      const normalizedB = normalizeLocation(locationB)
+
+      return (
+        normalizedA.latitude === normalizedB.latitude &&
+        normalizedA.longitude === normalizedB.longitude &&
+        normalizedA.city === normalizedB.city &&
+        normalizedA.country === normalizedB.country &&
+        normalizedA.state === normalizedB.state &&
+        normalizedA.timezone === normalizedB.timezone &&
+        normalizedA.type === normalizedB.type
+      )
+    }
+
     // Helper: Load location from storage as fallback
     const loadLocationFromStorage = flow(function* () {
       try {
         const savedLocation = yield storage.load("CURRENT_LOCATION")
         if (savedLocation) {
-          self.currentLocation = normalizeLocation(savedLocation)
+          const hydratedLocation = normalizeLocation(savedLocation)
+          if (!locationsMatch(self.currentLocation, hydratedLocation)) {
+            self.currentLocation = hydratedLocation
+            self.currentLocationVersion += 1
+          }
           self.currentLocationLoaded = true
           return true
         }
@@ -127,22 +149,30 @@ export const DataStoreModel = types
 
       fetchNearestLocation: flow(function* (lat: number, lng: number) {
         try {
-          const response = yield apiSupabase.fetchLocation(lat, lng)
+          // check if self.locations is loaded and has data
+
+          const response = yield apiSupabase.fetchNearestLocation(lat, lng)
 
           if (response.kind === "ok") {
             // Normalize location object
             const newLocation = normalizeLocation(response.data)
+            const locationChanged = !locationsMatch(self.currentLocation, newLocation)
 
             // Store as device location
-            self.deviceLocation = newLocation
+            self.deviceLocation = normalizeLocation(response.data)
             self.deviceLocationLoaded = true
 
-            // Always auto-update current location with device location
-            self.currentLocation = newLocation
-            self.currentLocationLoaded = true
+            // Always auto-update current location with device location if different
+            if (locationChanged) {
+              self.currentLocation = newLocation
+              self.currentLocationLoaded = true
+              self.currentLocationVersion += 1
 
-            // Save to storage so it persists
-            yield storage.save("CURRENT_LOCATION", newLocation)
+              // Save to storage so it persists
+              yield storage.save("CURRENT_LOCATION", newLocation)
+            } else {
+              self.currentLocationLoaded = true
+            }
           } else {
             // Response not ok - ensure we have a location from storage
             console.log("fetchNearestLocation: API response failed, checking storage")
@@ -157,28 +187,24 @@ export const DataStoreModel = types
       }),
       fetchLocations: flow(function* () {
         try {
-          const response = yield apiSupabase.fetchLocations()
+          const list = yield storage.load("LOCATIONS")
+          const storedVersion = yield storage.load("LOCATIONS_VERSION")
 
-          if (response.kind === "ok") {
-            const list = yield storage.load("LOCATIONS")
-            const storedVersion = yield storage.load("LOCATIONS_VERSION")
+          const version = yield apiSupabase.fetchVersion(VERSION_KEYS.LOCATION_VERSION)
 
-            const version = yield apiSupabase.fetchVersion(VERSION_KEYS.LOCATION_VERSION)
+          if (list && list.length > 0 && storedVersion === version.data?.version) {
+            self.locations = list
+          } else {
+            try {
+              const response = yield apiSupabase.fetchLocations()
 
-            if (list && list.length > 0 && storedVersion === version.data?.version) {
-              self.locations = list
-            } else {
-              try {
-                const response = yield apiSupabase.fetchLocations()
-
-                if (response.kind === "ok") {
-                  self.locations = response.data
-                  yield storage.save("LOCATIONS", response.data)
-                  yield storage.save("LOCATIONS_VERSION", version.data?.version)
-                }
-              } catch (error) {
-                console.log(error)
+              if (response.kind === "ok") {
+                self.locations = response.data
+                yield storage.save("LOCATIONS", response.data)
+                yield storage.save("LOCATIONS_VERSION", version.data?.version)
               }
+            } catch (error) {
+              console.log(error)
             }
           }
         } catch (error) {
@@ -206,6 +232,11 @@ export const DataStoreModel = types
       setCurrentLocation: flow(function* (location: PlainLocation) {
         // Normalize location object
         const newLocation = normalizeLocation(location)
+
+        if (locationsMatch(self.currentLocation, newLocation)) {
+          self.currentLocationLoaded = true
+          return false
+        }
 
         // Add current location to past selected locations before updating
         if (self.currentLocation) {
@@ -247,21 +278,25 @@ export const DataStoreModel = types
 
         self.currentLocation = newLocation
         self.currentLocationLoaded = true
+        self.currentLocationVersion += 1
 
         const version = yield apiSupabase.fetchVersion(VERSION_KEYS.LOCATION_VERSION)
 
         // Save location to storage
         yield storage.save("CURRENT_LOCATION", newLocation)
         yield storage.save("CURRENT_LOCATION_VERSION", version.data?.version)
+
+        return true
       }),
 
       // Method specifically for auto-detect that always updates current location
       autoDetectLocation: flow(function* (lat: number, lng: number) {
         try {
-          const response = yield apiSupabase.fetchLocation(lat, lng)
+          const response = yield apiSupabase.fetchNearestLocation(lat, lng)
           if (response.kind === "ok") {
             // Normalize location object
             const newLocation = normalizeLocation(response.data)
+            const locationChanged = !locationsMatch(self.currentLocation, newLocation)
 
             // Add current location to past selected locations before updating
             if (self.currentLocation) {
@@ -302,15 +337,22 @@ export const DataStoreModel = types
             }
 
             // Always update current location for auto-detect
-            self.currentLocation = newLocation
-            self.currentLocationLoaded = true
+            if (locationChanged) {
+              self.currentLocation = newLocation
+              self.currentLocationLoaded = true
+              self.currentLocationVersion += 1
+            } else {
+              self.currentLocationLoaded = true
+            }
 
             // Also update device location
             self.deviceLocation = newLocation
             self.deviceLocationLoaded = true
 
             // Save to storage
-            yield storage.save("CURRENT_LOCATION", newLocation)
+            if (locationChanged) {
+              yield storage.save("CURRENT_LOCATION", newLocation)
+            }
           } else {
             // Response not ok - ensure we have a location from storage
             console.log("autoDetectLocation: API response failed, checking storage")

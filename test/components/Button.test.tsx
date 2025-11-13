@@ -1,6 +1,6 @@
-import React from "react"
 import { render, fireEvent } from "@testing-library/react-native"
 import { Button } from "app/components/Button"
+import React from "react"
 
 describe("Button", () => {
   describe("rendering", () => {

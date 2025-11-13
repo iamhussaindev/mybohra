@@ -1,5 +1,4 @@
-import { namazLabels, getNextNamaz, getCurrentGhari } from "app/helpers/namaz.helper"
-import { NamazTimes } from "app/helpers/namaz.helper"
+import { namazLabels, getNextNamaz, getCurrentGhari , NamazTimes } from "app/helpers/namaz.helper"
 
 describe("namaz.helper", () => {
   describe("namazLabels", () => {

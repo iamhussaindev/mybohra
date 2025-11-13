@@ -70,7 +70,6 @@ function App(props: AppProps) {
     await hideSplashScreen()
     await fetchHomeLibrary()
     await fetchTasbeeh()
-    await fetchLocations()
     await loadPastSelectedLocations()
     await dataStore.loadReminderSettings()
   }
@@ -95,6 +94,8 @@ function App(props: AppProps) {
   // No need for app state change monitoring
 
   const syncNearestLocation = async (latitude: number, longitude: number) => {
+    // check if self.locations is loaded and has data
+    await fetchLocations()
     await dataStore.fetchNearestLocation(latitude, longitude)
   }
 

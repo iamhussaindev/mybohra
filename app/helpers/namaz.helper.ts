@@ -206,7 +206,7 @@ export const getCurrentGhari = (times: ITimes, nextNamazTime: string): CurrentGh
     if (momentTime().isBetween(zoharEnd, asarEnd)) {
       return {
         key: "zawaal",
-        name: "Asar end",
+        name: "Asar until",
         time: asarEndmtime,
         group: "noon",
         nextInList: "asr_end",

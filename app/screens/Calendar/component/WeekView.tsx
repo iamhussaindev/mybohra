@@ -1,10 +1,19 @@
-
-
 import { Text } from "app/components"
+import { shadowProps } from "app/helpers/shadow.helper"
 import { CalendarDay } from "app/libs/Calendar"
-import { colors, typography } from "app/theme"
-import React from "react"
-import { Dimensions, FlatList, Pressable, TextStyle, View, ViewStyle } from "react-native"
+import { colors, spacing, typography } from "app/theme"
+import React, { useCallback, useEffect, useRef } from "react"
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  TextStyle,
+  View,
+  ViewStyle,
+} from "react-native"
 
 const screenWidth = Dimensions.get("window").width
 
@@ -12,60 +21,44 @@ export function WeekView({
   week,
   selectedDate,
   setSelectedDate,
+  highlight,
 }: {
   week: CalendarDay[]
   selectedDate?: CalendarDay
   setSelectedDate: (date: CalendarDay) => void
+  highlight?: { key: string; trigger: number } | null
 }) {
   const showArabic = true
+
+  const renderDay = useCallback(
+    ({ item }: { item: CalendarDay; index: number }) => {
+      const selected =
+        selectedDate?.date.day === item.date.day && selectedDate.date?.month === item.date?.month
+      const dateKey = `${item.date.year}-${item.date.month}-${item.date.day}`
+      const highlightTrigger =
+        highlight && highlight.key === dateKey ? highlight.trigger : undefined
+
+      return (
+        <DayItem
+          day={item}
+          selected={selected}
+          showArabic={showArabic}
+          onPress={() => {
+            if (!item.filler) setSelectedDate(item)
+          }}
+          highlightTrigger={highlightTrigger}
+        />
+      )
+    },
+    [highlight, selectedDate, setSelectedDate, showArabic],
+  )
 
   return (
     <View style={$weekContainer}>
       <FlatList
         style={$dayList}
         data={week}
-        renderItem={({ item, index }) => {
-          const filler = item?.filler
-          const selected =
-            selectedDate?.date.day === item.date.day &&
-            selectedDate.date?.month === item.date?.month &&
-            !item.isToday
-          return (
-            <Pressable
-              onPress={() => {
-                if (!item.filler) setSelectedDate(item)
-              }}
-              key={index}
-              style={[$dayContainer, item.isToday && $dayToday]}
-            >
-              {selected && !item.isToday ? <View style={[$highlight, $daySelected]} /> : null}
-
-              <View style={$dayContainerInner}>
-                <Text
-                  weight="medium"
-                  style={[
-                    $dayText,
-                    showArabic && $dayTextArabic,
-                    filler && $dayFiller,
-                    item?.isToday && $dayTodayText,
-                    selected && $daySelectedText,
-                    item.hasMiqaats && !filler && !selected && { color: colors.green },
-                  ]}
-                >
-                  {!showArabic ? item.date.day : item?.date.toArabic()}
-                </Text>
-              </View>
-              <Text
-                weight="bold"
-                style={[$gregText, item?.isToday && $gregToday, selected && $gregSelected]}
-              >
-                {item?.gregorian.format("D MMM")}
-              </Text>
-
-              {item.hasMiqaats && !filler ? <View style={$miqaatDot} /> : null}
-            </Pressable>
-          )
-        }}
+        renderItem={renderDay}
         getItemLayout={(_, index) => ({
           length: screenWidth / 7,
           offset: (screenWidth / 7) * index,
@@ -74,119 +67,177 @@ export function WeekView({
         horizontal
         scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
+        keyExtractor={(item, index) =>
+          `${item.date.year}-${item.date.month}-${item.date.day}-${
+            item.filler ? "f" : "d"
+          }-${index}`
+        }
       />
     </View>
   )
+}
+
+function DayItem({
+  day,
+  selected,
+  showArabic,
+  onPress,
+  highlightTrigger,
+}: {
+  day: CalendarDay
+  selected: boolean
+  showArabic: boolean
+  onPress: () => void
+  highlightTrigger?: number
+}) {
+  const highlightAnim = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    if (highlightTrigger === undefined) return
+    highlightAnim.stopAnimation()
+    highlightAnim.setValue(0)
+    Animated.sequence([
+      Animated.timing(highlightAnim, {
+        toValue: 0.85,
+        duration: 220,
+        easing: Easing.out(Easing.circle),
+        useNativeDriver: true,
+      }),
+      Animated.timing(highlightAnim, {
+        toValue: 0,
+        duration: 600,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [highlightTrigger, highlightAnim])
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={day.filler}
+      style={[$dayContainer, day.isToday && $dayToday]}
+      android_ripple={{ color: colors.palette.accent100 }}
+    >
+      <View
+        style={[
+          $dayContainerInner,
+          day.hasMiqaats && !day.filler && !selected && $dayContainerInnerMiqaat,
+          selected && $dayContainerInnerSelected,
+          day?.isToday && $dayContainerInnerToday,
+        ]}
+      >
+        <Animated.View
+          pointerEvents="none"
+          style={[$dayHighlightOverlay, { opacity: highlightAnim }]}
+        />
+        <Text
+          weight="medium"
+          style={[
+            $dayText,
+            showArabic && $dayTextArabic,
+            day.filler && $dayFiller,
+            day.hasMiqaats && !day.filler && { color: colors.palette.primary500 },
+            selected && $daySelectedText,
+          ]}
+        >
+          {!showArabic ? day.date.day : day?.date.toArabic()}
+        </Text>
+      </View>
+      <Text style={[$gregText, day?.isToday && $gregToday, selected && $gregSelected]}>
+        {day?.gregorian.format("D MMM")}
+      </Text>
+    </Pressable>
+  )
+}
+
+const $dayContainerInnerMiqaat: ViewStyle = {
+  borderColor: colors.palette.primary500,
+  borderWidth: 1,
+  borderRadius: spacing.xxxl,
 }
 
 const dayHeight = screenWidth / 7 + 15
 
 const $weekContainer: ViewStyle = {
   flexDirection: "row",
+  paddingHorizontal: spacing.xs,
   backgroundColor: colors.palette.neutral100,
 }
 
-const $miqaatDot: ViewStyle = {
-  position: "absolute",
-  bottom: 4,
-  height: 5,
-  width: 5,
-  borderRadius: 4,
-  backgroundColor: colors.yellow,
-  shadowColor: colors.yellow,
-  shadowOffset: { width: 0, height: 0 },
-  shadowOpacity: 0.5,
-  shadowRadius: 5,
-}
-
-const $highlight: ViewStyle = {
-  borderRightWidth: 1,
-  borderLeftWidth: 1,
-  borderTopWidth: 1,
-  borderBottomWidth: 1,
-  borderRadius: 2,
-  position: "absolute",
-  height: dayHeight,
-  width: screenWidth / 7,
-}
-
-const $daySelected: ViewStyle = {
-  borderLeftColor: colors.yellow,
-  borderRightColor: colors.yellow,
-  borderTopColor: colors.yellow,
-  borderBottomColor: colors.yellow,
-  backgroundColor: `rgba(240, 147, 43, 0.1)`,
-}
-
-const $dayToday: ViewStyle = {
-  borderRightWidth: 1,
-  borderLeftWidth: 1,
-  borderTopWidth: 1,
-  borderBottomWidth: 1,
-  borderLeftColor: colors.palette.primary500,
-  borderRightColor: colors.palette.primary500,
-  borderTopColor: colors.palette.primary500,
-  borderBottomColor: colors.palette.primary500,
-  backgroundColor: `rgba(201, 24, 74, 0.1)`,
-}
+const $dayToday: ViewStyle = {}
 
 const $daySelectedText: TextStyle = {
-  color: colors.yellow,
+  color: colors.white,
 }
 
-const $gregSelected: TextStyle = {
-  color: colors.yellow,
-}
+const $gregSelected: TextStyle = {}
 
-const $gregToday: TextStyle = {
-  color: colors.palette.primary500,
-}
+const $gregToday: TextStyle = {}
 
-const $dayTodayText: TextStyle = {
-  color: colors.palette.primary500,
+const $dayContainerInnerToday: TextStyle = {
+  // transform: [{ scale: 1.15 }],
 }
 
 const $dayList: ViewStyle = {}
 
 const $dayContainer: ViewStyle = {
   height: dayHeight,
-  width: screenWidth / 7,
+  width: screenWidth / 7 - 2,
   justifyContent: "center",
+  padding: 12,
   alignItems: "center",
-  padding: 16,
-  borderRightColor: colors.border,
-  borderRightWidth: 1,
-  borderBottomColor: colors.border,
-  borderBottomWidth: 1,
   position: "relative",
 }
 
 const $dayContainerInner: ViewStyle = {
   position: "relative",
+  borderRadius: spacing.xxxl,
+  backgroundColor: colors.white,
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  height: screenWidth / 7 - (16 + 4),
+  width: screenWidth / 7 - (16 + 4),
+  borderWidth: 2,
+  borderColor: colors.palette.neutral200,
+  ...shadowProps,
+}
+
+const $dayContainerInnerSelected: ViewStyle = {
+  backgroundColor: colors.palette.primary500,
+  borderColor: colors.palette.primary500,
 }
 
 const $dayText: TextStyle = {
   lineHeight: 30,
   fontSize: 20,
+  textAlign: "center",
   width: "100%",
   fontWeight: "bold",
 }
 
 const $dayTextArabic: TextStyle = {
   fontFamily: typography.arabic.kanz,
-  lineHeight: 60,
-  fontSize: 42,
+  lineHeight: 50,
+  fontSize: 32,
   width: "100%",
 }
 
 const $gregText: TextStyle = {
-  fontSize: 10,
-  marginTop: -8,
-  color: colors.palette.neutral500,
+  fontSize: 12,
+  marginTop: -2,
+  color: colors.palette.neutral600,
   width: screenWidth / 7,
   textAlign: "center",
 }
 
 const $dayFiller: TextStyle = {
   color: colors.palette.neutral400,
+}
+
+const $dayHighlightOverlay: ViewStyle = {
+  ...StyleSheet.absoluteFillObject,
+  borderRadius: spacing.xxxl,
+  backgroundColor: colors.palette.primary200,
 }

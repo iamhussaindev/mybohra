@@ -20,6 +20,7 @@ export const MiqaatModel = types.model("MiqaatModel", {
   phase: types.enumeration("Phase", ["day", "night"]),
   priority: types.maybeNull(types.number),
   isImportant: types.boolean,
+  image: types.maybeNull(types.string),
   type: types.optional(
     types.enumeration("MiqaatType", [
       "URS",
@@ -69,6 +70,7 @@ export const MiqaatStoreModel = types
               phase: item.phase?.toLowerCase() || "day",
               priority: item.priority,
               isImportant: item.important || false,
+              image: item.image,
               type: item.type || "OTHER",
               info: item.html,
             }))
@@ -138,16 +140,14 @@ export const MiqaatStoreModel = types
 
     get upcomingMiqaats(): IMiqaat[] {
       const todayMiqaats = this.miqaatsToday
+      // upcoming that is in next 15 days from today
       const upcomingMiqaats = self.list.filter((miqaat) => {
         const isImportant = miqaat.isImportant
         const miqaatDate = momentTime(HijriDate.fromMiqaat(miqaat).toGregorian())
-
         const today = momentTime()
-
-        const isUpcoming = miqaatDate.isAfter(today)
+        const isUpcoming = miqaatDate.isAfter(today) && miqaatDate.isBefore(today.add(15, "days"))
         return isImportant && isUpcoming
       })
-
       const sortedMiqaats = upcomingMiqaats
         .sort((a, b) => {
           const aDate = timeInMilliseconds(a.date, a.month)

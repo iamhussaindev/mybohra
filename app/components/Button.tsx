@@ -22,6 +22,10 @@ export interface ButtonAccessoryProps {
 
 export interface ButtonProps extends PressableProps {
   /**
+   * Whether the button should have rounded corners.
+   */
+  rounded?: boolean
+  /**
    * Text which is looked up via i18n.
    */
   tx?: TextProps["tx"]
@@ -111,6 +115,7 @@ export function Button(props: ButtonProps) {
     RightAccessory,
     LeftAccessory,
     disabled,
+    rounded = true,
     disabledStyle: $disabledViewStyleOverride,
     ...rest
   } = props
@@ -127,6 +132,7 @@ export function Button(props: ButtonProps) {
       $viewStyleOverride,
       !!pressed && [$pressedViewPresets[preset], $pressedViewStyleOverride],
       !!disabled && $disabledViewStyleOverride,
+      !rounded && { borderRadius: 0 },
     ]
   }
   /**
@@ -150,6 +156,7 @@ export function Button(props: ButtonProps) {
       accessibilityState={{ disabled: !!disabled }}
       {...rest}
       disabled={disabled}
+      android_ripple={{ color: colors.palette.neutral200 }}
     >
       {(state) => (
         <>
@@ -234,10 +241,10 @@ const $textPresets: Record<Presets, StyleProp<TextStyle>> = {
 }
 
 const $pressedViewPresets: Record<Presets, StyleProp<ViewStyle>> = {
-  default: { backgroundColor: colors.palette.primary600 },
-  filled: { backgroundColor: colors.palette.primary800 },
-  reversed: { backgroundColor: colors.palette.neutral700 },
-  tinted: { backgroundColor: colors.palette.primary100 },
+  default: [{ backgroundColor: colors.palette.neutral200 }],
+  filled: [{ backgroundColor: colors.palette.neutral200 }],
+  reversed: [{ backgroundColor: colors.palette.neutral600 }],
+  tinted: [{ backgroundColor: colors.palette.neutral200 }],
 }
 
 const $pressedTextPresets: Record<Presets, StyleProp<TextStyle>> = {

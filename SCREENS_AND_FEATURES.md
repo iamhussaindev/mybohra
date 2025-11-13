@@ -18,18 +18,6 @@
 
 ## 📅 Calendar Screen
 
-- Hijri calendar view
-- Gregorian date display
-- Month navigation (previous/next)
-- Week view layout
-- Day selection
-- Selected date highlighting
-- Miqaats list for selected date
-- Empty state when no miqaats
-- Hijri to Gregorian date conversion display
-- Sticky section headers
-- Weekly calendar grid
-
 ## 🕌 Namaz Screen
 
 - Location display with edit button

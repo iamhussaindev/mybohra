@@ -33,7 +33,15 @@ import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
  *   https://reactnavigation.org/docs/typescript/#organizing-types
  */
 export type AppStackParamList = {
-  Calendar: undefined
+  Calendar:
+    | {
+        highlight?: {
+          year: number
+          month: number
+          day: number
+        }
+      }
+    | undefined
   Namaz: undefined
   Tabs: undefined
   Home: undefined
@@ -55,6 +63,7 @@ export type AppStackParamList = {
   DuaList: undefined
   Reminder: undefined
   ReminderSettings: undefined
+  CalendarSearch: undefined
   // 🔥 Your screens go here
   // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }
@@ -76,7 +85,7 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 const AppStack = observer(function AppStack() {
   return (
     <Stack.Navigator
-      initialRouteName="Home"
+      initialRouteName="Namaz"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,
@@ -85,6 +94,7 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="Tabs" component={NavigationTab} />
       <Stack.Screen name="Namaz" component={Screens.NamazScreen} />
       <Stack.Screen name="Calendar" component={Screens.CalendarScreen} />
+      <Stack.Screen name="CalendarSearch" component={Screens.CalendarSearch} />
       <Stack.Screen name="PdfViewer" component={Screens.PdfScreen} />
       <Stack.Screen name="Counter" component={Screens.CounterScreen} />
       <Stack.Screen name="SavedTasbeeh" component={Screens.SavedTasbeehScreen} />

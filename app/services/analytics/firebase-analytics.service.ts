@@ -147,11 +147,11 @@ class FirebaseAnalyticsService {
   /**
    * Record error event (compatibility method)
    */
-  async recordError(errorName: string, error: any, fatal: boolean = false): Promise<void> {
+  async recordError(errorName: string, error: any, fatal = false): Promise<void> {
     await this.logEvent("error_occurred", {
       error_name: errorName,
       error_message: error?.message || String(error),
-      fatal: fatal,
+      fatal,
       timestamp: Date.now(),
     })
   }
