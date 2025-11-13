@@ -63,8 +63,6 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   // remove pinnedItems from combinedDailyDuas
   const dailyDuas = libraryStore.homeData.filter((item) => !pinnedItems.includes(item)) ?? []
 
-  // Removed manual analytics - using Firebase only
-
   const fetchMiqaats = async () => {
     await miqaatStore.fetchMiqaats()
   }

@@ -2,8 +2,9 @@ import { Screen } from "app/components"
 import { Calendar, CalendarDay } from "app/libs/Calendar"
 import { useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
+import { DailyDuaWithLibrary, SupabaseFetcherService } from "app/services/supabase"
 import { observer } from "mobx-react-lite"
-import React, { FC, useEffect, useMemo, useState } from "react"
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react"
 import { ViewStyle } from "react-native"
 
 import CalendarHeader from "./component/CalendarHeader"
@@ -16,8 +17,12 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
   const [calendar, setCalendar] = useState<Calendar>()
   const [selectedDate, setSelectedDate] = useState<CalendarDay>()
   const [highlightedDate, setHighlightedDate] = useState<{ key: string; trigger: number } | null>(null)
+  const [dailyDuas, setDailyDuas] = useState<DailyDuaWithLibrary[]>([])
+  const [dailyDuasLoading, setDailyDuasLoading] = useState(false)
+  const [dailyDuasError, setDailyDuasError] = useState<string | null>(null)
 
   const { miqaatStore } = useStores()
+  const supabaseFetcher = useMemo(() => new SupabaseFetcherService(), [])
 
   useEffect(() => {
     if (miqaatStore.list.length === 0) {
@@ -31,6 +36,49 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
     setCalendar(nextCalendar)
     setSelectedDate(nextCalendar.getToday)
   }, [miqaatStore.miqaats])
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setDailyDuas([])
+      setDailyDuasError(null)
+      return
+    }
+
+    let isMounted = true
+    const fetchDailyDuas = async () => {
+      try {
+        setDailyDuasLoading(true)
+        setDailyDuasError(null)
+
+        const response = await supabaseFetcher.fetchDailyDuas({
+          date: selectedDate.date.day,
+          month: selectedDate.date.month,
+        })
+
+        if (!isMounted) return
+
+        if (response.success && response.data) {
+          setDailyDuas(response.data)
+        } else {
+          setDailyDuas([])
+          setDailyDuasError(response.error ?? "Unable to load daily duas for this date.")
+        }
+      } catch (error) {
+        if (!isMounted) return
+        setDailyDuas([])
+        setDailyDuasError(error instanceof Error ? error.message : "Unable to load daily duas.")
+      } finally {
+        if (!isMounted) return
+        setDailyDuasLoading(false)
+      }
+    }
+
+    fetchDailyDuas()
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedDate, supabaseFetcher])
 
   const createHighlightKey = useMemo(
     () => (date: CalendarDay["date"]) => `${date.year}-${date.month}-${date.day}`,
@@ -63,6 +111,24 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
     navigation.setParams({ highlight: undefined })
   }, [calendar, route.params?.highlight, miqaatStore.miqaats, navigation, createHighlightKey])
 
+  const handleDailyDuaPress = useCallback(
+    (dua: DailyDuaWithLibrary) => {
+      if (!dua?.library) return
+      navigation.navigate("PdfViewer", {
+        id: dua.library.id,
+        name: dua.library.name,
+        description: dua.library.description,
+        audio_url: dua.library.audio_url,
+        pdf_url: dua.library.pdf_url,
+        youtube_url: dua.library.youtube_url,
+        metadata: dua.library.metadata,
+        tags: dua.library.tags,
+        categories: dua.library.categories,
+      })
+    },
+    [navigation],
+  )
+
   return (
     <Screen preset="fixed" safeAreaEdges={["top"]} contentContainerStyle={$screenContainer}>
       {calendar ? (
@@ -79,6 +145,10 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
           calendar={calendar}
           setCalendar={setCalendar}
           highlight={highlightedDate}
+          dailyDuas={dailyDuas}
+          dailyDuasLoading={dailyDuasLoading}
+          dailyDuasError={dailyDuasError}
+          onDailyDuaPress={handleDailyDuaPress}
         />
       ) : null}
     </Screen>

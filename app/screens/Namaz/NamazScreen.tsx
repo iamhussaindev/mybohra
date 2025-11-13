@@ -2,6 +2,7 @@ import {
   IconBell,
   IconBellCog,
   IconBellOff,
+  IconCalendar,
   IconChevronRight,
   IconCurrentLocationFilled,
 } from "@tabler/icons-react-native"
@@ -22,6 +23,8 @@ import { shadowProps } from "app/helpers/shadow.helper"
 import { useNextNamaz } from "app/hooks/useNextNamaz"
 import { usePrayerTimesWithDate } from "app/hooks/usePrayerTimesWithDate"
 import { useReminders } from "app/hooks/useReminders"
+import { CalendarDay } from "app/libs/Calendar"
+import HijriDate from "app/libs/HijriDate"
 import { useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing, typography } from "app/theme"
@@ -29,8 +32,17 @@ import { getFormattedTime } from "app/utils/common"
 import { momentTime } from "app/utils/currentTime"
 import { observer } from "mobx-react-lite"
 import { Moment } from "moment"
-import React, { FC, useRef, useState } from "react"
-import { ImageStyle, Pressable, SectionList, TextStyle, View, ViewStyle } from "react-native"
+import React, { FC, useMemo, useRef, useState } from "react"
+import {
+  Dimensions,
+  FlatList,
+  ImageStyle,
+  Pressable,
+  SectionList,
+  TextStyle,
+  View,
+  ViewStyle,
+} from "react-native"
 
 import ReminderOffsetSelector from "../Reminders/ReminderOffsetSelector"
 
@@ -53,6 +65,9 @@ const timesToShow = {
 }
 
 const alarmKeys = ["fajr", "zawaal", "maghrib", "nisful_layl", "sihori"]
+
+const screenWidth = Dimensions.get("window").width
+const DATE_ITEM_WIDTH = screenWidth / 7
 
 function NamazItem({
   value,
@@ -113,6 +128,130 @@ function NamazItem({
   )
 }
 
+function DateSelector({
+  days,
+  selectedDateKey,
+  onSelect,
+}: {
+  days: CalendarDay[]
+  selectedDateKey: string
+  onSelect: (day: CalendarDay) => void
+}) {
+  return (
+    <View style={$dateSelectorContainer}>
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={$dateListContentContainer}
+        data={days}
+        keyExtractor={(item) => item.gregorian.format("YYYY-MM-DD")}
+        renderItem={({ item }) => {
+          const itemKey = item.gregorian.format("YYYY-MM-DD")
+          const isSelected = itemKey === selectedDateKey
+
+          return (
+            <Pressable
+              onPress={() => onSelect(item)}
+              style={$dateItemContainer}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+            >
+              <View
+                style={[
+                  $dateItemInner,
+                  item.isToday && $dateItemInnerToday,
+                  isSelected && $dateItemInnerSelected,
+                ]}
+              >
+                <Text
+                  weight="medium"
+                  style={[
+                    $dateItemHijriText,
+                    item.isToday && $dateItemHijriTextToday,
+                    isSelected && $dateItemHijriTextSelected,
+                  ]}
+                >
+                  {item.date.toArabic()}
+                </Text>
+              </View>
+              <Text style={[$dateItemGregText, isSelected && $dateItemGregTextSelected]}>
+                {item.gregorian.format("D MMM")}
+              </Text>
+            </Pressable>
+          )
+        }}
+      />
+    </View>
+  )
+}
+
+const $dateSelectorContainer: ViewStyle = {
+  backgroundColor: colors.palette.neutral100,
+  paddingTop: spacing.sm,
+  paddingBottom: spacing.sm,
+  marginBottom: spacing.sm,
+}
+
+const $dateListContentContainer: ViewStyle = {
+  paddingHorizontal: spacing.md,
+  paddingLeft: spacing.xs,
+}
+
+const $dateItemContainer: ViewStyle = {
+  width: DATE_ITEM_WIDTH,
+  alignItems: "center",
+  paddingVertical: spacing.xs,
+  marginRight: spacing.xxs,
+}
+
+const $dateItemInner: ViewStyle = {
+  height: DATE_ITEM_WIDTH - spacing.md,
+  width: DATE_ITEM_WIDTH - spacing.md,
+  borderRadius: 10,
+  borderColor: colors.palette.neutral200,
+  borderWidth: 2,
+  backgroundColor: colors.white,
+  alignItems: "center",
+  justifyContent: "center",
+  ...shadowProps,
+}
+
+const $dateItemHijriTextToday: TextStyle = {
+  color: colors.palette.primary500,
+}
+
+const $dateItemInnerToday: ViewStyle = {
+  borderColor: colors.palette.primary500,
+  backgroundColor: colors.palette.neutral100,
+}
+
+const $dateItemInnerSelected: ViewStyle = {
+  backgroundColor: colors.palette.primary500,
+  borderColor: colors.palette.primary500,
+}
+
+const $dateItemHijriText: TextStyle = {
+  fontFamily: typography.arabic.kanz,
+  fontSize: 36,
+  lineHeight: DATE_ITEM_WIDTH - spacing.xs,
+  textAlign: "center",
+  color: colors.palette.neutral800,
+}
+
+const $dateItemHijriTextSelected: TextStyle = {
+  color: colors.white,
+}
+
+const $dateItemGregText: TextStyle = {
+  marginTop: spacing.xs,
+  fontSize: 12,
+  color: colors.palette.neutral600,
+}
+
+const $dateItemGregTextSelected: TextStyle = {
+  color: colors.palette.primary600,
+}
+
 const $reminderIcon: ImageStyle = {
   marginRight: spacing.sm,
 }
@@ -170,11 +309,38 @@ const $itemText: TextStyle = {
 interface NamazScreenProps extends AppStackScreenProps<"Namaz"> {}
 
 export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen({ navigation }) {
-  const [date, _setDate] = useState<Moment>(momentTime())
+  const [date, setDate] = useState<Moment>(momentTime())
   const { dataStore } = useStores()
   const { openLocationBottomSheet } = useLocationBottomSheet()
   const { createReminder, deleteReminder, reminders } = useReminders()
   const [prayerTime, setPrayerTime] = useState<keyof ITimes | null>(null)
+  const [showDateSelector, setShowDateSelector] = useState(false)
+
+  const upcomingDays = useMemo<CalendarDay[]>(() => {
+    const start = momentTime().startOf("day")
+
+    return Array.from({ length: 30 }, (_, index) => {
+      const gregorian = start.clone().add(index, "days")
+      const hijri = new HijriDate().fromGregorian(gregorian.toDate())
+
+      const calendarDay: CalendarDay = {
+        date: hijri,
+        gregorian,
+        isCurrentMonth: true,
+        isToday: index === 0,
+        filler: false,
+        hasMiqaats: false,
+      }
+
+      return calendarDay
+    })
+  }, [])
+
+  const selectedDateKey = date.format("YYYY-MM-DD")
+
+  const handleDateSelect = (calendarDay: CalendarDay) => {
+    setDate(calendarDay.gregorian.clone())
+  }
 
   const handleQuickReminder = async (prayerTime: keyof ITimes, value: boolean) => {
     // Check if any reminder exists for this prayer time (enabled or disabled)
@@ -246,19 +412,35 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen({
     <Screen preset="fixed" safeAreaEdges={["top"]} contentContainerStyle={$screenContainer}>
       <SectionList
         ListHeaderComponent={
-          <Header
-            rightActions={[
-              <Pressable
-                style={$settingsButton}
-                key="settings"
-                onPress={() => navigation.navigate("ReminderSettings")}
-              >
-                <IconBellCog size={24} color={colors.palette.neutral800} />
-              </Pressable>,
-            ]}
-            title="Namaz Timings"
-            showBackButton
-          />
+          <>
+            <Header
+              rightActions={[
+                <Pressable
+                  style={[$settingsButton, showDateSelector && $calendarButtonActive]}
+                  key="dateToggle"
+                  onPress={() => setShowDateSelector((prev) => !prev)}
+                >
+                  <IconCalendar size={24} color={colors.palette.neutral800} />
+                </Pressable>,
+                <Pressable
+                  style={$settingsButton}
+                  key="settings"
+                  onPress={() => navigation.navigate("ReminderSettings")}
+                >
+                  <IconBellCog size={24} color={colors.palette.neutral800} />
+                </Pressable>,
+              ]}
+              title="Namaz Timings"
+              showBackButton
+            />
+            {showDateSelector && (
+              <DateSelector
+                days={upcomingDays}
+                selectedDateKey={selectedDateKey}
+                onSelect={handleDateSelect}
+              />
+            )}
+          </>
         }
         contentContainerStyle={$sectionListContentContainer}
         stickySectionHeadersEnabled={true}
@@ -399,6 +581,11 @@ const $settingsButton: ViewStyle = {
   padding: spacing.sm,
   borderWidth: 1,
   borderColor: colors.palette.neutral100,
+}
+
+const $calendarButtonActive: ViewStyle = {
+  borderColor: colors.palette.primary500,
+  backgroundColor: colors.palette.primary100,
 }
 
 const $activeGroupContainer: ViewStyle = {

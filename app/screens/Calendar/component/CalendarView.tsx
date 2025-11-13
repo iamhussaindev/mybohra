@@ -1,14 +1,29 @@
-import { Button, Icon, ListView, Text } from "app/components"
+import { Button, Icon, ListView, Text, Skeleton } from "app/components"
+import { shadowProps } from "app/helpers/shadow.helper"
 import { Calendar, CalendarDay, WEEKDAYS } from "app/libs/Calendar"
 import { useStores } from "app/models"
 import { MiqaatCard } from "app/screens/components/MiqaatList"
-import { colors, spacing } from "app/theme"
+import { DailyDuaWithLibrary } from "app/services/supabase"
+import { colors, spacing, typography } from "app/theme"
 import React from "react"
-import { Dimensions, ImageStyle, SectionList, TextStyle, View, ViewStyle } from "react-native"
+import {
+  Dimensions,
+  ImageStyle,
+  Image,
+  Pressable,
+  SectionList,
+  TextStyle,
+  View,
+  ViewStyle,
+  Text as RNText,
+  FlatList,
+} from "react-native"
 
 import { WeekView } from "./WeekView"
 
 const screenWidth = Dimensions.get("window").width
+const DAILY_DUA_CARD_HEIGHT = 32
+const pdfIconSource = require("../../../../assets/images/pdf.png")
 
 export default function CalendarView({
   calendar,
@@ -16,12 +31,20 @@ export default function CalendarView({
   selectedDate,
   setSelectedDate,
   highlight,
+  dailyDuas,
+  dailyDuasLoading,
+  dailyDuasError,
+  onDailyDuaPress,
 }: {
   calendar: Calendar
   setCalendar: any
   selectedDate?: CalendarDay
   setSelectedDate: any
   highlight?: { key: string; trigger: number } | null
+  dailyDuas?: DailyDuaWithLibrary[]
+  dailyDuasLoading?: boolean
+  dailyDuasError?: string | null
+  onDailyDuaPress?: (dua: DailyDuaWithLibrary) => void
 }) {
   function handlePrevious() {
     setCalendar(calendar?.previousMonth())
@@ -62,9 +85,9 @@ export default function CalendarView({
                 />
               </Button>
               <View style={$headerCenter}>
-                <Text weight="bold" style={$headerText}>
+                <RNText style={$headerText}>
                   {calendar?.monthName} {calendar?.year}
-                </Text>
+                </RNText>
                 <Text>{calendar?.gregMonth}</Text>
               </View>
               <Button preset="tinted" onPress={handleNext} style={$headerControlButton}>
@@ -134,8 +157,94 @@ export default function CalendarView({
             ) : null,
           ],
         },
+        {
+          name: "DailyDuas",
+          description: "Daily Duas",
+          data: [
+            selectedDate ? (
+              <DailyDuasSection
+                key="daily-duas-section"
+                dailyDuas={dailyDuas ?? []}
+                isLoading={!!dailyDuasLoading}
+                error={dailyDuasError}
+                onPressItem={onDailyDuaPress}
+              />
+            ) : null,
+          ],
+        },
       ]}
     />
+  )
+}
+
+function DailyDuasSection({
+  dailyDuas,
+  isLoading,
+  error = null,
+  onPressItem,
+}: {
+  dailyDuas: DailyDuaWithLibrary[]
+  isLoading: boolean
+  error?: string | null
+  onPressItem?: (dua: DailyDuaWithLibrary) => void
+}) {
+  return (
+    <View style={$dailyDuaContainer}>
+      <Text weight="bold" style={$dailyDuaHeader}>
+        Daily Duas & Hafti
+      </Text>
+
+      {isLoading ? (
+        <FlatList
+          horizontal
+          data={Array.from({ length: 2 })}
+          keyExtractor={(_, index) => `daily-dua-skeleton-${index}`}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={$dailyDuaListContent}
+          renderItem={({ index }) => (
+            <View style={$dailyDuaSkeletonCard} key={`daily-dua-skeleton-${index}`}>
+              <Skeleton width={18} height={18} borderRadius={4} />
+              <Skeleton width={80} height={12} borderRadius={4} style={$dailyDuaSkeletonTitle} />
+            </View>
+          )}
+        />
+      ) : error ? (
+        <View style={$dailyDuaStateContainer}>
+          <Text style={$dailyDuaStateText}>{error}</Text>
+        </View>
+      ) : dailyDuas.length === 0 ? (
+        <View style={$dailyDuaStateContainer}>
+          <Text style={$dailyDuaStateText}>No daily duas found for this date.</Text>
+        </View>
+      ) : (
+        <FlatList
+          horizontal
+          data={dailyDuas}
+          keyExtractor={(item) => `daily-dua-${item.id}`}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={$dailyDuaListContent}
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => onPressItem?.(item)}
+              style={$dailyDuaCard}
+              accessibilityRole="button"
+            >
+              <View style={$dailyDuaIconWrapper}>
+                <Image source={pdfIconSource} style={$dailyDuaIcon} resizeMode="contain" />
+              </View>
+              <Text
+                style={$dailyDuaCardTitle}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                weight="medium"
+              >
+                {item.library?.name ?? "Daily Dua"}
+              </Text>
+            </Pressable>
+          )}
+        />
+      )}
+    </View>
   )
 }
 
@@ -146,7 +255,6 @@ const $miqaatHeaderContainer: ViewStyle = {
 
 const $miqaatsListContainer: ViewStyle = {
   flex: 1,
-  minHeight: 200,
 }
 
 const $emptyContainerText: TextStyle = {
@@ -223,7 +331,10 @@ const $headerControlButton: ViewStyle = {
 }
 
 const $headerText: TextStyle = {
-  fontSize: 18,
+  fontSize: 20,
+  fontWeight: "bold",
+  fontFamily: typography.fonts.dmSans.bold,
+  letterSpacing: -0.5,
 }
 
 const $headerControl: ViewStyle = {
@@ -244,4 +355,72 @@ const $contentContainer: ViewStyle = {
   backgroundColor: colors.white,
   flexGrow: 1,
   paddingBottom: 50,
+}
+
+const $dailyDuaContainer: ViewStyle = {
+  paddingHorizontal: spacing.lg,
+  paddingBottom: spacing.xxl,
+}
+
+const $dailyDuaHeader: TextStyle = {
+  fontSize: 16,
+  fontWeight: "bold",
+  fontFamily: typography.fonts.dmSans.bold,
+  letterSpacing: -0.5,
+}
+
+const $dailyDuaStateContainer: ViewStyle = {
+  paddingVertical: spacing.lg,
+  alignItems: "center",
+  justifyContent: "center",
+}
+
+const $dailyDuaStateText: TextStyle = {
+  color: colors.palette.neutral700,
+  textAlign: "center",
+}
+
+const $dailyDuaListContent: ViewStyle = {
+  paddingVertical: spacing.xs,
+  gap: spacing.sm,
+}
+
+const $dailyDuaCard: ViewStyle = {
+  height: DAILY_DUA_CARD_HEIGHT,
+  backgroundColor: colors.error,
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  paddingHorizontal: spacing.sm,
+  ...shadowProps,
+  borderRadius: 8,
+}
+
+const $dailyDuaIconWrapper: ViewStyle = {}
+
+const $dailyDuaIcon: ImageStyle = {
+  width: 18,
+  height: 18,
+}
+
+const $dailyDuaCardTitle: TextStyle = {
+  marginLeft: spacing.xxxs,
+  fontSize: 13,
+  lineHeight: 18,
+  color: colors.palette.neutral900,
+}
+
+const $dailyDuaSkeletonCard: ViewStyle = {
+  height: DAILY_DUA_CARD_HEIGHT,
+  backgroundColor: colors.palette.neutral100,
+  flexDirection: "row",
+  alignItems: "center",
+  paddingHorizontal: spacing.sm,
+  borderRadius: 8,
+  marginRight: spacing.sm,
+  gap: spacing.xs,
+}
+
+const $dailyDuaSkeletonTitle: ViewStyle = {
+  marginLeft: spacing.xxxs,
 }

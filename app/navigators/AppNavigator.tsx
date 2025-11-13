@@ -85,7 +85,7 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 const AppStack = observer(function AppStack() {
   return (
     <Stack.Navigator
-      initialRouteName="Namaz"
+      initialRouteName="TasbeehList"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,

@@ -2,6 +2,7 @@
  * This is the new Supabase-based API service that replaces the REST API
  * It uses Supabase's PostgREST API through the JavaScript client
  */
+import { ITasbeeh } from "app/models"
 import * as storage from "app/utils/storage"
 
 import { DEFAULT_VERSIONS } from "../../constants/version-keys"
@@ -375,6 +376,28 @@ export class ApiSupabase {
       return { kind: "ok", data: uniqueData as any }
     } catch (error) {
       console.error("Error fetching daily duas by date:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  async fetchTasbeeh(): Promise<
+    | {
+        kind: "ok"
+        data: ITasbeeh[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase.from("tasbeeh").select("*")
+
+      if (error) {
+        console.error("Error fetching tasbeeh:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: data || [] }
+    } catch (error) {
+      console.error("Error fetching tasbeeh:", error)
       return { kind: "bad-data" }
     }
   }

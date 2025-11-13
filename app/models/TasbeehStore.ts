@@ -39,11 +39,15 @@ export const TasbeehStoreModel = types
 
         const version = yield apiSupabase.fetchVersion(VERSION_KEYS.TASBEEH_VERSION)
 
+        console.log("list", list)
+        console.log("storedVersion", storedVersion)
+        console.log("version", version.data?.version)
+
         if (list && list.length > 0 && storedVersion === version.data?.version) {
           self.list = list
         } else {
           try {
-            const response = yield apiSupabase.fetch("tasbeeh")
+            const response = yield apiSupabase.fetchTasbeeh()
             if (response.kind === "ok") {
               // Transform data to match the model format
               const transformedData = response.data.map((item: any) => ({

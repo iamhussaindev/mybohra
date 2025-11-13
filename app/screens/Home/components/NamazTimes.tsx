@@ -82,9 +82,7 @@ function NamazCard(props: {
         }
         borderColor={props.activeIndex === props.index ? colors.palette.primary200 : colors.border}
         onPress={() => {
-          props.navigation.navigate("Namaz", {
-            prayerTime: props.time,
-          })
+          props.navigation.navigate("Namaz")
         }}
         style={[props.index === 0 && $firstNamazCard, props.index === 4 && $lastNamazCard]}
       >

@@ -1,12 +1,11 @@
-
-
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
 import { Icon, Screen, Text } from "app/components"
 import Header from "app/components/Header"
+import { shadowProps } from "app/helpers/shadow.helper"
 import { useStores } from "app/models"
 import { ITasbeeh } from "app/models/TasbeehStore"
 import { AppStackScreenProps } from "app/navigators"
-import { colors, typography } from "app/theme"
+import { colors } from "app/theme"
 import Fuse from "fuse.js"
 import groupBy from "lodash/groupBy"
 import { observer } from "mobx-react-lite"
@@ -20,7 +19,6 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   Keyboard,
-  Animated,
 } from "react-native"
 
 interface TasbeehListScreenProps extends AppStackScreenProps<"TasbeehList"> {}
@@ -32,13 +30,8 @@ export const TasbeehListScreen: FC<TasbeehListScreenProps> = observer(function T
   const [showSearch, setShowSearch] = useState(false)
   const $searchRef = useRef<TextInput>(null)
 
-  // Animated values
-  const searchOpacity = useRef(new Animated.Value(0)).current
-  const searchTranslateY = useRef(new Animated.Value(-20)).current
-  const searchScale = useRef(new Animated.Value(0.95)).current
-  const iconScale = useRef(new Animated.Value(1)).current
-
   const list = tasbeehStore.list.filter((tasbeeh) => tasbeeh.type !== "MISC")
+  console.log(tasbeehStore.list)
 
   const fuse = useMemo(
     () =>
@@ -69,86 +62,22 @@ export const TasbeehListScreen: FC<TasbeehListScreenProps> = observer(function T
       : (a: any, b: any) => a?.name?.localeCompare(b?.name)
   }, [])
 
-  const animateSearchIn = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(searchOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchTranslateY, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchScale, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [searchOpacity, searchTranslateY, searchScale])
-
-  const animateSearchOut = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(searchOpacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchTranslateY, {
-        toValue: -20,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchScale, {
-        toValue: 0.95,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setShowSearch(false)
-    })
-  }, [searchOpacity, searchTranslateY, searchScale])
-
   const closeSearch = useCallback(() => {
-    animateSearchOut()
+    setShowSearch(false)
     setSearch("")
     Keyboard.dismiss()
-  }, [animateSearchOut])
-
-  const animateIconPress = useCallback(() => {
-    Animated.sequence([
-      Animated.timing(iconScale, {
-        toValue: 0.9,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(iconScale, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [iconScale])
+  }, [])
 
   const toggleSearch = useCallback(() => {
-    animateIconPress()
-
     if (!showSearch) {
       setShowSearch(true)
-      // Start animation and focus after a brief delay
       setTimeout(() => {
-        animateSearchIn()
-        setTimeout(() => {
-          $searchRef.current?.focus()
-        }, 150)
+        $searchRef.current?.focus()
       }, 50)
     } else {
-      // Clear search when hiding
       closeSearch()
     }
-  }, [showSearch, closeSearch, animateSearchIn, animateIconPress])
+  }, [showSearch, closeSearch])
 
   // Close search when item is selected
   const handleItemClick = useCallback(
@@ -223,7 +152,7 @@ export const TasbeehListScreen: FC<TasbeehListScreenProps> = observer(function T
   )
 
   const $itemTextDay: TextStyle = {
-    fontSize: 14,
+    fontSize: 18,
     textAlign: "center",
     lineHeight: 20,
     textAlignVertical: "center",
@@ -243,9 +172,7 @@ export const TasbeehListScreen: FC<TasbeehListScreenProps> = observer(function T
         showBackButton
         rightActions={
           <Pressable onPress={toggleSearch}>
-            <Animated.View style={{ transform: [{ scale: iconScale }] }}>
-              <Icon icon="search" size={20} color={colors.palette.primary500} />
-            </Animated.View>
+            <Icon icon="search" size={20} color={colors.palette.primary500} />
           </Pressable>
         }
       />
@@ -254,18 +181,10 @@ export const TasbeehListScreen: FC<TasbeehListScreenProps> = observer(function T
           {showSearch && (
             <TouchableWithoutFeedback
               onPress={() => {
-                animateIconPress()
+                // no-op to keep search open
               }}
             >
-              <Animated.View
-                style={[
-                  $searchContainer,
-                  {
-                    opacity: searchOpacity,
-                    transform: [{ translateY: searchTranslateY }, { scale: searchScale }],
-                  },
-                ]}
-              >
+              <View style={$searchContainer}>
                 <TextInput
                   ref={$searchRef}
                   value={search}
@@ -274,7 +193,7 @@ export const TasbeehListScreen: FC<TasbeehListScreenProps> = observer(function T
                   onChangeText={setSearch}
                 />
                 <View style={$searchFade} />
-              </Animated.View>
+              </View>
             </TouchableWithoutFeedback>
           )}
           <FlatList
@@ -306,25 +225,17 @@ const $searchContainer: ViewStyle = {
   paddingTop: 20,
 }
 
-const $searchField = {
-  backgroundColor: "rgb(255, 250, 241)",
+const $searchField: TextStyle = {
   paddingHorizontal: 20,
   paddingVertical: 12,
-  borderRadius: 24,
   marginBottom: 20,
   borderWidth: 1,
   marginHorizontal: 20,
-  fontFamily: typography.primary.medium,
+  ...shadowProps,
+  backgroundColor: "rgb(255, 250, 241)",
   borderColor: colors.palette.primary200,
+  borderRadius: 10,
   fontSize: 16,
-  shadowColor: "rgba(0, 0, 0, 0.15)",
-  shadowOffset: {
-    width: 0,
-    height: 2,
-  },
-  shadowOpacity: 0.5,
-  shadowRadius: 2,
-  elevation: 2,
 }
 
 const $searchFade: ViewStyle = {
@@ -359,7 +270,7 @@ const $gridContainer: ViewStyle = {
   flexWrap: "wrap",
   justifyContent: "space-between",
   backgroundColor: "rgb(254, 244, 227)",
-  gap: 20,
+  gap: 12,
   flex: 1,
 }
 
@@ -370,7 +281,7 @@ const $gridSingle: ViewStyle = {
 }
 
 const $gridItem: ViewStyle = {
-  width: "45%",
+  width: "48%",
   height: 60,
   display: "flex",
   alignItems: "center",
@@ -405,23 +316,16 @@ const $arabicTextContainer: ViewStyle = {
 
 const $tasbeehItem: ViewStyle = {
   borderWidth: 1,
-  borderColor: colors.palette.primary200,
-  backgroundColor: "rgb(255, 252, 244)",
-  borderRadius: 24,
   paddingHorizontal: 20,
   paddingVertical: 10,
   display: "flex",
   flexDirection: "row",
   justifyContent: "center",
   alignItems: "center",
-  maxHeight: 60,
-  minHeight: 60,
-  shadowColor: "rgba(0, 0, 0, 0.1)",
-  shadowOffset: {
-    width: 0,
-    height: 2,
-  },
-  shadowOpacity: 0.25,
-  shadowRadius: 3.84,
-  elevation: 5,
+  maxHeight: 80,
+  minHeight: 80,
+  ...shadowProps,
+  backgroundColor: "rgb(255, 252, 244)",
+  borderColor: colors.palette.primary100,
+  borderRadius: 12,
 }
