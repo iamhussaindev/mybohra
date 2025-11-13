@@ -9,7 +9,7 @@ export const mockNativeModules = {
         zohar: "12:45",
         asar: "16:20",
         sihori: "18:45",
-        maghrib_safe: "19:15",
+        maghrib: "19:15",
         nisful_layl: "23:30",
       }
 
@@ -19,7 +19,7 @@ export const mockNativeModules = {
         return {
           ...baseTimes,
           fajr: "04:30",
-          maghrib_safe: "20:15",
+          maghrib: "20:15",
         }
       }
 

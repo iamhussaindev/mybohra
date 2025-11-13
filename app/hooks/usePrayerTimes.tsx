@@ -20,7 +20,6 @@ export function usePrayerTimes() {
         setTimes(times)
         setIsLoading(false)
       })
-      console.log("times", times)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch prayer times")
       setIsLoading(false)

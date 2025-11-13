@@ -22,7 +22,7 @@ export type NamazTimes = {
   zohar: string
   asar: string
   sihori: string
-  maghrib_safe: string
+  maghrib: string
   nisful_layl: string
 }
 
@@ -32,7 +32,7 @@ export const namazLabels = {
   zohar: "Zohar",
   asar: "Asar",
   sihori: "Sihori time",
-  maghrib_safe: "Maghrib",
+  maghrib: "Maghrib",
   nisful_layl: "Nisful-Layl",
 }
 
@@ -42,12 +42,12 @@ export const namazEndDescription: Record<keyof NamazTimes, string> = {
   zohar: "starts",
   asar: "starts",
   sihori: "ends in",
-  maghrib_safe: "starts in",
+  maghrib: "starts in",
   nisful_layl: "starts in",
 }
 
 export const getNextNamazKey = (times: ITimes): string => {
-  const homeTimeKeys = ["sihori", "fajr", "zawaal", "maghrib_safe", "nisful_layl"]
+  const homeTimeKeys = ["sihori", "fajr", "zawaal", "maghrib", "nisful_layl"]
 
   if (times && Object.keys(times).length > 0) {
     const nextNamazTime = homeTimeKeys.find((key: string) => {
@@ -142,18 +142,18 @@ export const getTimeDescription = (
 
 export const getCurrentGhari = (times: ITimes, nextNamazTime: string): CurrentGhari => {
   if (nextNamazTime === "nisful_layl") {
-    const { date } = getTime(times, "maghrib_safe")
+    const { date } = getTime(times, "maghrib")
     const { date: maghribEnd } = getTime(times, "maghrib_end")
     const { date: nisf } = getTime(times, "nisful_layl")
 
     if (momentTime().isBetween(date, maghribEnd)) {
       const description = ""
-      return { key: "maghrib_safe", name: "Maghrib", description, group: "evening" }
+      return { key: "maghrib", name: "Maghrib", description, group: "evening" }
     }
 
     return {
       description: `Isha ends in ${nisf.fromNow()}`,
-      key: "maghrib_safe",
+      key: "maghrib",
       name: "Maghrib/Isha",
       endTime: nisf?.fromNow(),
       group: "evening",
@@ -193,7 +193,7 @@ export const getCurrentGhari = (times: ITimes, nextNamazTime: string): CurrentGh
     return { key: "zawaal", name: "Zawal", isNext: true, group: "noon" }
   }
 
-  if (nextNamazTime === "maghrib_safe") {
+  if (nextNamazTime === "maghrib") {
     const { date: zawwal } = getTime(times, "zawaal")
     const { date: zoharEnd } = getTime(times, "zohr_end")
 
@@ -214,11 +214,11 @@ export const getCurrentGhari = (times: ITimes, nextNamazTime: string): CurrentGh
     }
 
     return {
-      key: "maghrib_safe",
+      key: "maghrib",
       name: "Maghrib",
       isNext: true,
       group: "evening",
-      nextInList: "maghrib_safe",
+      nextInList: "maghrib",
     }
   }
 

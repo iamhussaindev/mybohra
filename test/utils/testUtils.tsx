@@ -20,7 +20,7 @@ export const mockPrayerTimes = {
   zohar: "12:45",
   asar: "16:20",
   sihori: "18:45",
-  maghrib_safe: "19:15",
+  maghrib: "19:15",
   nisful_layl: "23:30",
 }
 

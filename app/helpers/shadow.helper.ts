@@ -16,5 +16,5 @@ export const shadowPropsOnlyShadow: ViewStyle = {
   shadowOpacity: 0.05,
   shadowRadius: 4,
   shadowOffset: { width: 0, height: 5 },
-  backgroundColor: colors.white,
+  backgroundColor: "transparent",
 }

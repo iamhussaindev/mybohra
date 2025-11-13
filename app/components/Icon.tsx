@@ -134,7 +134,7 @@ export const iconRegistry = {
   zawaal: require("../../assets/images/zawaal.png"),
   zohr_end: require("../../assets/images/zohr_end.png"),
   asr_end: require("../../assets/images/asr_end.png"),
-  maghrib_safe: require("../../assets/images/maghrib.png"),
+  maghrib: require("../../assets/images/maghrib.png"),
   nisful_layl: require("../../assets/images/nisful_layl.png"),
   nisful_layl_end: require("../../assets/images/nisful_layl_end.png"),
 }

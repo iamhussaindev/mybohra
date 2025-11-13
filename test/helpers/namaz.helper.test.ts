@@ -1,4 +1,4 @@
-import { namazLabels, getNextNamaz, getCurrentGhari , NamazTimes } from "app/helpers/namaz.helper"
+import { namazLabels, getNextNamaz, getCurrentGhari, NamazTimes } from "app/helpers/namaz.helper"
 
 describe("namaz.helper", () => {
   describe("namazLabels", () => {
@@ -8,7 +8,7 @@ describe("namaz.helper", () => {
       expect(namazLabels).toHaveProperty("zohar")
       expect(namazLabels).toHaveProperty("asar")
       expect(namazLabels).toHaveProperty("sihori")
-      expect(namazLabels).toHaveProperty("maghrib_safe")
+      expect(namazLabels).toHaveProperty("maghrib")
       expect(namazLabels).toHaveProperty("nisful_layl")
     })
 
@@ -28,7 +28,7 @@ describe("namaz.helper", () => {
       zohar: "12:45",
       asar: "16:20",
       sihori: "18:45",
-      maghrib_safe: "19:15",
+      maghrib: "19:15",
       nisful_layl: "23:30",
     }
 
@@ -75,7 +75,7 @@ describe("namaz.helper", () => {
       zohar: "12:45",
       asar: "16:20",
       sihori: "18:45",
-      maghrib_safe: "19:15",
+      maghrib: "19:15",
       nisful_layl: "23:30",
     }
 
@@ -105,7 +105,7 @@ describe("namaz.helper", () => {
       const currentTime = "20:00"
       const result = getCurrentGhari(mockPrayerTimes, currentTime)
 
-      expect(result).toBe("maghrib_safe")
+      expect(result).toBe("maghrib")
     })
 
     it("should return nisful_layl ghari late at night", () => {
@@ -124,7 +124,7 @@ describe("namaz.helper", () => {
         zohar: "12:45",
         asar: "16:20",
         sihori: "18:45",
-        maghrib_safe: "19:15",
+        maghrib: "19:15",
         nisful_layl: "23:30",
       }
 
@@ -143,7 +143,7 @@ describe("namaz.helper", () => {
         zohar: "12:45",
         asar: "16:20",
         sihori: "18:45",
-        maghrib_safe: "19:15",
+        maghrib: "19:15",
         nisful_layl: "23:30",
       }
 
@@ -162,7 +162,7 @@ describe("namaz.helper", () => {
         zohar: "",
         asar: "",
         sihori: "",
-        maghrib_safe: "",
+        maghrib: "",
         nisful_layl: "",
       }
 
@@ -182,7 +182,7 @@ describe("namaz.helper", () => {
         zohar: "12:45",
         asar: "16:20",
         sihori: "18:45",
-        maghrib_safe: "19:15",
+        maghrib: "19:15",
         nisful_layl: "23:30",
       }
 

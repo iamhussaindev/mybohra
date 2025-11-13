@@ -145,7 +145,7 @@ await createReminder({
 ```typescript
 await createReminder({
   name: "Weekend Maghrib",
-  prayerTime: "maghrib_safe",
+  prayerTime: "maghrib",
   offsetMinutes: 0, // At prayer time
   repeatType: "weekly",
   customDays: [5, 6], // Friday and Saturday

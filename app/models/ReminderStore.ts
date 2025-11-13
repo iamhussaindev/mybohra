@@ -26,7 +26,7 @@ export const ReminderModel = types.model("ReminderModel", {
     "zohar",
     "asar",
     "sihori",
-    "maghrib_safe",
+    "maghrib",
     "nisful_layl",
   ]),
   offsetMinutes: types.optional(types.number, 0), // -30 for 30 minutes before, +15 for 15 minutes after

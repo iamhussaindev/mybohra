@@ -10,7 +10,7 @@ const namazTimes = [
   { key: "4", text: "Sehori End", time_key: "sihori" },
   { key: "1", text: "Fajr", time_key: "fajr" },
   { key: "2", text: "Zawwal", time_key: "zawaal" },
-  { key: "3", text: "Maghrib/Isha", time_key: "maghrib_safe" },
+  { key: "3", text: "Maghrib/Isha", time_key: "maghrib" },
   { key: "5", text: "Nisf-ul-Layl", time_key: "nisful_layl" },
 ]
 

@@ -46,13 +46,13 @@ const timesToShow = {
     asr_end: "Asr End",
   },
   evening: {
-    maghrib_safe: "Maghrib",
+    maghrib: "Maghrib",
     nisful_layl: "Nisful Layl",
     nisful_layl_end: "Nisful Layl End",
   },
 }
 
-const alarmKeys = ["fajr", "zawaal", "maghrib_safe", "nisful_layl", "sihori"]
+const alarmKeys = ["fajr", "zawaal", "maghrib", "nisful_layl", "sihori"]
 
 function NamazItem({
   value,
@@ -175,8 +175,6 @@ export const NamazScreen: FC<NamazScreenProps> = observer(function NamazScreen({
   const { openLocationBottomSheet } = useLocationBottomSheet()
   const { createReminder, deleteReminder, reminders } = useReminders()
   const [prayerTime, setPrayerTime] = useState<keyof ITimes | null>(null)
-
-  console.log("reminders", reminders)
 
   const handleQuickReminder = async (prayerTime: keyof ITimes, value: boolean) => {
     // Check if any reminder exists for this prayer time (enabled or disabled)

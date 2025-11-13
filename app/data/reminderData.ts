@@ -4,7 +4,7 @@ export const reminderDataNames = {
   zohar: "Zohar Namaz",
   asar: "Asar",
   sihori: "Sihori Namaz",
-  maghrib_safe: "Maghrib Namaz",
+  maghrib: "Maghrib Namaz",
   nisful_layl: "Nisful Layl Namaz",
 }
 
@@ -14,6 +14,6 @@ export const reminderDataBodies = {
   zohar: "Time for Zohar Namaz",
   asar: "Time for Asar Namaz",
   sihori: "Time for Sihori Namaz",
-  maghrib_safe: "Time for Maghrib Namaz",
+  maghrib: "Time for Maghrib Namaz",
   nisful_layl: "Time for Nisful Layl Namaz",
 }

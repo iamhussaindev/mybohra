@@ -43,8 +43,6 @@ const LocationList = React.memo(
     // Convert list to plain objects for Fuse search
     const plainList = useMemo(() => list.map(toPlainLocation), [list])
 
-    console.log("plainList", plainList)
-
     const fuse = useMemo(
       () =>
         new Fuse(plainList, {
