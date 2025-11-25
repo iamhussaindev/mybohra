@@ -16,7 +16,9 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
   const { navigation, route } = props
   const [calendar, setCalendar] = useState<Calendar>()
   const [selectedDate, setSelectedDate] = useState<CalendarDay>()
-  const [highlightedDate, setHighlightedDate] = useState<{ key: string; trigger: number } | null>(null)
+  const [highlightedDate, setHighlightedDate] = useState<{ key: string; trigger: number } | null>(
+    null,
+  )
   const [dailyDuas, setDailyDuas] = useState<DailyDuaWithLibrary[]>([])
   const [dailyDuasLoading, setDailyDuasLoading] = useState(false)
   const [dailyDuasError, setDailyDuasError] = useState<string | null>(null)
@@ -68,7 +70,6 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
         setDailyDuas([])
         setDailyDuasError(error instanceof Error ? error.message : "Unable to load daily duas.")
       } finally {
-        if (!isMounted) return
         setDailyDuasLoading(false)
       }
     }

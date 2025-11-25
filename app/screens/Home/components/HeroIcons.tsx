@@ -56,7 +56,7 @@ export default function HeroIcons({ onNavigation }: { onNavigation: (screen: any
   return (
     <View style={$heroIconContainer}>
       <HeroCard
-        onNavigation={() => onNavigation("DuaList")}
+        onNavigation={() => onNavigation("DuaHome")}
         text="Duas"
         icon={require("../../../../assets/images/duas.png")}
       />

@@ -5,6 +5,13 @@ import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
 export const QIYAM_KEY = "current_qiyam"
+export const PDF_HISTORY_KEY = "pdf_history"
+
+const PdfHistoryModel = types.model("PdfHistoryModel", {
+  pdfId: types.number,
+  openedCount: types.number,
+  lastOpened: types.string,
+})
 
 export const LocationModel = types.model("LocationModel", {
   latitude: types.optional(types.number, 19.076), // mumbai latitude
@@ -50,6 +57,8 @@ export const DataStoreModel = types
     reminderSettings: types.optional(ReminderSettingsModel, {}),
     // Pinned PDFs
     pinnedPdfIds: types.optional(types.array(types.number), []),
+    // PDF history
+    pdfHistory: types.optional(types.array(PdfHistoryModel), []),
   })
   .actions((self) => {
     // Helper: Normalize location object to avoid MST duplicate node errors
@@ -104,6 +113,26 @@ export const DataStoreModel = types
       if (self.currentLocationLoaded) return true
       return yield loadLocationFromStorage()
     })
+
+    const persistPdfHistory = flow(function* () {
+      try {
+        const snapshot = self.pdfHistory.map((entry) => ({
+          pdfId: entry.pdfId,
+          openedCount: entry.openedCount,
+          lastOpened: entry.lastOpened,
+        }))
+        yield storage.save(PDF_HISTORY_KEY, snapshot)
+      } catch (error) {
+        console.log("Failed to persist PDF history", error)
+      }
+    })
+
+    const sortHistory = () => {
+      const sorted = self.pdfHistory
+        .slice()
+        .sort((a, b) => new Date(b.lastOpened).getTime() - new Date(a.lastOpened).getTime())
+      self.pdfHistory.replace(sorted)
+    }
 
     return {
       // Method to add a location to past selected locations
@@ -220,7 +249,6 @@ export const DataStoreModel = types
             self.qiyam = response.data.value
             self.qiyamLoaded = true
           } else {
-            console.log("Qiyam fetch failed or empty:", response)
             self.qiyamLoaded = false
           }
         } catch (error) {
@@ -498,12 +526,54 @@ export const DataStoreModel = types
         self.pinnedPdfIds.clear()
         storage.save("PINNED_PDF_IDS", [])
       },
+
+      loadPdfHistory: flow(function* () {
+        try {
+          const savedHistory = yield storage.load(PDF_HISTORY_KEY)
+          if (savedHistory && Array.isArray(savedHistory)) {
+            self.pdfHistory.replace(savedHistory)
+            sortHistory()
+          }
+        } catch (error) {
+          console.log("Error loading PDF history:", error)
+        }
+      }),
+
+      clearPdfHistory() {
+        self.pdfHistory.clear()
+        storage.save(PDF_HISTORY_KEY, [])
+      },
+
+      recordPdfOpen: flow(function* (pdfId: number) {
+        try {
+          const now = new Date().toISOString()
+          const existingEntry = self.pdfHistory.find((entry) => entry.pdfId === pdfId)
+          if (existingEntry) {
+            existingEntry.openedCount += 1
+            existingEntry.lastOpened = now
+          } else {
+            self.pdfHistory.unshift({
+              pdfId,
+              openedCount: 1,
+              lastOpened: now,
+            })
+          }
+          sortHistory()
+          yield persistPdfHistory()
+        } catch (error) {
+          console.log("Failed to record PDF open", error)
+        }
+      }),
     }
   })
   .views((self) => ({
     // Computed view to check if data is loaded
     get isDataLoaded() {
       return self.qiyamLoaded && self.qiyam !== ""
+    },
+
+    getRecentPdfHistory(limit = 6) {
+      return self.pdfHistory.slice(0, limit)
     },
   }))
 

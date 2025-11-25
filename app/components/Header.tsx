@@ -51,6 +51,7 @@ const $headerLeft: ViewStyle = {
 const $title: TextStyle = {
   marginBottom: 0,
   color: colors.palette.neutral800,
+  textTransform: "capitalize",
 }
 
 const $headerButton: ViewStyle = {

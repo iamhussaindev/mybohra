@@ -349,7 +349,7 @@ export class ApiSupabase {
         "saturday",
         "sunday",
       ]
-      const duaJoshanDay = todayDayNames[new Date().getDay() - 1]
+      const duaJoshanDay = todayDayNames[(new Date().getDay() + 6) % 7]
 
       const { data: duaJoshanDayWise, error: error3 } = await supabase
         .from("library")
@@ -358,7 +358,7 @@ export class ApiSupabase {
         .order("created_at", { ascending: true })
 
       if (error || error2 || error3) {
-        console.error("Error fetching daily duas by date:", error)
+        console.error("Error fetching daily duas by date:", error, error2, error3)
         return { kind: "bad-data" }
       }
 

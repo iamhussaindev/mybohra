@@ -150,7 +150,7 @@ export default function CalendarView({
                   renderItem={(item) => <MiqaatCard isCalendar={true} item={item.item} />}
                 />
               </View>
-            ) : selectedDate ? (
+            ) : selectedDate && dailyDuas && dailyDuas.length === 0 ? (
               <View style={$emptyContainer}>
                 <Text style={$emptyContainerText}>No miqaats on this day</Text>
               </View>
@@ -161,7 +161,7 @@ export default function CalendarView({
           name: "DailyDuas",
           description: "Daily Duas",
           data: [
-            selectedDate ? (
+            selectedDate && dailyDuas && dailyDuas.length > 0 ? (
               <DailyDuasSection
                 key="daily-duas-section"
                 dailyDuas={dailyDuas ?? []}

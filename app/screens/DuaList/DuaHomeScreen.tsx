@@ -4,31 +4,35 @@ import Header from "app/components/Header"
 import { useSoundPlayer } from "app/hooks/useAudio"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import { useStores } from "app/models"
+import { ILibrary } from "app/models/LibraryStore"
 import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
 import { observer } from "mobx-react-lite"
-import React, { FC, useCallback, useRef, useState, useEffect, useMemo } from "react"
+import React, { FC, useCallback, useRef, useState, useEffect } from "react"
 import {
+  View,
   ViewStyle,
   Pressable,
   TextInput,
   Keyboard,
   Animated,
-  ScrollView,
+  SectionList,
   RefreshControl,
 } from "react-native"
 
 import DailyDuas from "../components/DuaGridList"
+import SoundPlayerHome from "../Home/components/SoundPlayerHome"
 
-interface DuaListScreenProps extends AppStackScreenProps<"DuaList"> {}
+import AlbumList, { AlbumCategory } from "./components/AlbumList"
 
-export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListScreen(props) {
+interface DuaHomeScreen extends AppStackScreenProps<"DuaHome"> {}
+
+export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScreen(props) {
   const { libraryStore, dataStore } = useStores()
   const { currentSound } = useSoundPlayer()
   const [search, setSearch] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const $searchRef = useRef<TextInput>(null)
-  const album = props.route.params?.album
 
   // Use the PDF options bottom sheet hook
   const {
@@ -68,14 +72,15 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
       setRefreshing(false)
     }
   }, [fetchLibraryData])
-
-  // Fetch items by categories if album is provided
-  const categoryItems = useMemo(() => {
-    if (!album) {
-      return []
-    }
-    return libraryStore.fetchItemsByCategories([album.id])
-  }, [album, libraryStore.allLibraryData])
+  const recentHistory = dataStore.getRecentPdfHistory(6)
+  const recentPdfItems = recentHistory
+    .map((entry) => libraryStore.allLibraryData.find((item) => item.id === entry.pdfId))
+    .filter((item): item is ILibrary => Boolean(item))
+    .slice(0, 6)
+  const recentPdfIds = new Set(recentPdfItems.map((item) => item.id))
+  const filteredDailyDuas = libraryStore.getItemsByIds(
+    dataStore.pinnedPdfIds.filter((id) => !recentPdfIds.has(id)),
+  )
 
   const animateSearchIn = useCallback(() => {
     Animated.parallel([
@@ -189,7 +194,7 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
       contentContainerStyle={$screenContainer}
     >
       <Header
-        title={album ? album.title : "Dua Library"}
+        title="Dua Library"
         showBackButton
         rightActions={
           <Pressable onPress={toggleSearch}>
@@ -199,38 +204,81 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
           </Pressable>
         }
       />
-      <ScrollView
-        style={$scrollView}
-        contentContainerStyle={$scrollViewContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      <SectionList
+        ref={null}
         showsVerticalScrollIndicator={false}
-      >
-        {album && categoryItems.length > 0 ? (
-          <DailyDuas
-            hideTitle
-            columns={2}
-            title={album.title}
-            navigation={props.navigation}
-            items={categoryItems}
-            currentSound={currentSound}
-            handleItemLongPress={handleItemLongPress}
-            key="category-items"
-            pinnedIds={dataStore.pinnedPdfIds}
-            showOptions={true}
-          />
-        ) : album && categoryItems.length === 0 ? (
-          <DailyDuas
-            title={album.title}
-            navigation={props.navigation}
-            items={[]}
-            currentSound={currentSound}
-            handleItemLongPress={handleItemLongPress}
-            key="category-items-empty"
-            pinnedIds={dataStore.pinnedPdfIds}
-            showOptions={true}
-          />
-        ) : null}
-      </ScrollView>
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        contentContainerStyle={$listContainer}
+        stickySectionHeadersEnabled={false}
+        sections={[
+          {
+            name: "Current Sound",
+            description: "Current Sound",
+            data: [
+              currentSound ? (
+                <View style={$currentSoundContainer} key="current-sound">
+                  <SoundPlayerHome navigation={props.navigation} key="current-sound" />
+                </View>
+              ) : null,
+            ],
+          },
+          {
+            name: "Recent PDFs",
+            description: "recently opened",
+            data: [
+              recentPdfItems.length ? (
+                <DailyDuas
+                  title="Recently Opened"
+                  navigation={props.navigation}
+                  items={recentPdfItems}
+                  currentSound={currentSound}
+                  handleItemLongPress={handleItemLongPress}
+                  key="recent-pdfs"
+                />
+              ) : null,
+            ],
+          },
+          {
+            name: "Daily Duas",
+            description: "daily duas",
+            data: [
+              filteredDailyDuas.length > 0 ? (
+                <DailyDuas
+                  title="Bookmarks"
+                  navigation={props.navigation}
+                  items={filteredDailyDuas}
+                  currentSound={currentSound}
+                  handleItemLongPress={handleItemLongPress}
+                  key="bookmarks"
+                />
+              ) : null,
+            ],
+          },
+
+          {
+            name: "Categories",
+            description: "daily duas",
+            data: [
+              <AlbumList
+                title="Categories"
+                categories={libraryStore.getCategories() as unknown as AlbumCategory[]}
+                onSelectAlbum={(album) => {
+                  props.navigation.navigate("DuaList", {
+                    album: {
+                      id: album.id,
+                      title: album.title,
+                      description: album.description,
+                      count: album.count,
+                    },
+                  })
+                }}
+                key="bookmarks"
+              />,
+            ],
+          },
+        ]}
+        renderItem={({ item }) => item}
+      />
       <PDFOptionsBottomSheet
         ref={bottomSheetRef}
         item={selectedItem}
@@ -249,10 +297,10 @@ const $screenContainer: ViewStyle = {
   flex: 1,
 }
 
-const $scrollView: ViewStyle = {
-  flex: 1,
+const $currentSoundContainer: ViewStyle = {
+  marginBottom: 20,
 }
 
-const $scrollViewContent: ViewStyle = {
+const $listContainer: ViewStyle = {
   paddingBottom: 40,
 }

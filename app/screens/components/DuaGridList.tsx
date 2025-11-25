@@ -1,12 +1,22 @@
 import { IconDotsVertical } from "@tabler/icons-react-native"
-import { SBox, Text } from "app/components"
+import { Text } from "app/components"
+import { shadowProps } from "app/helpers/shadow.helper"
 import { useSoundPlayer } from "app/hooks/useAudio"
 // Removed manual analytics - using Firebase only
 import { ILibrary } from "app/models/LibraryStore"
 import { colors, spacing } from "app/theme"
 import LottieView from "lottie-react-native"
 import React, { useEffect, useRef } from "react"
-import { Dimensions, TextStyle, View, ViewStyle, ImageStyle, Pressable, Image } from "react-native"
+import {
+  Dimensions,
+  TextStyle,
+  View,
+  ViewStyle,
+  ImageStyle,
+  Pressable,
+  Image,
+  TouchableOpacity,
+} from "react-native"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 import { State, Track } from "react-native-track-player"
 
@@ -22,6 +32,7 @@ const convertListToGrid = (items: ILibrary[], columns?: number): ILibrary[][] | 
 }
 
 export default function DuaGridList({
+  hideTitle = false,
   items,
   navigation,
   currentSound,
@@ -30,7 +41,9 @@ export default function DuaGridList({
   title = "Daily Duas",
   pinnedIds = [],
   showOptions = true,
+  onViewAll,
 }: {
+  hideTitle?: boolean
   items: ILibrary[]
   navigation: any
   currentSound?: Track
@@ -40,12 +53,22 @@ export default function DuaGridList({
   columns?: number
   pinnedIds?: number[]
   showOptions?: boolean
+  onViewAll?: () => void
 }) {
   // Removed manual analytics - using Firebase only
 
   return (
     <View style={$container}>
-      <Text style={$header} text={title} weight="bold" preset="subheading" />
+      {!hideTitle && (
+        <View style={$headerContainer}>
+          <Text style={$header} text={title} weight="bold" preset="subheading" />
+          {onViewAll && (
+            <TouchableOpacity onPress={onViewAll} style={$viewAllButton}>
+              <Text weight="bold" style={$viewAllText} text="View All" preset="formHelper" />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       <View style={$container}>
         {(convertListToGrid(items, columns) as ILibrary[][]).map((row, rowIndex) => (
           <View key={rowIndex} style={$rowContainer}>
@@ -88,8 +111,29 @@ export default function DuaGridList({
   )
 }
 
+const $headerContainer: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingHorizontal: spacing.lg,
+  marginBottom: spacing.xs,
+}
+
 const $header: TextStyle = {
-  marginStart: spacing.lg,
+  flex: 1,
+}
+
+const $viewAllButton: ViewStyle = {
+  paddingHorizontal: spacing.xs,
+  borderWidth: 1,
+  borderColor: colors.palette.primary500,
+  borderRadius: 8,
+}
+
+const $viewAllText: TextStyle = {
+  color: colors.palette.primary500,
+  fontWeight: "800",
+  fontSize: 12,
 }
 
 interface DailyCardProps {
@@ -138,18 +182,14 @@ function DuaCard(props: DailyCardProps) {
   }, [state])
 
   return (
-    <SBox
+    <Pressable
       onPress={handlePress}
-      width={(screenWidth - spacing.lg * 2 - 10) / (props.columns ?? 2)}
-      height={60}
-      style={$cardContainer}
-      innerStyle={$cardStyle}
-      cornerRadius={0.5}
-      borderRadius={8}
-      cornerRadiusX={0.3}
-      cornerRadiusY={0.3}
-      borderColor={colors.border}
-      backgroundColor={!isCurrentPlaying ? colors.white : colors.white}
+      style={[
+        $cardContainer,
+        props.columns === 1
+          ? { width: screenWidth - spacing.md * 2 }
+          : { width: (screenWidth - spacing.lg * 2 - 10) / (props.columns ?? 2) },
+      ]}
     >
       <View style={$cardContent}>
         {!isCurrentPlaying ? (
@@ -163,13 +203,15 @@ function DuaCard(props: DailyCardProps) {
             ref={$soundAnimation}
           />
         )}
-        <Text style={$cardText} text={props.item.name} />
+        <Text
+          lineBreakMode="tail"
+          numberOfLines={2}
+          ellipsizeMode="tail"
+          style={[$cardText, props.columns === 1 ? $cardTextFull : {}]}
+          text={props.item.name}
+        />
       </View>
-      {/* {props.isPinned && (
-        <View style={$pinnedIcon}>
-          <IconHeartFilled size={16} color={colors.palette.primary500} />
-        </View>
-      )} */}
+
       {props.showOptions && (
         <Pressable
           onPress={props.showOptions ? handleLongPress : undefined}
@@ -178,15 +220,18 @@ function DuaCard(props: DailyCardProps) {
           <IconDotsVertical size={18} color={colors.palette.neutral900} />
         </Pressable>
       )}
-    </SBox>
+    </Pressable>
   )
+}
+
+const $cardTextFull: TextStyle = {
+  width: "100%",
 }
 
 const $longPressButton: ViewStyle = {
   position: "absolute",
   height: 60,
   right: 0,
-  top: -20,
   padding: spacing.sm,
   zIndex: 100,
   alignItems: "center",
@@ -203,7 +248,7 @@ const $rowContainer: ViewStyle = {
   flexDirection: "row",
   justifyContent: "space-between",
   gap: 10,
-  paddingHorizontal: spacing.lg,
+  paddingHorizontal: spacing.md,
 }
 
 const $cardPdfImage: ImageStyle = {
@@ -224,21 +269,20 @@ const $cardContainer: ViewStyle = {
   position: "relative",
   zIndex: 100,
   marginBottom: spacing.sm,
-}
-
-const $cardStyle: ViewStyle = {
+  ...shadowProps,
+  borderRadius: 10,
+  height: 60,
+  flexDirection: "row",
+  alignItems: "center",
   justifyContent: "flex-start",
   paddingHorizontal: 16,
-  alignItems: "flex-start",
-  width: "100%",
-  position: "relative",
 }
 
 const $cardText: TextStyle = {
   fontSize: 14,
-  lineHeight: 14,
+  lineHeight: 16,
   flexWrap: "wrap",
-  maxWidth: "70%",
+  maxWidth: "78%",
 }
 
 const $emptySpace: ViewStyle = {

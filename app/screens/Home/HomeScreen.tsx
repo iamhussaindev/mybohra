@@ -3,11 +3,13 @@ import { useSoundPlayer } from "app/hooks/useAudio"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import { useStores } from "app/models"
 import MiqaatList from "app/screens/components/MiqaatList"
+import { Asset } from "expo-asset"
 import { observer } from "mobx-react-lite"
-import React, { FC, ReactElement, useEffect, useRef, useState } from "react"
+import React, { FC, ReactElement, useCallback, useEffect, useRef, useState } from "react"
 import { View, ViewStyle, SectionList, NativeScrollEvent, NativeSyntheticEvent } from "react-native"
 import { Drawer } from "react-native-drawer-layout"
 import { RefreshControl } from "react-native-gesture-handler"
+import SoundPlayer from "react-native-sound-player"
 
 import { useLocationBottomSheet } from "../../contexts/LocationBottomSheetContext"
 import { isRTL } from "../../i18n"
@@ -40,6 +42,9 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   const $drawerInsets = useSafeAreaInsetsStyle(["top"])
   const [showBorder, setShowBorder] = useState(false)
   const [shadowOffset, setShadowOffset] = useState(0)
+  const [, setIsInitialLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const tonePlaybackLock = useRef(false)
   const { openLocationBottomSheet } = useLocationBottomSheet()
 
   const { dataStore, miqaatStore, libraryStore, reminderStore } = useStores()
@@ -60,33 +65,83 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   // Get pinned items and merge with daily duas
   const pinnedItems = libraryStore.getItemsByIds(dataStore.pinnedPdfIds)
 
-  // remove pinnedItems from combinedDailyDuas
-  const dailyDuas = libraryStore.homeData.filter((item) => !pinnedItems.includes(item)) ?? []
+  const dailyDuas = [...pinnedItems, ...libraryStore.homeData]
 
-  const fetchMiqaats = async () => {
+  const fetchMiqaats = useCallback(async () => {
     await miqaatStore.fetchMiqaats()
-  }
+  }, [miqaatStore])
 
-  const fetchHomeLibrary = async () => {
+  const fetchHomeLibrary = useCallback(async () => {
     await libraryStore.fetchHomeData()
     await dataStore.fetchQiyam()
     await libraryStore.fetchList()
-  }
+  }, [dataStore, libraryStore])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     await fetchMiqaats()
     await fetchHomeLibrary()
-  }
+  }, [fetchHomeLibrary, fetchMiqaats])
+
+  const playLoadingTone = useCallback(async () => {
+    if (tonePlaybackLock.current) return
+    tonePlaybackLock.current = true
+    try {
+      const toneAsset = Asset.fromModule(require("assets/audio/quick-ting.mp3"))
+      if (!toneAsset.localUri) {
+        await toneAsset.downloadAsync()
+      }
+      const uri = toneAsset.localUri ?? toneAsset.uri
+      if (uri) {
+        SoundPlayer.playUrl(uri)
+      }
+    } catch (error) {
+      console.warn("Unable to play loading tone", error)
+    } finally {
+      tonePlaybackLock.current = false
+    }
+  }, [])
 
   useEffect(() => {
     ;(async function load() {
       await dataStore.loadPinnedPdfs()
+      await dataStore.loadPdfHistory?.()
     })()
   }, [dataStore])
 
   useEffect(() => {
     return () => timeout.current && clearTimeout(timeout.current)
   }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    ;(async () => {
+      try {
+        await fetchData()
+      } catch (error) {
+        console.warn("Failed to load home data", error)
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false)
+          // await playLoadingTone()
+        }
+      }
+    })()
+    return () => {
+      isMounted = false
+    }
+  }, [fetchData, playLoadingTone])
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      await fetchData()
+      await playLoadingTone()
+    } catch (error) {
+      console.warn("Failed to refresh home data", error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [fetchData, playLoadingTone])
 
   const listRef = useRef<SectionList>(null)
 
@@ -146,10 +201,11 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
-                refreshing={false}
-                onRefresh={() => {
-                  fetchData()
-                }}
+                colors={[colors.palette.primary500]}
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                progressBackgroundColor={colors.palette.primary100}
+                progressViewOffset={10}
               />
             }
             contentContainerStyle={$sectionListContentContainer}
@@ -216,25 +272,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
                   ) : null,
                 ],
               },
-              {
-                name: "Bookmark & Pinned",
-                description: "Bookmark & Pinned",
-                key: "bookmark-pinned",
-                data: [
-                  pinnedItems.length > 0 ? (
-                    <DuaGridList
-                      navigation={props.navigation}
-                      handleItemLongPress={handleItemLongPress}
-                      items={pinnedItems}
-                      currentSound={currentSound}
-                      pinnedIds={dataStore.pinnedPdfIds}
-                      title="Bookmark & Pinned"
-                      key="daily-duas"
-                      showOptions={true}
-                    />
-                  ) : null,
-                ],
-              },
+
               {
                 name: "Daily Duas",
                 description: "daily duas",
@@ -246,9 +284,19 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
                       items={dailyDuas}
                       currentSound={currentSound}
                       pinnedIds={dataStore.pinnedPdfIds}
-                      title="Daily Duas & Hafti"
+                      title="Daily Ibadat & Hafti"
                       key="daily-duas"
                       showOptions={true}
+                      onViewAll={() => {
+                        props.navigation.navigate("DuaList", {
+                          album: {
+                            id: "daily-ibadat",
+                            title: "Daily Ibadat & Hafti",
+                            description: "Daily Ibadat & Hafti",
+                            count: 0,
+                          },
+                        })
+                      }}
                     />
                   ) : null,
                 ],
@@ -298,7 +346,7 @@ const $sectionListContentContainer: ViewStyle = {
 }
 
 const $screenContainer: ViewStyle = {
-  paddingBottom: 42,
+  flex: 1,
 }
 
 const $drawer: ViewStyle = {

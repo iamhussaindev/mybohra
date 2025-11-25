@@ -25,6 +25,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
   const $pdfRef = useRef<Pdf>(null)
 
   const { dataStore } = useStores()
+
   const translateY = useSharedValue(0)
 
   useEffect(() => {
@@ -46,6 +47,10 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
   }
 
   const item: ILibrary = props.route.params as unknown as ILibrary
+
+  useEffect(() => {
+    dataStore.recordPdfOpen(item.id)
+  }, [dataStore, item.id])
 
   const source = {
     uri: item.pdf_url ?? "",

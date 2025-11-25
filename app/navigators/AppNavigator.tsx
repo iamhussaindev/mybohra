@@ -60,7 +60,17 @@ export type AppStackParamList = {
   SavedTasbeeh: undefined
   EventReminder: { date: HijriDate }
   TasbeehList: undefined
-  DuaList: undefined
+  DuaList:
+    | {
+        album?: {
+          id: string
+          title: string
+          description: string
+          count: number
+        }
+      }
+    | undefined
+  DuaHome: undefined
   Reminder: undefined
   ReminderSettings: undefined
   CalendarSearch: undefined
@@ -85,7 +95,7 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 const AppStack = observer(function AppStack() {
   return (
     <Stack.Navigator
-      initialRouteName="TasbeehList"
+      initialRouteName="DuaHome"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,
@@ -100,6 +110,7 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="SavedTasbeeh" component={Screens.SavedTasbeehScreen} />
       <Stack.Screen name="EventReminder" component={Screens.EventReminderScreen} />
       <Stack.Screen name="TasbeehList" component={Screens.TasbeehListScreen} />
+      <Stack.Screen name="DuaHome" component={Screens.DuaLHomeScreen} />
       <Stack.Screen name="DuaList" component={Screens.DuaListScreen} />
       <Stack.Screen name="Reminder" component={Screens.ReminderScreen} />
       <Stack.Screen name="ReminderSettings" component={Screens.ReminderSettingsScreen} />

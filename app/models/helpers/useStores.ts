@@ -42,7 +42,7 @@ export const RootStoreProvider = RootStoreContext.Provider
  *
  * const { someStore, someOtherStore } = useStores()
  */
-export const useStores = () => useContext(RootStoreContext)
+export const useStores = (): RootStore => useContext(RootStoreContext)
 
 /**
  * Used only in the app.tsx file, this hook sets up the RootStore

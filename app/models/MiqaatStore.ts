@@ -120,7 +120,6 @@ export const MiqaatStoreModel = types
           miqaat.dateNight === hijriDate.day && miqaat.monthNight === hijriDate.month
         return checkTonight
       }
-
       const hijriDate = new HijriDate()
 
       const todayMiqaats = self.list
@@ -135,6 +134,20 @@ export const MiqaatStoreModel = types
       const sortedMiqaats = [...todayMiqaats, ...toNightMiqaats].sort((a, b) => {
         return (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0)
       })
+
+      // if tonight has any miqaat with and Pehli Taarikh, then rename it to Pehli Raat
+      const pehliTaarikhMiqaat = sortedMiqaats.find((miqaat) =>
+        miqaat.name.includes("Pehli Taarikh"),
+      )
+
+      if (pehliTaarikhMiqaat) {
+        sortedMiqaats.forEach((miqaat) => {
+          if (miqaat.name.includes("Pehli Taarikh")) {
+            miqaat.name = miqaat.name.replace("Pehli Taarikh", "Pehli Raat")
+          }
+        })
+      }
+
       return sortedMiqaats
     },
 

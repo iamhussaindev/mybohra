@@ -109,8 +109,9 @@ export default class HijriDate {
     return `${this.day} ${this.getShortMonthName(this.month)} ${this.year}`
   }
 
-  daysInMonth() {
-    return (this.month === 11 && this.isKabisa(this.year)) || this.month % 2 === 0 ? 30 : 29
+  daysInMonth(month?: number) {
+    const monthToCheck = month ?? this.month
+    return (monthToCheck === 11 && this.isKabisa(this.year)) || monthToCheck % 2 === 0 ? 30 : 29
   }
 
   get monthName() {

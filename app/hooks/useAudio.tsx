@@ -81,7 +81,6 @@ const useProvideSoundPlayer = (): SoundPlayerContextType => {
 
   const playSound = (item: ILibrary, startedFrom?: "PDF" | "LIBRARY") => {
     TrackPlayer.reset()
-    console.log(item.audio_url, "item.audio_url")
     TrackPlayer.add({
       id: item.id,
       url: item.audio_url ?? "",

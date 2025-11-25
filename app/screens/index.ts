@@ -10,5 +10,5 @@ export * from "./EventReminder/EventReminderScreen"
 export * from "./Reminders/ReminderScreen"
 export * from "./Reminders/ReminderSettingsScreen"
 export * from "./TasbeehList/TasbeehListScreen"
+export * from "./DuaList/DuaHomeScreen"
 export * from "./DuaList/DuaListScreen"
-// export other screens here

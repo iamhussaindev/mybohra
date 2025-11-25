@@ -31,7 +31,6 @@ export const TasbeehListScreen: FC<TasbeehListScreenProps> = observer(function T
   const $searchRef = useRef<TextInput>(null)
 
   const list = tasbeehStore.list.filter((tasbeeh) => tasbeeh.type !== "MISC")
-  console.log(tasbeehStore.list)
 
   const fuse = useMemo(
     () =>

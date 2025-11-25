@@ -50,10 +50,38 @@ export const LibraryStoreModel = types
         console.log("Error fetching daily items:", error)
       }
     }),
+    getCategories: function () {
+      return (
+        Array.from(
+          new Set(
+            self.allLibraryData
+              .map((item) => item.categories)
+              .filter((item) => item !== null)
+              .flat()
+              .filter((item): item is string => typeof item === "string"),
+          ),
+        ).map((item) => {
+          let title
+          if (item === "daily-dua") {
+            title = "Daily Ibadat"
+          }
+
+          title = item?.replace("_", " ").replace("-", " ")
+
+          return {
+            id: item ?? "",
+            title: title.replace("daily dua", "daily ibadat") ?? "",
+            description: item ?? "",
+            count: 0,
+          }
+        }) ?? []
+      )
+    },
     fetchList: flow(function* () {
       try {
         // First, check if we have cached data and version
         const cachedData = yield storage.load("LIBRARY_ALL")
+
         const storedVersion = yield storage.load("DUA_LIST_VERSION")
 
         // Fetch current version from API
@@ -61,9 +89,6 @@ export const LibraryStoreModel = types
 
         if (versionResponse.kind === "ok") {
           const currentVersion = versionResponse.data?.version
-
-          console.log(currentVersion, "currentVersion")
-          console.log(storedVersion, "storedVersion")
 
           // If we have cached data and versions match, use cached data
           if (cachedData && cachedData.length > 0 && storedVersion === currentVersion) {
@@ -119,6 +144,21 @@ export const LibraryStoreModel = types
     // Get items by IDs (for pinned items)
     getItemsByIds(ids: number[]): ILibrary[] {
       return self.allLibraryData.filter((item) => ids.includes(item.id))
+    },
+
+    // Get items by categories
+    fetchItemsByCategories(categories: string[]): ILibrary[] {
+      if (!categories || categories.length === 0) {
+        return []
+      }
+
+      return self.allLibraryData.filter((item) => {
+        if (!item.categories || item.categories.length === 0) {
+          return false
+        }
+        // Check if any of the item's categories match any of the requested categories
+        return item.categories.some((category) => categories.includes(category))
+      })
     },
   }))
 
