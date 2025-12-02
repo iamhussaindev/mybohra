@@ -53,7 +53,7 @@ export function usePdfOptionsBottomSheet({ navigation }: UsePdfOptionsBottomShee
           { text: "OK" },
         ])
       } else {
-        dataStore.pinPdf(item.id)
+        dataStore.pinPdf(item)
         Alert.alert("Pinned", `"${item.name}" has been pinned to your home screen.`, [
           { text: "OK" },
         ])

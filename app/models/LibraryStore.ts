@@ -1,7 +1,5 @@
-import { VERSION_KEYS } from "app/constants/version-keys"
 import HijriDate from "app/libs/HijriDate"
 import { apiSupabase } from "app/services/api"
-import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
 export const MetadataModel = types.model("MetadataModel", {
@@ -32,7 +30,10 @@ export const LibraryModel = types.model("LibraryModel", {
 export const LibraryStoreModel = types
   .model("LibraryStore", {
     homeData: types.optional(types.array(LibraryModel), []),
-    allLibraryData: types.array(LibraryModel),
+    // Remove allLibraryData - we'll fetch from Supabase on demand
+    categories: types.optional(types.array(types.frozen()), []),
+    albums: types.optional(types.array(types.frozen()), []),
+    tags: types.optional(types.array(types.frozen()), []),
   })
   .actions((self) => ({
     fetchHomeData: flow(function* () {
@@ -50,75 +51,118 @@ export const LibraryStoreModel = types
         console.log("Error fetching daily items:", error)
       }
     }),
-    getCategories: function () {
-      return (
-        Array.from(
-          new Set(
-            self.allLibraryData
-              .map((item) => item.categories)
-              .filter((item) => item !== null)
-              .flat()
-              .filter((item): item is string => typeof item === "string"),
-          ),
-        ).map((item) => {
-          let title
-          if (item === "daily-dua") {
-            title = "Daily Ibadat"
-          }
-
-          title = item?.replace("_", " ").replace("-", " ")
-
-          return {
-            id: item ?? "",
-            title: title.replace("daily dua", "daily ibadat") ?? "",
-            description: item ?? "",
-            count: 0,
-          }
-        }) ?? []
-      )
-    },
-    fetchList: flow(function* () {
+    fetchCategories: flow(function* () {
       try {
-        // First, check if we have cached data and version
-        const cachedData = yield storage.load("LIBRARY_ALL")
-
-        const storedVersion = yield storage.load("DUA_LIST_VERSION")
-
-        // Fetch current version from API
-        const versionResponse = yield apiSupabase.fetchVersion(VERSION_KEYS.DUA_VERSION)
-
-        if (versionResponse.kind === "ok") {
-          const currentVersion = versionResponse.data?.version
-
-          // If we have cached data and versions match, use cached data
-          if (cachedData && cachedData.length > 0 && storedVersion === currentVersion) {
-            self.allLibraryData = cachedData as any
-            return
-          }
-
-          // If versions don't match or no cached data, fetch fresh data
-          const response: any = yield apiSupabase.fetch("library/all")
-
-          if (response.kind === "ok") {
-            const data = response.data as ILibrary[]
-            self.allLibraryData = data as any
-
-            // Save data and version to storage
-            yield storage.save("LIBRARY_ALL", data)
-            yield storage.save("DUA_LIST_VERSION", currentVersion)
-          }
-        } else {
-          // If version check fails, try to fetch data anyway
-          const response: any = yield apiSupabase.fetch("library/all")
-
-          if (response.kind === "ok") {
-            const data = response.data as ILibrary[]
-            self.allLibraryData = data as any
-            yield storage.save("LIBRARY_ALL", data)
-          }
+        const response = yield apiSupabase.fetchCategories()
+        if (response.kind === "ok") {
+          self.categories = response.data as any
         }
       } catch (error) {
-        console.log("Error fetching library list:", error)
+        console.log("Error fetching categories:", error)
+      }
+    }),
+
+    getCategories: function () {
+      return self.categories
+    },
+
+    fetchAlbums: flow(function* () {
+      try {
+        const response = yield apiSupabase.fetchAlbums()
+        if (response.kind === "ok") {
+          self.albums = response.data as any
+        }
+      } catch (error) {
+        console.log("Error fetching albums:", error)
+      }
+    }),
+
+    getAlbums: function () {
+      return self.albums
+    },
+
+    fetchTags: flow(function* () {
+      try {
+        const response = yield apiSupabase.fetchTags()
+        if (response.kind === "ok") {
+          self.tags = response.data as any
+        }
+      } catch (error) {
+        console.log("Error fetching tags:", error)
+      }
+    }),
+
+    getTags: function () {
+      return self.tags
+    },
+    // Removed fetchList - no longer caching library data
+    // Fetch items by album from Supabase
+    fetchByAlbum: flow(function* (album: string) {
+      try {
+        const response = yield apiSupabase.fetchByAlbum(album)
+        if (response.kind === "ok") {
+          return response.data as ILibrary[]
+        }
+        return []
+      } catch (error) {
+        console.log("Error fetching by album:", error)
+        return []
+      }
+    }),
+
+    // Fetch items by categories from Supabase
+    fetchByCategories: flow(function* (categories: string[]) {
+      try {
+        const response = yield apiSupabase.fetchByCategories(categories)
+        if (response.kind === "ok") {
+          return response.data as ILibrary[]
+        }
+        return []
+      } catch (error) {
+        console.log("Error fetching by categories:", error)
+        return []
+      }
+    }),
+
+    // Fetch items by tags from Supabase
+    fetchByTags: flow(function* (tags: string[]) {
+      try {
+        const response = yield apiSupabase.fetchByTags(tags)
+        if (response.kind === "ok") {
+          return response.data as ILibrary[]
+        }
+        return []
+      } catch (error) {
+        console.log("Error fetching by tags:", error)
+        return []
+      }
+    }),
+
+    // Fetch items by IDs from Supabase
+    fetchItemsByIds: flow(function* (ids: number[]) {
+      try {
+        const response = yield apiSupabase.fetchLibraryItemsByIds(ids)
+        if (response.kind === "ok") {
+          return response.data as ILibrary[]
+        }
+        return []
+      } catch (error) {
+        console.log("Error fetching items by IDs:", error)
+        return []
+      }
+    }),
+
+    // Search library using RPC
+    searchLibrary: flow(function* (searchQuery: string) {
+      try {
+        const response = yield apiSupabase.searchLibrary(searchQuery)
+        if (response.kind === "ok") {
+          return response.data as ILibrary[]
+        }
+        return []
+      } catch (error) {
+        console.log("Error searching library:", error)
+        return []
       }
     }),
   }))
@@ -130,35 +174,6 @@ export const LibraryStoreModel = types
 
     get libraryItems() {
       return self.homeData
-    },
-
-    // Computed view for all library data
-    get howManyAllLibrary() {
-      return self.allLibraryData.length
-    },
-
-    get allLibraryItems() {
-      return self.allLibraryData
-    },
-
-    // Get items by IDs (for pinned items)
-    getItemsByIds(ids: number[]): ILibrary[] {
-      return self.allLibraryData.filter((item) => ids.includes(item.id))
-    },
-
-    // Get items by categories
-    fetchItemsByCategories(categories: string[]): ILibrary[] {
-      if (!categories || categories.length === 0) {
-        return []
-      }
-
-      return self.allLibraryData.filter((item) => {
-        if (!item.categories || item.categories.length === 0) {
-          return false
-        }
-        // Check if any of the item's categories match any of the requested categories
-        return item.categories.some((category) => categories.includes(category))
-      })
     },
   }))
 

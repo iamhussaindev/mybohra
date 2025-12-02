@@ -1,6 +1,4 @@
-import { IconDotsVertical } from "@tabler/icons-react-native"
 import { Text } from "app/components"
-import { shadowProps } from "app/helpers/shadow.helper"
 import { useSoundPlayer } from "app/hooks/useAudio"
 // Removed manual analytics - using Firebase only
 import { ILibrary } from "app/models/LibraryStore"
@@ -14,8 +12,8 @@ import {
   ViewStyle,
   ImageStyle,
   Pressable,
-  Image,
   TouchableOpacity,
+  Image,
 } from "react-native"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 import { State, Track } from "react-native-track-player"
@@ -74,7 +72,7 @@ export default function DuaGridList({
           <View key={rowIndex} style={$rowContainer}>
             {row.map((item, itemIndex) => (
               <DuaCard
-                key={item.id + itemIndex}
+                key={item.id + itemIndex + item.name}
                 currentSoundId={currentSound?.id ?? -1}
                 navigation={navigation}
                 item={item}
@@ -154,21 +152,9 @@ interface DailyCardProps {
 function DuaCard(props: DailyCardProps) {
   const isCurrentPlaying = props.item.id === props.currentSoundId
   const { state } = useSoundPlayer()
-  // Removed manual analytics - using Firebase only
 
   const handlePress = () => {
-    // Removed manual analytics - using Firebase only
     props.navigation.navigate("PdfViewer", { ...props.item })
-  }
-
-  const handleLongPress = () => {
-    // Trigger haptic feedback
-    ReactNativeHapticFeedback.trigger("impactLight", {
-      enableVibrateFallback: true,
-      ignoreAndroidSystemSettings: false,
-    })
-
-    props.onLongPress(props.item)
   }
 
   const $soundAnimation = useRef<LottieView>(null)
@@ -187,13 +173,15 @@ function DuaCard(props: DailyCardProps) {
       style={[
         $cardContainer,
         props.columns === 1
-          ? { width: screenWidth - spacing.md * 2 }
+          ? { width: screenWidth - spacing.lg * 2 }
           : { width: (screenWidth - spacing.lg * 2 - 10) / (props.columns ?? 2) },
       ]}
     >
       <View style={$cardContent}>
         {!isCurrentPlaying ? (
-          <Image style={$cardPdfImage} source={require("../../../assets/images/pdf.png")} alt="" />
+          <View style={$cardPdfImage}>
+            <Image source={require("../../../assets/icons/pdf.png")} style={$pdfImage} />
+          </View>
         ) : (
           <LottieView
             style={$cardLottie}
@@ -212,31 +200,38 @@ function DuaCard(props: DailyCardProps) {
         />
       </View>
 
-      {props.showOptions && (
+      {/* {props.showOptions && (
         <Pressable
           onPress={props.showOptions ? handleLongPress : undefined}
           style={$longPressButton}
         >
           <IconDotsVertical size={18} color={colors.palette.neutral900} />
         </Pressable>
-      )}
+      )} */}
     </Pressable>
   )
 }
 
-const $cardTextFull: TextStyle = {
-  width: "100%",
+const $pdfImage: ImageStyle = {
+  height: 24,
+  width: 24,
 }
 
-const $longPressButton: ViewStyle = {
-  position: "absolute",
-  height: 60,
-  right: 0,
-  padding: spacing.sm,
-  zIndex: 100,
-  alignItems: "center",
-  justifyContent: "center",
+const $cardTextFull: TextStyle = {
+  width: "100%",
+
+  fontSize: 15,
 }
+
+// const $longPressButton: ViewStyle = {
+//   position: "absolute",
+//   height: 60,
+//   right: 0,
+//   padding: spacing.sm,
+//   zIndex: 100,
+//   alignItems: "center",
+//   justifyContent: "center",
+// }
 
 const $cardContent: ViewStyle = {
   flexDirection: "row",
@@ -248,14 +243,19 @@ const $rowContainer: ViewStyle = {
   flexDirection: "row",
   justifyContent: "space-between",
   gap: 10,
-  paddingHorizontal: spacing.md,
+  paddingHorizontal: spacing.lg,
 }
 
 const $cardPdfImage: ImageStyle = {
-  height: 24,
-  width: 24,
+  height: 32,
+  width: 32,
   position: "relative",
   zIndex: 100,
+  borderRadius: 32,
+  padding: 4,
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: 4,
 }
 
 const $cardLottie: ViewStyle = {
@@ -269,20 +269,27 @@ const $cardContainer: ViewStyle = {
   position: "relative",
   zIndex: 100,
   marginBottom: spacing.sm,
-  ...shadowProps,
+  borderWidth: 1,
+  borderColor: colors.border,
   borderRadius: 10,
   height: 60,
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "flex-start",
-  paddingHorizontal: 16,
+  paddingHorizontal: 8,
+  shadowOpacity: 0.02,
+  shadowRadius: 4,
+  shadowOffset: { width: 0, height: 5 },
+  backgroundColor: colors.white,
+  borderCurve: "continuous",
 }
 
 const $cardText: TextStyle = {
   fontSize: 14,
-  lineHeight: 16,
+  lineHeight: 18,
   flexWrap: "wrap",
-  maxWidth: "78%",
+  textTransform: "capitalize",
+  maxWidth: "75%",
 }
 
 const $emptySpace: ViewStyle = {
@@ -294,4 +301,5 @@ const $container: ViewStyle = {
   marginTop: 10,
   overflow: "visible",
   marginBottom: 16,
+  // backgroundColor: colors.palette.neutral100,
 }

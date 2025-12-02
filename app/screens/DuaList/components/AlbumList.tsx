@@ -1,4 +1,4 @@
-import { IconBookFilled } from "@tabler/icons-react-native"
+import { IconFolderCheck } from "@tabler/icons-react-native"
 import { Text } from "app/components"
 import { shadowProps } from "app/helpers/shadow.helper"
 import { colors, spacing } from "app/theme"
@@ -38,11 +38,7 @@ const hiddenCategories = [
   "daily-dua",
 ]
 
-export default function AlbumList({
-  title = "Categories",
-  onSelectAlbum,
-  categories,
-}: AlbumListProps) {
+export default function AlbumList({ onSelectAlbum, categories }: AlbumListProps) {
   const handleAlbumPress = (album: AlbumCategory) => {
     if (onSelectAlbum) {
       onSelectAlbum(album)
@@ -51,11 +47,8 @@ export default function AlbumList({
 
   return (
     <View style={$container}>
-      <Text style={$header} text={title} weight="bold" preset="subheading" />
-
       <View style={$grid}>
         {categories
-
           .filter((album) => !hiddenCategories.includes(album.id))
           .map((album) => {
             return (
@@ -69,7 +62,7 @@ export default function AlbumList({
                 onPress={() => handleAlbumPress(album)}
               >
                 <View style={$albumEmojiContainer}>
-                  <IconBookFilled size={24} color={colors.palette.neutral100} />
+                  <IconFolderCheck size={24} color={colors.palette.primary800} />
                 </View>
                 <Text style={$albumTitle} text={album.title} numberOfLines={2} weight="medium" />
               </Pressable>
@@ -88,14 +81,8 @@ const $albumCardHighlight: ViewStyle = {
 
 const $container: ViewStyle = {
   flexDirection: "column",
-  marginTop: 10,
   overflow: "visible",
   marginBottom: 16,
-}
-
-const $header: TextStyle = {
-  marginStart: spacing.lg,
-  marginBottom: spacing.sm,
 }
 
 const $grid: ViewStyle = {
@@ -113,18 +100,13 @@ const $albumCard: ViewStyle = {
   borderColor: colors.border,
   minHeight: 100,
   justifyContent: "space-between",
-  shadowColor: colors.palette.neutral900,
-  shadowOpacity: 0.05,
-  shadowOffset: { width: 0, height: 6 },
-  shadowRadius: 12,
-  elevation: 2,
 }
 
 const $albumEmojiContainer: ViewStyle = {
   width: 42,
   height: 42,
   borderRadius: 21,
-  backgroundColor: colors.palette.primary500,
+  backgroundColor: colors.palette.primary100,
   alignItems: "center",
   justifyContent: "center",
   marginBottom: spacing.xs,

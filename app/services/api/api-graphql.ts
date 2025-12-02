@@ -426,7 +426,12 @@ export class ApiSupabase {
       }
 
       if (endpoint === "library/all") {
-        const { data, error } = await supabase.from("library").select("*").order("name")
+        const { data, error } = await supabase
+          .from("library")
+          .select("*")
+          .order("name")
+          .eq("album", "DUA")
+          .order("created_at", { ascending: true })
 
         if (error) {
           console.error("Error fetching library:", error)
@@ -509,6 +514,310 @@ export class ApiSupabase {
       return { kind: "not-found" }
     } catch (error) {
       console.error("Error in fetch:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch distinct albums from library
+   */
+  async fetchAlbums(): Promise<
+    | {
+        kind: "ok"
+        data: Array<{ album: string; count: number }>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("library")
+        .select("album")
+        .not("album", "is", null)
+        .eq("album", "DUA")
+
+      if (error) {
+        console.error("Error fetching albums:", error)
+        return { kind: "bad-data" }
+      }
+
+      // Count albums
+      const albumCounts = new Map<string, number>()
+      data?.forEach((item: { album: string | null }) => {
+        if (item.album) {
+          const album = item.album
+          albumCounts.set(album, (albumCounts.get(album) || 0) + 1)
+        }
+      })
+
+      const albums = Array.from(albumCounts.entries()).map(([album, count]) => ({
+        album,
+        count,
+      }))
+
+      return { kind: "ok", data: albums }
+    } catch (error) {
+      console.error("Error fetching albums:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch distinct categories from library
+   */
+  async fetchCategories(): Promise<
+    | {
+        kind: "ok"
+        data: Array<{ id: string; title: string; description: string; count: number }>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("library")
+        .select("categories")
+        .eq("album", "DUA")
+        .not("categories", "is", null)
+
+      if (error) {
+        console.error("Error fetching categories:", error)
+        return { kind: "bad-data" }
+      }
+
+      // Count categories
+      const categoryCounts = new Map<string, number>()
+      data?.forEach((item: { categories: string[] | null }) => {
+        if (item.categories && Array.isArray(item.categories)) {
+          item.categories.forEach((category: string) => {
+            categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1)
+          })
+        }
+      })
+
+      const categories = Array.from(categoryCounts.entries()).map(([id, count]) => {
+        let title = id
+        if (id === "daily-dua") {
+          title = "Daily Ibadat"
+        } else {
+          title = id.replace(/_/g, " ").replace(/-/g, " ")
+        }
+
+        return {
+          id,
+          title: title.replace("daily dua", "daily ibadat"),
+          description: id,
+          count,
+        }
+      })
+
+      return { kind: "ok", data: categories }
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch distinct tags from library
+   */
+  async fetchTags(): Promise<
+    | {
+        kind: "ok"
+        data: Array<{ tag: string; count: number }>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("library")
+        .select("tags")
+        .eq("album", "DUA")
+        .not("tags", "is", null)
+
+      if (error) {
+        console.error("Error fetching tags:", error)
+        return { kind: "bad-data" }
+      }
+
+      // Count tags
+      const tagCounts = new Map<string, number>()
+      data?.forEach((item: { tags: string[] | null }) => {
+        if (item.tags && Array.isArray(item.tags)) {
+          item.tags.forEach((tag: string) => {
+            tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1)
+          })
+        }
+      })
+
+      const tags = Array.from(tagCounts.entries()).map(([tag, count]) => ({
+        tag,
+        count,
+      }))
+
+      return { kind: "ok", data: tags }
+    } catch (error) {
+      console.error("Error fetching tags:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch library items by album
+   */
+  async fetchByAlbum(album: string): Promise<
+    | {
+        kind: "ok"
+        data: LibraryRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("library")
+        .select("*")
+        .eq("album", album)
+        .order("name")
+
+      if (error) {
+        console.error("Error fetching by album:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as LibraryRow[] }
+    } catch (error) {
+      console.error("Error fetching by album:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch library items by categories
+   */
+  async fetchByCategories(categories: string[]): Promise<
+    | {
+        kind: "ok"
+        data: LibraryRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      if (!categories || categories.length === 0) {
+        return { kind: "ok", data: [] }
+      }
+
+      const { data, error } = await supabase
+        .from("library")
+        .select("*")
+        .overlaps("categories", categories)
+        .eq("album", "DUA")
+        .order("name")
+
+      if (error) {
+        console.error("Error fetching by categories:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as LibraryRow[] }
+    } catch (error) {
+      console.error("Error fetching by categories:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch library items by tags
+   */
+  async fetchByTags(tags: string[]): Promise<
+    | {
+        kind: "ok"
+        data: LibraryRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      if (!tags || tags.length === 0) {
+        return { kind: "ok", data: [] }
+      }
+
+      const { data, error } = await supabase
+        .from("library")
+        .select("*")
+        .overlaps("tags", tags)
+        .eq("album", "DUA")
+        .order("name")
+
+      if (error) {
+        console.error("Error fetching by tags:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as LibraryRow[] }
+    } catch (error) {
+      console.error("Error fetching by tags:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch library items by IDs
+   */
+  async fetchLibraryItemsByIds(ids: number[]): Promise<
+    | {
+        kind: "ok"
+        data: LibraryRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      if (!ids || ids.length === 0) {
+        return { kind: "ok", data: [] }
+      }
+
+      const { data, error } = await supabase
+        .from("library")
+        .select("*")
+        .in("id", ids)
+        .eq("album", "DUA")
+        .order("name")
+
+      if (error) {
+        console.error("Error fetching library items by IDs:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as LibraryRow[] }
+    } catch (error) {
+      console.error("Error fetching library items by IDs:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Search library using RPC function
+   */
+  async searchLibrary(searchQuery: string): Promise<
+    | {
+        kind: "ok"
+        data: LibraryRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      if (!searchQuery || searchQuery.trim().length === 0) {
+        return { kind: "ok", data: [] }
+      }
+
+      const { data, error } = await supabase.rpc("search_library", {
+        search_query: searchQuery.trim(),
+      } as any)
+
+      if (error) {
+        console.error("Error searching library:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as LibraryRow[] }
+    } catch (error) {
+      console.error("Error searching library:", error)
       return { kind: "bad-data" }
     }
   }

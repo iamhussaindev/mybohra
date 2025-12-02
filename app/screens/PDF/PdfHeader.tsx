@@ -26,7 +26,7 @@ export const Header = observer(function Header(props: HeaderProps) {
   const iconScale = useSharedValue(1)
   useEffect(() => {
     setIsPinned(dataStore.isPdfPinned(props.id))
-  }, [dataStore.pinnedPdfIds])
+  }, [dataStore.pinnedPdfs])
   useEffect(() => {
     if (props.isFullscreen) {
       translateY.value = withTiming(-200, { duration: 100 }) // Slide up when entering fullscreen

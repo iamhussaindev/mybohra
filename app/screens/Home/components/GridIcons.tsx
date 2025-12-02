@@ -3,7 +3,6 @@ import { spacing } from "app/theme"
 import React from "react"
 import { Image, ImageStyle, Pressable, View, ViewStyle } from "react-native"
 
-
 const data = [
   { key: "1", name: "Library", icon: require(`../../../../assets/images/audio.png`) },
   { key: "2", name: "Quran", icon: require(`../../../../assets/images/quran.png`) },
@@ -32,6 +31,7 @@ const $container: ViewStyle = {
   marginHorizontal: spacing.xs, // Use the spacing from your theme
   display: "flex",
   flexDirection: "row",
+  marginBottom: spacing.sm,
   flexWrap: "wrap",
 }
 

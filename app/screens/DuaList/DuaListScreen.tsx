@@ -1,22 +1,14 @@
-import { useFocusEffect } from "@react-navigation/native"
 import { Icon, PDFOptionsBottomSheet, Screen } from "app/components"
 import Header from "app/components/Header"
 import { useSoundPlayer } from "app/hooks/useAudio"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import { useStores } from "app/models"
+import { ILibrary } from "app/models/LibraryStore"
 import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
 import { observer } from "mobx-react-lite"
-import React, { FC, useCallback, useRef, useState, useEffect, useMemo } from "react"
-import {
-  ViewStyle,
-  Pressable,
-  TextInput,
-  Keyboard,
-  Animated,
-  ScrollView,
-  RefreshControl,
-} from "react-native"
+import React, { FC, useCallback, useRef, useState, useEffect } from "react"
+import { ViewStyle, Pressable, Animated, ScrollView, RefreshControl } from "react-native"
 
 import DailyDuas from "../components/DuaGridList"
 
@@ -25,9 +17,6 @@ interface DuaListScreenProps extends AppStackScreenProps<"DuaList"> {}
 export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListScreen(props) {
   const { libraryStore, dataStore } = useStores()
   const { currentSound } = useSoundPlayer()
-  const [search, setSearch] = useState("")
-  const [showSearch, setShowSearch] = useState(false)
-  const $searchRef = useRef<TextInput>(null)
   const album = props.route.params?.album
 
   // Use the PDF options bottom sheet hook
@@ -43,17 +32,13 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
   } = usePdfOptionsBottomSheet({ navigation: props.navigation })
 
   // Animated values
-  const searchOpacity = useRef(new Animated.Value(0)).current
-  const searchTranslateY = useRef(new Animated.Value(-20)).current
-  const searchScale = useRef(new Animated.Value(0.95)).current
   const iconScale = useRef(new Animated.Value(1)).current
 
   const [refreshing, setRefreshing] = useState(false)
 
   const fetchLibraryData = useCallback(async () => {
-    await libraryStore.fetchList()
     await dataStore.loadPdfHistory()
-  }, [libraryStore, dataStore])
+  }, [dataStore])
 
   // Fetch library data on component mount
   useEffect(() => {
@@ -70,60 +55,20 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
   }, [fetchLibraryData])
 
   // Fetch items by categories if album is provided
-  const categoryItems = useMemo(() => {
-    if (!album) {
-      return []
+  const [categoryItems, setCategoryItems] = useState<ILibrary[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (album) {
+      setLoading(true)
+      libraryStore.fetchByCategories([album.id]).then((items) => {
+        setCategoryItems(items)
+        setLoading(false)
+      })
+    } else {
+      setCategoryItems([])
     }
-    return libraryStore.fetchItemsByCategories([album.id])
-  }, [album, libraryStore.allLibraryData])
-
-  const animateSearchIn = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(searchOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchTranslateY, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchScale, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [searchOpacity, searchTranslateY, searchScale])
-
-  const animateSearchOut = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(searchOpacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchTranslateY, {
-        toValue: -20,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchScale, {
-        toValue: 0.95,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setShowSearch(false)
-    })
-  }, [searchOpacity, searchTranslateY, searchScale])
-
-  const closeSearch = useCallback(() => {
-    animateSearchOut()
-    setSearch("")
-    Keyboard.dismiss()
-  }, [animateSearchOut])
+  }, [album, libraryStore])
 
   const animateIconPress = useCallback(() => {
     Animated.sequence([
@@ -140,47 +85,6 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
     ]).start()
   }, [iconScale])
 
-  const toggleSearch = useCallback(() => {
-    animateIconPress()
-
-    if (!showSearch) {
-      setShowSearch(true)
-      // Start animation and focus after a brief delay
-      setTimeout(() => {
-        animateSearchIn()
-        setTimeout(() => {
-          $searchRef.current?.focus()
-        }, 150)
-      }, 50)
-    } else {
-      // Clear search when hiding
-      closeSearch()
-    }
-  }, [showSearch, closeSearch, animateSearchIn, animateIconPress])
-
-  // Close search when screen loses focus (back button, navigation)
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        // Cleanup when screen loses focus
-        closeSearch()
-      }
-    }, [closeSearch]),
-  )
-
-  // Close search when keyboard is dismissed
-  useEffect(() => {
-    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => {
-      if (showSearch && search.length === 0) {
-        closeSearch()
-      }
-    })
-
-    return () => {
-      keyboardDidHideListener?.remove()
-    }
-  }, [showSearch, search, closeSearch])
-
   return (
     <Screen
       preset="fixed"
@@ -192,7 +96,12 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
         title={album ? album.title : "Dua Library"}
         showBackButton
         rightActions={
-          <Pressable onPress={toggleSearch}>
+          <Pressable
+            onPress={() => {
+              animateIconPress()
+              props.navigation.navigate("DuaListSearch")
+            }}
+          >
             <Animated.View style={{ transform: [{ scale: iconScale }] }}>
               <Icon icon="search" size={20} color={colors.palette.primary500} />
             </Animated.View>
@@ -208,14 +117,14 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
         {album && categoryItems.length > 0 ? (
           <DailyDuas
             hideTitle
-            columns={2}
+            columns={1}
             title={album.title}
             navigation={props.navigation}
             items={categoryItems}
             currentSound={currentSound}
             handleItemLongPress={handleItemLongPress}
             key="category-items"
-            pinnedIds={dataStore.pinnedPdfIds}
+            pinnedIds={dataStore.getPinnedPdfIds()}
             showOptions={true}
           />
         ) : album && categoryItems.length === 0 ? (
@@ -226,7 +135,7 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
             currentSound={currentSound}
             handleItemLongPress={handleItemLongPress}
             key="category-items-empty"
-            pinnedIds={dataStore.pinnedPdfIds}
+            pinnedIds={dataStore.getPinnedPdfIds()}
             showOptions={true}
           />
         ) : null}

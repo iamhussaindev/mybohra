@@ -63,7 +63,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   } = usePdfOptionsBottomSheet({ navigation: props.navigation })
 
   // Get pinned items and merge with daily duas
-  const pinnedItems = libraryStore.getItemsByIds(dataStore.pinnedPdfIds)
+  const pinnedItems = dataStore.pinnedPdfs
 
   const dailyDuas = [...pinnedItems, ...libraryStore.homeData]
 
@@ -74,7 +74,6 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   const fetchHomeLibrary = useCallback(async () => {
     await libraryStore.fetchHomeData()
     await dataStore.fetchQiyam()
-    await libraryStore.fetchList()
   }, [dataStore, libraryStore])
 
   const fetchData = useCallback(async () => {
@@ -283,7 +282,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
                       handleItemLongPress={handleItemLongPress}
                       items={dailyDuas}
                       currentSound={currentSound}
-                      pinnedIds={dataStore.pinnedPdfIds}
+                      pinnedIds={dataStore.getPinnedPdfIds()}
                       title="Daily Ibadat & Hafti"
                       key="daily-duas"
                       showOptions={true}

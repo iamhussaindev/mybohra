@@ -4,6 +4,8 @@ import { PlainLocation } from "app/types/location"
 import * as storage from "app/utils/storage"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
+import { LibraryModel, ILibrary } from "./LibraryStore"
+
 export const QIYAM_KEY = "current_qiyam"
 export const PDF_HISTORY_KEY = "pdf_history"
 
@@ -55,8 +57,8 @@ export const DataStoreModel = types
     pastSelectedLocations: types.optional(types.array(LocationModel), []),
     // Reminder settings
     reminderSettings: types.optional(ReminderSettingsModel, {}),
-    // Pinned PDFs
-    pinnedPdfIds: types.optional(types.array(types.number), []),
+    // Pinned PDFs - store full objects instead of just IDs
+    pinnedPdfs: types.optional(types.array(LibraryModel), []),
     // PDF history
     pdfHistory: types.optional(types.array(PdfHistoryModel), []),
   })
@@ -476,46 +478,83 @@ export const DataStoreModel = types
         }
       }),
 
-      // Pinned PDFs actions
-      pinPdf(pdfId: number) {
-        if (!self.pinnedPdfIds.includes(pdfId)) {
-          self.pinnedPdfIds.push(pdfId)
-          storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+      // Pinned PDFs actions - now stores full objects
+      pinPdf(pdfItem: ILibrary) {
+        const exists = self.pinnedPdfs.some((item) => item.id === pdfItem.id)
+        if (!exists) {
+          self.pinnedPdfs.push(pdfItem)
+          // Save full objects to storage
+          const serialized = self.pinnedPdfs.map((item) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            audio_url: item.audio_url,
+            pdf_url: item.pdf_url,
+            youtube_url: item.youtube_url,
+            metadata: item.metadata,
+            album: item.album,
+            tags: item.tags,
+            categories: item.categories,
+            search_text: item.search_text,
+            search_vector: item.search_vector,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+          }))
+          storage.save("PINNED_PDFS", serialized)
         }
       },
 
       unpinPdf(pdfId: number) {
-        const index = self.pinnedPdfIds.indexOf(pdfId)
+        const index = self.pinnedPdfs.findIndex((item) => item.id === pdfId)
         if (index > -1) {
-          self.pinnedPdfIds.splice(index, 1)
-          storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
+          self.pinnedPdfs.splice(index, 1)
+          const serialized = self.pinnedPdfs.map((item) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            audio_url: item.audio_url,
+            pdf_url: item.pdf_url,
+            youtube_url: item.youtube_url,
+            metadata: item.metadata,
+            album: item.album,
+            tags: item.tags,
+            categories: item.categories,
+            search_text: item.search_text,
+            search_vector: item.search_vector,
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+          }))
+          storage.save("PINNED_PDFS", serialized)
         }
       },
 
-      togglePinPdf(pdfId: number) {
-        if (self.pinnedPdfIds.includes(pdfId)) {
-          const index = self.pinnedPdfIds.indexOf(pdfId)
-          if (index > -1) {
-            self.pinnedPdfIds.splice(index, 1)
-            storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
-          }
+      togglePinPdf(pdfItem: ILibrary) {
+        const exists = self.pinnedPdfs.some((item) => item.id === pdfItem.id)
+        if (exists) {
+          this.unpinPdf(pdfItem.id)
         } else {
-          if (!self.pinnedPdfIds.includes(pdfId)) {
-            self.pinnedPdfIds.push(pdfId)
-            storage.save("PINNED_PDF_IDS", Array.from(self.pinnedPdfIds))
-          }
+          this.pinPdf(pdfItem)
         }
       },
 
       isPdfPinned(pdfId: number): boolean {
-        return self.pinnedPdfIds.includes(pdfId)
+        return self.pinnedPdfs.some((item) => item.id === pdfId)
       },
 
       loadPinnedPdfs: flow(function* () {
         try {
-          const savedPinnedIds = yield storage.load("PINNED_PDF_IDS")
-          if (savedPinnedIds && Array.isArray(savedPinnedIds)) {
-            self.pinnedPdfIds.replace(savedPinnedIds)
+          const savedPinnedPdfs = yield storage.load("PINNED_PDFS")
+          if (savedPinnedPdfs && Array.isArray(savedPinnedPdfs)) {
+            // Migrate from old format (IDs only) if needed
+            if (savedPinnedPdfs.length > 0 && typeof savedPinnedPdfs[0] === "number") {
+              // Old format - clear it, user will need to re-pin
+              console.log("Migrating from old bookmark format")
+              storage.save("PINNED_PDFS", [])
+              self.pinnedPdfs.clear()
+              return
+            }
+            // New format - full objects
+            self.pinnedPdfs.replace(savedPinnedPdfs as any)
           }
         } catch (error) {
           console.error("Error loading pinned PDFs:", error)
@@ -523,8 +562,12 @@ export const DataStoreModel = types
       }),
 
       clearAllPinnedPdfs() {
-        self.pinnedPdfIds.clear()
-        storage.save("PINNED_PDF_IDS", [])
+        self.pinnedPdfs.clear()
+        storage.save("PINNED_PDFS", [])
+      },
+
+      getPinnedPdfIds(): number[] {
+        return self.pinnedPdfs.map((item) => item.id)
       },
 
       loadPdfHistory: flow(function* () {

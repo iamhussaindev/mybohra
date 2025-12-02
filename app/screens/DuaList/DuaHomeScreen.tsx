@@ -1,4 +1,3 @@
-import { useFocusEffect } from "@react-navigation/native"
 import { Icon, PDFOptionsBottomSheet, Screen } from "app/components"
 import Header from "app/components/Header"
 import { useSoundPlayer } from "app/hooks/useAudio"
@@ -9,16 +8,7 @@ import { AppStackScreenProps } from "app/navigators"
 import { colors } from "app/theme"
 import { observer } from "mobx-react-lite"
 import React, { FC, useCallback, useRef, useState, useEffect } from "react"
-import {
-  View,
-  ViewStyle,
-  Pressable,
-  TextInput,
-  Keyboard,
-  Animated,
-  SectionList,
-  RefreshControl,
-} from "react-native"
+import { View, ViewStyle, Pressable, Animated, SectionList, RefreshControl } from "react-native"
 
 import DailyDuas from "../components/DuaGridList"
 import SoundPlayerHome from "../Home/components/SoundPlayerHome"
@@ -30,9 +20,6 @@ interface DuaHomeScreen extends AppStackScreenProps<"DuaHome"> {}
 export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScreen(props) {
   const { libraryStore, dataStore } = useStores()
   const { currentSound } = useSoundPlayer()
-  const [search, setSearch] = useState("")
-  const [showSearch, setShowSearch] = useState(false)
-  const $searchRef = useRef<TextInput>(null)
 
   // Use the PDF options bottom sheet hook
   const {
@@ -47,15 +34,13 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   } = usePdfOptionsBottomSheet({ navigation: props.navigation })
 
   // Animated values
-  const searchOpacity = useRef(new Animated.Value(0)).current
-  const searchTranslateY = useRef(new Animated.Value(-20)).current
-  const searchScale = useRef(new Animated.Value(0.95)).current
   const iconScale = useRef(new Animated.Value(1)).current
 
   const [refreshing, setRefreshing] = useState(false)
+  const [recentPdfItems, setRecentPdfItems] = useState<ILibrary[]>([])
 
   const fetchLibraryData = useCallback(async () => {
-    await libraryStore.fetchList()
+    await libraryStore.fetchCategories()
     await dataStore.loadPdfHistory()
   }, [libraryStore, dataStore])
 
@@ -72,63 +57,21 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
       setRefreshing(false)
     }
   }, [fetchLibraryData])
+
   const recentHistory = dataStore.getRecentPdfHistory(6)
-  const recentPdfItems = recentHistory
-    .map((entry) => libraryStore.allLibraryData.find((item) => item.id === entry.pdfId))
-    .filter((item): item is ILibrary => Boolean(item))
-    .slice(0, 6)
-  const recentPdfIds = new Set(recentPdfItems.map((item) => item.id))
-  const filteredDailyDuas = libraryStore.getItemsByIds(
-    dataStore.pinnedPdfIds.filter((id) => !recentPdfIds.has(id)),
-  )
+  const recentPdfIds = new Set(recentHistory.map((entry) => entry.pdfId))
 
-  const animateSearchIn = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(searchOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchTranslateY, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchScale, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start()
-  }, [searchOpacity, searchTranslateY, searchScale])
+  // Fetch recent PDF items by IDs
+  useEffect(() => {
+    if (recentHistory.length > 0) {
+      const ids = recentHistory.map((entry) => entry.pdfId)
+      libraryStore.fetchItemsByIds(ids).then((items) => {
+        setRecentPdfItems(items.slice(0, 6))
+      })
+    }
+  }, [recentHistory, libraryStore])
 
-  const animateSearchOut = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(searchOpacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchTranslateY, {
-        toValue: -20,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(searchScale, {
-        toValue: 0.95,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setShowSearch(false)
-    })
-  }, [searchOpacity, searchTranslateY, searchScale])
-
-  const closeSearch = useCallback(() => {
-    animateSearchOut()
-    setSearch("")
-    Keyboard.dismiss()
-  }, [animateSearchOut])
+  const filteredDailyDuas = dataStore.pinnedPdfs.filter((item) => !recentPdfIds.has(item.id))
 
   const animateIconPress = useCallback(() => {
     Animated.sequence([
@@ -145,46 +88,13 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     ]).start()
   }, [iconScale])
 
-  const toggleSearch = useCallback(() => {
-    animateIconPress()
-
-    if (!showSearch) {
-      setShowSearch(true)
-      // Start animation and focus after a brief delay
-      setTimeout(() => {
-        animateSearchIn()
-        setTimeout(() => {
-          $searchRef.current?.focus()
-        }, 150)
-      }, 50)
-    } else {
-      // Clear search when hiding
-      closeSearch()
-    }
-  }, [showSearch, closeSearch, animateSearchIn, animateIconPress])
-
-  // Close search when screen loses focus (back button, navigation)
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        // Cleanup when screen loses focus
-        closeSearch()
-      }
-    }, [closeSearch]),
+  // filter out from from first 4 items in recentPdfItems
+  const homeData = libraryStore.homeData.filter(
+    (item) => !recentPdfItems.some((i) => i.id === item.id),
   )
 
-  // Close search when keyboard is dismissed
-  useEffect(() => {
-    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => {
-      if (showSearch && search.length === 0) {
-        closeSearch()
-      }
-    })
-
-    return () => {
-      keyboardDidHideListener?.remove()
-    }
-  }, [showSearch, search, closeSearch])
+  const allItems = new Set([...recentPdfItems, ...homeData, ...filteredDailyDuas])
+  const allItemsArray = Array.from(allItems)
 
   return (
     <Screen
@@ -197,7 +107,12 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
         title="Dua Library"
         showBackButton
         rightActions={
-          <Pressable onPress={toggleSearch}>
+          <Pressable
+            onPress={() => {
+              animateIconPress()
+              props.navigation.navigate("DuaListSearch")
+            }}
+          >
             <Animated.View style={{ transform: [{ scale: iconScale }] }}>
               <Icon icon="search" size={20} color={colors.palette.primary500} />
             </Animated.View>
@@ -228,28 +143,13 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
             data: [
               recentPdfItems.length ? (
                 <DailyDuas
+                  hideTitle
                   title="Recently Opened"
                   navigation={props.navigation}
-                  items={recentPdfItems}
+                  items={allItemsArray}
                   currentSound={currentSound}
                   handleItemLongPress={handleItemLongPress}
                   key="recent-pdfs"
-                />
-              ) : null,
-            ],
-          },
-          {
-            name: "Daily Duas",
-            description: "daily duas",
-            data: [
-              filteredDailyDuas.length > 0 ? (
-                <DailyDuas
-                  title="Bookmarks"
-                  navigation={props.navigation}
-                  items={filteredDailyDuas}
-                  currentSound={currentSound}
-                  handleItemLongPress={handleItemLongPress}
-                  key="bookmarks"
                 />
               ) : null,
             ],

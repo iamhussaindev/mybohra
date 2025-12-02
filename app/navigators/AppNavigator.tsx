@@ -74,6 +74,7 @@ export type AppStackParamList = {
   Reminder: undefined
   ReminderSettings: undefined
   CalendarSearch: undefined
+  DuaListSearch: undefined
   // 🔥 Your screens go here
   // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }
@@ -112,6 +113,7 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="TasbeehList" component={Screens.TasbeehListScreen} />
       <Stack.Screen name="DuaHome" component={Screens.DuaLHomeScreen} />
       <Stack.Screen name="DuaList" component={Screens.DuaListScreen} />
+      <Stack.Screen name="DuaListSearch" component={Screens.DuaListSearch} />
       <Stack.Screen name="Reminder" component={Screens.ReminderScreen} />
       <Stack.Screen name="ReminderSettings" component={Screens.ReminderSettingsScreen} />
     </Stack.Navigator>
