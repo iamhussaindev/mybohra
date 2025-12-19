@@ -4,7 +4,7 @@ import React from "react"
 import { Image, ImageStyle, Pressable, View, ViewStyle } from "react-native"
 
 const data = [
-  { key: "1", name: "Library", icon: require(`../../../../assets/images/audio.png`) },
+  { key: "1", name: "Sautuliman", icon: require(`../../../../assets/images/audio.png`) },
   { key: "2", name: "Quran", icon: require(`../../../../assets/images/quran.png`) },
   { key: "3", name: "Qibla", icon: require(`../../../../assets/images/qibla.png`) },
   { key: "4", name: "Counter", icon: require(`../../../../assets/images/counter.png`) },
@@ -46,4 +46,5 @@ const $icon: ImageStyle = {
   width: 60,
   height: 60,
   marginBottom: spacing.sm,
+  borderRadius: 100,
 }

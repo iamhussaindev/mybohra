@@ -68,7 +68,13 @@ export const Header = observer(function Header(props: HeaderProps) {
     <Animated.View style={[$header, animatedHeaderStyle]}>
       <BackButton style={$backButton} />
       <View style={$headerLocation}>
-        <Text preset="bold" style={$headerTitle} text={props.name} />
+        <Text
+          weight="medium"
+          style={$headerTitle}
+          text={props.name}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        />
       </View>
       <View style={$headerRight}>
         <Pressable onPress={handlePinPress} style={$headerRightIcon}>
@@ -88,8 +94,10 @@ export const Header = observer(function Header(props: HeaderProps) {
 const $headerTitle: TextStyle = {
   maxWidth: 200,
   textAlign: "center",
-  fontSize: 18,
+  fontSize: 16,
   lineHeight: 20,
+  textTransform: "capitalize",
+  flexShrink: 1,
 }
 
 const $headerRight: ViewStyle = {

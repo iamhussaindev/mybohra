@@ -7,8 +7,6 @@ import { spacing } from "../theme"
 import { Button, ButtonProps } from "./Button"
 import { Text, TextProps } from "./Text"
 
-const sadFace = require("../../assets/images/sad-face.png")
-
 interface EmptyStateProps {
   /**
    * An optional prop that specifies the text/image set to use for the empty state.
@@ -112,7 +110,6 @@ interface EmptyStatePresetItem {
 
 const EmptyStatePresets = {
   generic: {
-    imageSource: sadFace,
     heading: translate("emptyStateComponent.generic.heading"),
     content: translate("emptyStateComponent.generic.content"),
     button: translate("emptyStateComponent.generic.button"),

@@ -106,7 +106,15 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="Namaz" component={Screens.NamazScreen} />
       <Stack.Screen name="Calendar" component={Screens.CalendarScreen} />
       <Stack.Screen name="CalendarSearch" component={Screens.CalendarSearch} />
-      <Stack.Screen name="PdfViewer" component={Screens.PdfScreen} />
+      <Stack.Screen
+        options={{
+          animation: "fade",
+          animationDuration: 300,
+          customAnimationOnGesture: true,
+        }}
+        name="PdfViewer"
+        component={Screens.PdfScreen}
+      />
       <Stack.Screen name="Counter" component={Screens.CounterScreen} />
       <Stack.Screen name="SavedTasbeeh" component={Screens.SavedTasbeehScreen} />
       <Stack.Screen name="EventReminder" component={Screens.EventReminderScreen} />

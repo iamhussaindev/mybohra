@@ -334,6 +334,8 @@ export class ApiSupabase {
         .eq("month", params.month)
         .order("created_at", { ascending: true })
 
+      console.log("data", data)
+
       const { data: librariesFromCategories, error: error2 } = await supabase
         .from("library")
         .select("*")
