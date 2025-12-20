@@ -1,13 +1,14 @@
-import { Text } from "app/components"
-import { $centerScreen } from "app/theme/styling"
-import React from "react"
-import { View } from "react-native"
-
+import { useNavigation } from "@react-navigation/native"
+import { useEffect } from "react"
 
 export function AccountScreen() {
-  return (
-    <View style={$centerScreen}>
-      <Text>Account Screen</Text>
-    </View>
-  )
+  const navigation = useNavigation()
+
+  useEffect(() => {
+    // Redirect to Settings screen
+    // @ts-ignore
+    // navigation.navigate("Settings")
+  }, [navigation])
+
+  return null
 }

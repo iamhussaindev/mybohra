@@ -1,12 +1,12 @@
 import { useNavigation } from "@react-navigation/native"
 import { Button, Icon } from "app/components"
-import { colors } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import React from "react"
 import { ViewStyle } from "react-native"
 
 export function BackButton({ style }: { style?: ViewStyle }) {
   const navigation = useNavigation()
-
+  const colors = useColors()
   return (
     <Button
       style={[$calendarLeftButton, style]}
@@ -19,7 +19,7 @@ export function BackButton({ style }: { style?: ViewStyle }) {
         }
       }}
     >
-      <Icon icon="caretLeft" size={24} />
+      <Icon color={colors.text} icon="caretLeft" size={24} />
     </Button>
   )
 }
@@ -28,9 +28,7 @@ const $calendarLeftButton: ViewStyle = {
   borderRadius: 10,
   display: "flex",
   justifyContent: "flex-end",
-  backgroundColor: colors.transparent,
+  backgroundColor: "transparent",
 }
 
-const $pressedCalendarLeftButton: ViewStyle = {
-  backgroundColor: colors.palette.neutral100,
-}
+const $pressedCalendarLeftButton: ViewStyle = {}

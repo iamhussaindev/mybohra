@@ -1,14 +1,11 @@
-import { ListView, SBox, Text } from "app/components"
+import { ListView, Text } from "app/components"
 import HijriDate from "app/libs/HijriDate"
 import { IMiqaat } from "app/models/MiqaatStore"
 import { colors, spacing } from "app/theme"
 import React from "react"
-import { View, ViewStyle, Image, ImageStyle, TextStyle, Dimensions } from "react-native"
-
-const screenWidth = Dimensions.get("window").width
+import { View, ViewStyle, Image, ImageStyle, TextStyle } from "react-native"
 
 export function MiqaatCard({
-  isCalendar,
   item,
   style,
   showCount,
@@ -19,18 +16,7 @@ export function MiqaatCard({
   style?: ViewStyle
 }) {
   return (
-    <SBox
-      width={!isCalendar ? screenWidth - spacing.lg * 2 : screenWidth - spacing.md * 2}
-      minHeight={80}
-      cornerRadius={0.5}
-      borderRadius={8}
-      cornerRadiusX={0.2}
-      style={$cardStyle}
-      cornerRadiusY={0.2}
-      borderColor={colors.border}
-      backgroundColor={colors.white}
-      innerStyle={[$cardContainer, style]}
-    >
+    <View style={[$cardContainer, style]}>
       <View style={$cardContent}>
         <View style={$cardImageContainer}>
           <Image
@@ -65,7 +51,7 @@ export function MiqaatCard({
           ) : null}
         </View>
       </View>
-    </SBox>
+    </View>
   )
 }
 
@@ -84,13 +70,6 @@ const $cardImageContainer: ViewStyle = {
   borderRadius: 25,
   width: 50,
   height: 50,
-  backgroundColor: colors.white,
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.2,
-  shadowRadius: 3,
-  elevation: 3,
-  borderWidth: 1,
-  borderColor: colors.border,
 }
 
 const $countDownText: TextStyle = {
@@ -176,14 +155,10 @@ const $cardContainer: ViewStyle = {
   paddingTop: 10,
   paddingBottom: 10,
   minHeight: 10,
-  paddingHorizontal: spacing.xs,
-}
-
-const $cardStyle: ViewStyle = {
-  paddingTop: 10,
-  paddingBottom: 20,
-  minHeight: 10,
-  marginBottom: spacing.md,
+  marginBottom: spacing.xs,
+  borderColor: colors.border,
+  borderRadius: 8,
+  borderCurve: "continuous",
 }
 
 const $listContainer: ViewStyle = {
@@ -193,6 +168,6 @@ const $listContainer: ViewStyle = {
 }
 
 const $listContentContainer: ViewStyle = {
-  paddingHorizontal: spacing.lg,
+  paddingHorizontal: spacing.md,
   paddingBottom: spacing.lg,
 }

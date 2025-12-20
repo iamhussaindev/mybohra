@@ -1,11 +1,12 @@
 import { Icon, Text } from "app/components"
 import HijriDate from "app/libs/HijriDate"
-import { colors } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { momentTime } from "app/utils/currentTime"
 import React, { useCallback, useEffect, useState } from "react"
 import { TextStyle, View, ViewStyle } from "react-native"
 
 export function CurrentTime() {
+  const colors = useColors()
   const $viewContainer: ViewStyle = {
     display: "flex",
     flexDirection: "row",
@@ -50,10 +51,9 @@ export function CurrentTime() {
         {currentTime.hijri}
       </Text>
       <Text weight="normal" style={$textStyle}>
-        {" "}
-        /{" "}
+        {" / "}
       </Text>
-      <Text weight="bold" style={$textStyle}>
+      <Text weight="medium" style={$textStyle}>
         {currentTime.gregorian}
       </Text>
     </View>

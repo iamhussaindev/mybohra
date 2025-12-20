@@ -53,6 +53,7 @@ const palette = {
 } as const
 
 export const colors = {
+  accentBackground: "rgb(254, 244, 227)",
   /**
    * The palette is available to use, but prefer using the name.
    * This is only included for rare, one-off cases. Try to use
@@ -110,3 +111,6 @@ export const colors = {
   switchGreen: "#3ebd89",
   switchBackground: "#cdd1e2",
 }
+
+// Export dark colors
+export { darkColors } from "./colors.dark"

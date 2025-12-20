@@ -1,6 +1,7 @@
 import { Icon, Text, Skeleton } from "app/components"
 import { ILocation } from "app/models/DataStore"
-import { colors, spacing } from "app/theme"
+import { spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { ImageStyle, TextStyle, View, ViewStyle, TouchableOpacity } from "react-native"
@@ -19,6 +20,7 @@ interface HeaderProps {
 }
 
 export const Header = observer(function Header(props: HeaderProps) {
+  const colors = useColors()
   const $shadow: ViewStyle = {
     shadowColor: colors.border,
     shadowOffset: {
@@ -30,7 +32,13 @@ export const Header = observer(function Header(props: HeaderProps) {
   }
 
   return (
-    <View style={[$header, props.showBorder && $border, props.showBorder && $shadow]}>
+    <View
+      style={[
+        getHeader(colors),
+        props.showBorder && getBorder(colors),
+        props.showBorder && $shadow,
+      ]}
+    >
       <View style={$headerLocation}>
         <TouchableOpacity
           style={$headerLocationContainer}
@@ -39,7 +47,7 @@ export const Header = observer(function Header(props: HeaderProps) {
         >
           {props.loaded ? (
             <Text
-              style={$headerLocationText}
+              style={getHeaderLocationText(colors)}
               weight="bold"
               size="md"
               text={`${props.currentLocation.city}`}
@@ -76,15 +84,16 @@ const $headerLocationIcon: ViewStyle = {
   marginTop: 2,
 }
 
-const $headerLocationText: TextStyle = {
+// These styles need to be functions or inline since they depend on colors
+const getHeaderLocationText = (colors: any): TextStyle => ({
   color: colors.text,
   fontSize: 18,
-}
+})
 
-const $border: ViewStyle = {
+const getBorder = (colors: any): ViewStyle => ({
   borderBottomWidth: 1,
   borderBottomColor: colors.border,
-}
+})
 
 const $headerRightIcon: ViewStyle = {
   alignItems: "center",
@@ -98,10 +107,10 @@ const $headerLocation: ViewStyle = {
   // paddingEnd: spacing.lg,
 }
 
-const $header: ViewStyle = {
+const getHeader = (colors: any): ViewStyle => ({
   flexDirection: "row",
   justifyContent: "space-between",
   backgroundColor: colors.background,
   alignItems: "center",
   paddingVertical: spacing.xs,
-}
+})

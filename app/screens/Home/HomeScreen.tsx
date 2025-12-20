@@ -3,10 +3,11 @@ import { useSoundPlayer } from "app/hooks/useAudio"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import { useStores } from "app/models"
 import MiqaatList from "app/screens/components/MiqaatList"
+import { useColors } from "app/theme/useColors"
 import { Asset } from "expo-asset"
 import { observer } from "mobx-react-lite"
 import React, { FC, ReactElement, useCallback, useEffect, useRef, useState } from "react"
-import { View, ViewStyle, SectionList, NativeScrollEvent, NativeSyntheticEvent } from "react-native"
+import { View, SectionList, NativeScrollEvent, NativeSyntheticEvent, ViewStyle } from "react-native"
 import { Drawer } from "react-native-drawer-layout"
 import { RefreshControl } from "react-native-gesture-handler"
 import SoundPlayer from "react-native-sound-player"
@@ -14,7 +15,7 @@ import SoundPlayer from "react-native-sound-player"
 import { useLocationBottomSheet } from "../../contexts/LocationBottomSheetContext"
 import { isRTL } from "../../i18n"
 import { AppStackScreenProps } from "../../navigators"
-import { colors, spacing } from "../../theme"
+import { spacing } from "../../theme"
 import { useSafeAreaInsetsStyle } from "../../utils/useSafeAreaInsetsStyle"
 import DuaGridList from "../components/DuaGridList"
 
@@ -49,7 +50,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
 
   const { dataStore, miqaatStore, libraryStore, reminderStore } = useStores()
   const { currentSound } = useSoundPlayer()
-
+  const colors = useColors()
   // Use the PDF options bottom sheet hook
   const {
     bottomSheetRef,
@@ -159,6 +160,26 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
 
   const handleLocationPress = () => {
     openLocationBottomSheet()
+  }
+
+  const $sectionListContentContainer: ViewStyle = {
+    paddingHorizontal: 0,
+  }
+
+  const $screenContainer: ViewStyle = {
+    flex: 1,
+  }
+
+  const $drawer: ViewStyle = {
+    backgroundColor: colors.background,
+    flex: 1,
+  }
+
+  const $logoContainer: ViewStyle = {
+    alignSelf: "flex-start",
+    justifyContent: "center",
+    height: 56,
+    paddingHorizontal: spacing.lg,
   }
 
   return (
@@ -339,23 +360,3 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
     </>
   )
 })
-
-const $sectionListContentContainer: ViewStyle = {
-  paddingHorizontal: 0,
-}
-
-const $screenContainer: ViewStyle = {
-  flex: 1,
-}
-
-const $drawer: ViewStyle = {
-  backgroundColor: colors.background,
-  flex: 1,
-}
-
-const $logoContainer: ViewStyle = {
-  alignSelf: "flex-start",
-  justifyContent: "center",
-  height: 56,
-  paddingHorizontal: spacing.lg,
-}

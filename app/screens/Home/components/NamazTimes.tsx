@@ -1,6 +1,7 @@
 import { SBox, Text } from "app/components"
 import { CurrentGhari } from "app/helpers/namaz.helper"
-import { colors, spacing } from "app/theme"
+import { spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { getFormattedTime } from "app/utils/common"
 import { observer } from "mobx-react-lite"
 import React from "react"
@@ -23,6 +24,7 @@ export default observer(function NamazTimesList(props: {
   currentGhari?: CurrentGhari
   navigation: any
 }) {
+  const colors = useColors()
   const flatListRef = React.useRef<FlatList>(null)
   const activeItemIndex = namazTimes.findIndex((item) => item.time_key === props.currentGhari?.key)
   return (
@@ -36,6 +38,7 @@ export default observer(function NamazTimesList(props: {
         renderItem={({ item, index }) => {
           return (
             <NamazCard
+              colors={colors}
               {...item}
               navigation={props.navigation}
               time={props.currentGhari?.time ?? props.times[item.time_key]}
@@ -69,6 +72,7 @@ function NamazCard(props: {
   timeKey: string
   isNext?: boolean
   navigation: any
+  colors: any
 }) {
   return (
     <>
@@ -78,31 +82,41 @@ function NamazCard(props: {
         cornerRadius={0.5}
         borderRadius={8}
         backgroundColor={
-          props.activeIndex === props.index ? colors.palette.primary10 : colors.palette.neutral100
+          props.activeIndex === props.index
+            ? props.colors.palette.primary10
+            : props.colors.palette.neutral100
         }
-        borderColor={props.activeIndex === props.index ? colors.palette.primary200 : colors.border}
+        borderColor={
+          props.activeIndex === props.index ? props.colors.palette.primary200 : props.colors.border
+        }
         onPress={() => {
           props.navigation.navigate("Namaz")
         }}
         style={[props.index === 0 && $firstNamazCard, props.index === 4 && $lastNamazCard]}
       >
         {props.activeIndex === props.index ? (
-          <View style={$currentGhariContainer}>
-            <Text color={colors.palette.neutral100} weight="medium" style={$currentGhariText}>
+          <View style={getCurrentGhariContainer(props.colors)}>
+            <Text weight="medium" style={getCurrentGhariText(props.colors)}>
               {props.isNext ? "Next" : "Current"}
             </Text>
           </View>
         ) : null}
-        <View style={[$grContainer, props.activeIndex === props.index && $activeNamazCard]}>
+        <View style={[$grContainer, props.activeIndex === props.index && getActiveNamazCard()]}>
           <Text
             weight="normal"
-            style={[$namazLabel, props.activeIndex === props.index && $activeNamazLabel]}
+            style={[
+              getNamazLabel(props.colors),
+              props.activeIndex === props.index && getActiveNamazLabel(props.colors),
+            ]}
           >
             {props.text}
           </Text>
           <Text
             weight="bold"
-            style={[$namazValue, props.activeIndex === props.index && $activeNamazValue]}
+            style={[
+              getNamazValue(props.colors),
+              props.activeIndex === props.index && getActiveNamazValue(props.colors),
+            ]}
           >
             {getFormattedTime(props.time)}
           </Text>
@@ -116,7 +130,7 @@ const $flatListStyle: ViewStyle = {
   overflow: "visible",
 }
 
-const $currentGhariContainer: ViewStyle = {
+const getCurrentGhariContainer = (colors: any): ViewStyle => ({
   position: "absolute",
   top: -10,
   height: 20,
@@ -132,14 +146,14 @@ const $currentGhariContainer: ViewStyle = {
   borderRadius: 8,
   borderWidth: 0,
   borderCurve: "continuous",
-}
+})
 
-const $currentGhariText: TextStyle = {
-  color: colors.white,
+const getCurrentGhariText = (colors: any): TextStyle => ({
+  color: colors.palette.neutral100,
   fontSize: 12,
   lineHeight: 16,
   textAlign: "center",
-}
+})
 
 const $grContainer: ViewStyle = {
   width: screenWidth / 3 - 36,
@@ -154,12 +168,7 @@ const $grContainer: ViewStyle = {
   position: "relative",
 }
 
-const $activeNamazCard: ViewStyle = {
-  // borderColor: colors.tint,
-  // borderWidth: 0.5,
-  // borderCurve: "continuous",
-  // backgroundColor: colors.palette.primary10,
-}
+const getActiveNamazCard = (): ViewStyle => ({})
 
 const $firstNamazCard: ViewStyle = {
   marginLeft: spacing.lg,
@@ -169,23 +178,24 @@ const $lastNamazCard: ViewStyle = {
   marginRight: spacing.lg,
 }
 
-const $namazLabel: TextStyle = {
+const getNamazLabel = (colors: any): TextStyle => ({
   fontSize: 16,
   marginBottom: 0,
-}
+  color: colors.text,
+})
 
-const $namazValue: TextStyle = {
+const getNamazValue = (colors: any): TextStyle => ({
   fontSize: 18,
-  color: "#333",
-}
+  color: colors.text,
+})
 
-const $activeNamazLabel: TextStyle = {
-  color: colors.palette.primary500,
-}
+const getActiveNamazLabel = (colors: any): TextStyle => ({
+  color: colors.text,
+})
 
-const $activeNamazValue: TextStyle = {
+const getActiveNamazValue = (colors: any): TextStyle => ({
   color: colors.palette.primary500,
-}
+})
 
 const $gap: ViewStyle = {
   width: 25,

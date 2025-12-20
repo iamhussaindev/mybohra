@@ -6,6 +6,7 @@ import { useStores } from "app/models"
 import { ITasbeeh } from "app/models/TasbeehStore"
 import { AppStackScreenProps } from "app/navigators"
 import { typography } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
 import React, { FC, useCallback, useEffect, useRef, useState } from "react"
 import {
@@ -29,20 +30,17 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated"
 
-
-
 import FullScreenLoader from "../Loader/FullScreenLoader"
 
 import GoalSelector from "./GoalSelector"
 import TasbeehSelector from "./TasbeehSelector"
-
-
 
 interface CounterScreenProps extends AppStackScreenProps<"Counter"> {}
 
 const counterHeight = SCREEN_HEIGHT * 0.25
 
 export const CounterScreen: FC<CounterScreenProps> = observer(function CounterScreen() {
+  const colors = useColors()
   const [count, setCount] = useState(0)
   const [isPressed, setIsPressed] = useState(false)
   const [goal, setGoal] = useState(33)
@@ -139,13 +137,15 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
     setIsPressed(false)
   }
 
-  const $counterContainer: ViewStyle = {
-    backgroundColor: "#ffdeac",
-    width: counterHeight,
-    height: counterHeight,
-    borderRadius: counterHeight,
-    borderWidth: 10,
-    borderColor: "#ffe8c3",
+  const $counterContainer = (colors: any): ViewStyle => {
+    return {
+      backgroundColor: colors.accentBackground,
+      width: counterHeight,
+      height: counterHeight,
+      borderRadius: counterHeight,
+      borderWidth: 10,
+      borderColor: colors.accentBackground,
+    }
   }
 
   const $pressableContainer: ViewStyle = {
@@ -153,6 +153,8 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    height: counterHeight,
+    width: counterHeight,
   }
 
   const $bottomSheetRefGoal = useRef<BottomSheet>(null)
@@ -310,7 +312,7 @@ export const CounterScreen: FC<CounterScreenProps> = observer(function CounterSc
   return (
     <Screen
       preset="fixed"
-      backgroundColor="rgb(254, 244, 227)"
+      backgroundColor={colors.accentBackground}
       safeAreaEdges={["top"]}
       contentContainerStyle={$screenContainer}
     >
@@ -611,7 +613,6 @@ const $closeTasbeehButton: ViewStyle = {
 }
 
 const $screenContainer: ViewStyle = {
-  backgroundColor: "rgb(254, 244, 227)",
   flex: 1,
   height: Dimensions.get("screen").height,
 }

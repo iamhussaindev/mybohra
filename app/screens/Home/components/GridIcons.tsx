@@ -1,7 +1,8 @@
 import { Text } from "app/components"
 import { spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import React from "react"
-import { Image, ImageStyle, Pressable, View, ViewStyle } from "react-native"
+import { Image, ImageStyle, Pressable, TextStyle, View, ViewStyle } from "react-native"
 
 const data = [
   { key: "1", name: "Sautuliman", icon: require(`../../../../assets/images/audio.png`) },
@@ -15,12 +16,15 @@ const data = [
 ]
 
 export default function GridIcons({ onNavigation }: { onNavigation: (screen: any) => void }) {
+  const colors = useColors()
   return (
     <View style={$container}>
       {data?.map((item) => (
         <Pressable onPress={() => onNavigation(item.name)} key={item.key} style={$itemContainer}>
-          <Image source={item.icon} style={$icon} />
-          <Text size="xs">{item.name}</Text>
+          <Image source={item.icon} style={getIcon()} />
+          <Text size="xs" style={getTextStyle(colors)}>
+            {item.name}
+          </Text>
         </Pressable>
       ))}
     </View>
@@ -42,9 +46,13 @@ const $itemContainer: ViewStyle = {
   alignItems: "center",
 }
 
-const $icon: ImageStyle = {
+const getIcon = (): ImageStyle => ({
   width: 60,
   height: 60,
   marginBottom: spacing.sm,
   borderRadius: 100,
-}
+})
+
+const getTextStyle = (colors: any): TextStyle => ({
+  color: colors.text,
+})

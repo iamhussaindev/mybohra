@@ -1,24 +1,29 @@
 import { Text } from "app/components"
-import { colors, spacing } from "app/theme"
+import { spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import React from "react"
-import { View, ViewStyle } from "react-native"
-
+import { TextStyle, View, ViewStyle } from "react-native"
 
 export default function CurrentQiyam(props: { qiyam?: string }) {
+  const colors = useColors()
   return (
-    <View style={$container}>
-      <View style={$borderLeft}></View>
-      <Text tx="qiyam.label" />
-      <Text weight="bold" style={$valueColor} size="lg" text={props.qiyam} />
+    <View style={getContainer()}>
+      <View style={getBorderLeft(colors)}></View>
+      <Text style={getTextStyle(colors)} tx="qiyam.label" />
+      <Text weight="bold" style={getValueColor(colors)} size="lg" text={props.qiyam} />
     </View>
   )
 }
 
-const $valueColor = {
-  color: colors.palette.primary500,
-}
+const getTextStyle = (colors: any): TextStyle => ({
+  color: colors.text,
+})
 
-const $borderLeft: ViewStyle = {
+const getValueColor = (colors: any): TextStyle => ({
+  color: colors.palette.primary500,
+})
+
+const getBorderLeft = (colors: any): ViewStyle => ({
   width: 5,
   marginStart: spacing.lg,
   backgroundColor: colors.palette.primary500,
@@ -26,13 +31,13 @@ const $borderLeft: ViewStyle = {
   borderBottomEndRadius: 10,
   height: 80,
   position: "absolute",
-}
+})
 
-const $container: ViewStyle = {
+const getContainer = (): ViewStyle => ({
   height: 80,
   marginTop: spacing.xs,
   paddingStart: spacing.xxl,
   paddingEnd: spacing.lg,
   justifyContent: "center",
   marginBottom: spacing.xl,
-}
+})

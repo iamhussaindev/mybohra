@@ -130,6 +130,48 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
     [navigation],
   )
 
+  const handleDailyDuaRemove = useCallback(
+    async (dua: DailyDuaWithLibrary) => {
+      const { Alert } = await import("react-native")
+      Alert.alert(
+        "Remove PDF",
+        `Are you sure you want to remove "${dua.library?.name}" from this date?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Remove",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                const { supabase } = await import("app/services/supabase")
+                const { error } = await supabase.from("daily_duas").delete().eq("id", dua.id)
+
+                if (error) {
+                  Alert.alert("Error", "Failed to remove PDF from date")
+                  return
+                }
+
+                // Refresh the daily duas list
+                if (selectedDate) {
+                  const response = await supabaseFetcher.fetchDailyDuas({
+                    date: selectedDate.date.day,
+                    month: selectedDate.date.month,
+                  })
+                  if (response.success && response.data) {
+                    setDailyDuas(response.data)
+                  }
+                }
+              } catch (error) {
+                Alert.alert("Error", "Failed to remove PDF from date")
+              }
+            },
+          },
+        ],
+      )
+    },
+    [selectedDate, supabaseFetcher],
+  )
+
   return (
     <Screen preset="fixed" safeAreaEdges={["top"]} contentContainerStyle={$screenContainer}>
       {calendar ? (
@@ -150,6 +192,7 @@ export const CalendarScreen: FC<CalendarScreenProps> = observer(function Calenda
           dailyDuasLoading={dailyDuasLoading}
           dailyDuasError={dailyDuasError}
           onDailyDuaPress={handleDailyDuaPress}
+          onDailyDuaRemove={handleDailyDuaRemove}
         />
       ) : null}
     </Screen>

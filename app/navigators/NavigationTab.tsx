@@ -9,7 +9,8 @@ import { TextStyle, ViewStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { HomeScreen } from "../screens"
-import { colors, spacing, typography } from "../theme"
+import { spacing, typography } from "../theme"
+import { useColors } from "../theme/useColors"
 
 import { AppStackParamList, AppStackScreenProps } from "./AppNavigator"
 
@@ -41,6 +42,7 @@ const Tab = createBottomTabNavigator<TabParamList>()
  */
 export function NavigationTab() {
   const { bottom } = useSafeAreaInsets()
+  const colors = useColors()
 
   const idleColor = colors.palette.neutral400
 
@@ -50,7 +52,14 @@ export function NavigationTab() {
       screenOptions={{
         headerShown: false,
         tabBarHideOnKeyboard: true,
-        tabBarStyle: [$tabBar, { height: bottom + 70 }],
+        tabBarStyle: [
+          $tabBar,
+          {
+            height: bottom + 70,
+            backgroundColor: colors.background,
+            borderTopColor: colors.border,
+          },
+        ],
         tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.text,
         tabBarLabelStyle: $tabBarLabel,
@@ -104,12 +113,12 @@ export function NavigationTab() {
         options={{
           tabBarLabel: ({ focused }) => (
             <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>
-              Account
+              Settings
             </Text>
           ),
 
           tabBarIcon: ({ focused }) => (
-            <Icon icon="user" color={focused ? colors.tint : idleColor} size={24} />
+            <Icon icon="settings" color={focused ? colors.tint : idleColor} size={24} />
           ),
         }}
       />
@@ -118,9 +127,7 @@ export function NavigationTab() {
 }
 
 const $tabBar: ViewStyle = {
-  backgroundColor: colors.background,
-  borderTopColor: colors.border,
-  shadowColor: colors.palette.neutral400,
+  shadowColor: "#000",
   shadowOffset: { width: 10, height: 0 },
   shadowOpacity: 0.1,
 }

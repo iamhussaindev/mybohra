@@ -16,6 +16,7 @@ import Toast from "react-native-toast-message"
 
 import Config from "./config"
 import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
+import { ThemeProvider } from "./contexts/ThemeContext"
 import { SoundProvider } from "./hooks/useAudio"
 import { useInitialRootStore, useStores } from "./models"
 import { AppNavigator, useNavigationPersistence } from "./navigators"
@@ -141,22 +142,24 @@ function App(props: AppProps) {
   // otherwise, we're ready to render the app
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <SoundProvider>
-        <ErrorBoundary catchErrors={Config.catchErrors}>
-          <GestureHandlerRootView style={$container}>
-            <BottomSheetModalProvider>
-              <LocationBottomSheetProvider>
-                <AppNavigator
-                  linking={linking}
-                  initialState={initialNavigationState}
-                  onStateChange={onNavigationStateChange}
-                />
-                <Toast position="bottom" swipeable topOffset={200} />
-              </LocationBottomSheetProvider>
-            </BottomSheetModalProvider>
-          </GestureHandlerRootView>
-        </ErrorBoundary>
-      </SoundProvider>
+      <ThemeProvider>
+        <SoundProvider>
+          <ErrorBoundary catchErrors={Config.catchErrors}>
+            <GestureHandlerRootView style={$container}>
+              <BottomSheetModalProvider>
+                <LocationBottomSheetProvider>
+                  <AppNavigator
+                    linking={linking}
+                    initialState={initialNavigationState}
+                    onStateChange={onNavigationStateChange}
+                  />
+                  <Toast position="bottom" swipeable topOffset={200} />
+                </LocationBottomSheetProvider>
+              </BottomSheetModalProvider>
+            </GestureHandlerRootView>
+          </ErrorBoundary>
+        </SoundProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   )
 }

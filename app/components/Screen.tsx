@@ -1,4 +1,6 @@
 import { useScrollToTop } from "@react-navigation/native"
+import { useTheme } from "app/contexts/ThemeContext"
+import { useColors } from "app/theme/useColors"
 import { StatusBar as ExpoStatusBar, StatusBarProps } from "expo-status-bar"
 import React, { useRef, useState } from "react"
 import {
@@ -15,7 +17,6 @@ import {
   ViewStyle,
 } from "react-native"
 
-import { colors } from "../theme"
 import { ExtendedEdge, useSafeAreaInsetsStyle } from "../utils/useSafeAreaInsetsStyle"
 
 interface BaseScreenProps {
@@ -247,6 +248,8 @@ export function Statusbar(props: StatusBarProps) {
  * @returns {JSX.Element} The rendered `Screen` component.
  */
 export function Screen(props: ScreenProps) {
+  const colors = useColors()
+  const theme = useTheme()
   const {
     backgroundColor = colors.background,
     KeyboardAvoidingViewProps,
@@ -260,7 +263,7 @@ export function Screen(props: ScreenProps) {
 
   return (
     <View style={[$containerStyle, { backgroundColor }, $containerInsets]}>
-      <Statusbar style={statusBarStyle} {...StatusBarProps} />
+      <Statusbar style={theme.isDark ? "light" : "dark"} {...StatusBarProps} />
       <KeyboardAvoidingView
         behavior={isIos ? "padding" : "height"}
         keyboardVerticalOffset={keyboardOffset}

@@ -991,6 +991,12 @@ PODS:
     - React-debug
   - react-native-blob-util (0.19.11):
     - React-Core
+  - react-native-compass-heading (2.0.2):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
+  - react-native-geolocation-service (5.3.1):
+    - React
   - react-native-pdf (6.7.5):
     - React-Core
   - react-native-pdf-thumbnail (1.3.1):
@@ -1273,6 +1279,8 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
+  - react-native-compass-heading (from `../node_modules/react-native-compass-heading`)
+  - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -1413,6 +1421,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
+  react-native-compass-heading:
+    :path: "../node_modules/react-native-compass-heading"
+  react-native-geolocation-service:
+    :path: "../node_modules/react-native-geolocation-service"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
   react-native-pdf-thumbnail:
@@ -1541,6 +1553,8 @@ SPEC CHECKSUMS:
   React-logger: 0a57b68dd2aec7ff738195f081f0520724b35dab
   React-Mapbuffer: 63913773ed7f96b814a2521e13e6d010282096ad
   react-native-blob-util: 39a20f2ef11556d958dc4beb0aa07d1ef2690745
+  react-native-compass-heading: 4f28f2b6640b8abacd26b793160dcffdd54e5c00
+  react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
   react-native-pdf: 103940c90d62adfd259f63cca99c7c0c306b514c
   react-native-pdf-thumbnail: 6a78a7b23fa456800cdb665fde16995931eb18cd
   react-native-safe-area-context: 0ee144a6170530ccc37a0fd9388e28d06f516a89
@@ -1578,11 +1592,11 @@ SPEC CHECKSUMS:
   RNScreens: b582cb834dc4133307562e930e8fa914b8c04ef2
   RNSensors: 117ba71c7eeeea0407ea0c0bb79e3495d602049b
   RNSoundPlayer: 490822518cc1d6d80495ca7e3223df5869c30851
-  RNSVG: 42f8531b849bd4e853d71409fdfad51ff931c9ad
+  RNSVG: 46ffefc23d8466147b2d4a9355a1cb0f23229126
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   SwiftAudioEx: f6aa653770f3a0d3851edaf8d834a30aee4a7646
   Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: 63f203305d707c08810c9b65f4f0f41aab3dc5c4
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.16.2

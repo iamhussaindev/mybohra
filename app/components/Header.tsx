@@ -1,6 +1,6 @@
 import { BackButton } from "app/appComponents/BackButton"
 import { Text } from "app/components"
-import { colors } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import React from "react"
 import { TextStyle, View, ViewStyle } from "react-native"
 
@@ -13,12 +13,13 @@ export default function Header({
   showBackButton: boolean
   rightActions?: React.ReactNode
 }) {
+  const colors = useColors()
   return (
     <View style={$header}>
       <View style={$headerRight}>{showBackButton && <BackButton style={$headerButton} />}</View>
       {typeof title === "string" ? (
         <View style={$titleContainer}>
-          <Text style={$title} size="md" weight="bold">
+          <Text style={$title} size="md" weight="bold" color={colors.text}>
             {title}
           </Text>
         </View>
@@ -50,7 +51,6 @@ const $headerLeft: ViewStyle = {
 
 const $title: TextStyle = {
   marginBottom: 0,
-  color: colors.palette.neutral800,
   textTransform: "capitalize",
 }
 

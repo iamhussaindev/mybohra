@@ -7,12 +7,12 @@
 
 import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
+import { useTheme } from "app/contexts/ThemeContext"
 import HijriDate from "app/libs/HijriDate"
 import * as Screens from "app/screens"
-import { colors } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { useColorScheme } from "react-native"
 
 import Config from "../config"
 
@@ -75,8 +75,9 @@ export type AppStackParamList = {
   ReminderSettings: undefined
   CalendarSearch: undefined
   DuaListSearch: undefined
-  // 🔥 Your screens go here
-  // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
+  Settings: undefined
+  Qibla: undefined
+  ARNamazMat: undefined
 }
 
 /**
@@ -94,9 +95,11 @@ export type AppStackScreenProps<T extends keyof AppStackParamList> = NativeStack
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
 const AppStack = observer(function AppStack() {
+  const colors = useColors()
+
   return (
     <Stack.Navigator
-      initialRouteName="DuaHome"
+      initialRouteName="Qibla"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,
@@ -124,6 +127,23 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="DuaListSearch" component={Screens.DuaListSearch} />
       <Stack.Screen name="Reminder" component={Screens.ReminderScreen} />
       <Stack.Screen name="ReminderSettings" component={Screens.ReminderSettingsScreen} />
+      <Stack.Screen
+        name="Settings"
+        component={Screens.SettingsScreen}
+        options={{
+          headerShown: true,
+          title: "Settings",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen name="Qibla" component={Screens.QiblaScreen} />
+      <Stack.Screen
+        name="ARNamazMat"
+        component={Screens.ARNamazMatScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   )
 })
@@ -132,16 +152,12 @@ export interface NavigationProps
   extends Partial<React.ComponentProps<typeof NavigationContainer>> {}
 
 export const AppNavigator = observer(function AppNavigator(props: NavigationProps) {
-  const colorScheme = useColorScheme()
+  const { isDark } = useTheme()
 
   useBackButtonHandler((routeName) => exitRoutes.includes(routeName))
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-      {...props}
-    >
+    <NavigationContainer ref={navigationRef} theme={isDark ? DarkTheme : DefaultTheme} {...props}>
       <AppStack />
     </NavigationContainer>
   )

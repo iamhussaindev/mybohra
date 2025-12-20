@@ -6,7 +6,8 @@ import {
   namazLabels,
   NamazTimes,
 } from "app/helpers/namaz.helper"
-import { colors, spacing } from "app/theme"
+import { spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { getFormattedTime } from "app/utils/common"
 import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useState } from "react"
@@ -19,6 +20,7 @@ interface NextNamazProps {
 }
 
 export default observer(function NextNamaz(props: NextNamazProps) {
+  const colors = useColors()
   const $reminderButton: ViewStyle = {
     borderRadius: 10,
     alignItems: "center",
