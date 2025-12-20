@@ -1,4 +1,3 @@
-import { shadowPropsOnlyShadow } from "app/helpers/shadow.helper"
 import { colors } from "app/theme"
 import React from "react"
 import { View, StyleSheet, StyleProp, ViewStyle, Pressable } from "react-native"
@@ -91,12 +90,7 @@ const SBox = ({
     >
       <View
         pointerEvents="none"
-        style={[
-          styles.border,
-          { width: boxWidth, height: boxHeight, borderRadius },
-          shadowPropsOnlyShadow,
-          shadowProps,
-        ]}
+        style={[styles.border, { width: boxWidth, height: boxHeight, borderRadius }, shadowProps]}
       >
         <Svg width={boxWidth} height={boxHeight}>
           <Path d={outerPath} fill={borderColor} />

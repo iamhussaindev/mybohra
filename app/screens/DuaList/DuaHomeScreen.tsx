@@ -1,12 +1,14 @@
 import { Icon, PDFOptionsBottomSheet, PDFPreviewModal, Screen, Text } from "app/components"
 import Header from "app/components/Header"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
+import HijriDate from "app/libs/HijriDate"
 import { useStores } from "app/models"
 import { ILibrary } from "app/models/LibraryStore"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { typography } from "app/theme/typography"
 import { useColors } from "app/theme/useColors"
+import { formatLabel } from "app/utils/labelHelper"
 import { observer } from "mobx-react-lite"
 import React, { FC, useCallback, useRef, useState, useEffect } from "react"
 import {
@@ -28,7 +30,7 @@ import { PdfItemCard } from "./components/PdfItemCard"
 
 interface DuaHomeScreen extends AppStackScreenProps<"DuaHome"> {}
 
-type TabType = "Recent" | "Bookmarks" | "Today"
+type TabType = "Recent" | "Bookmarks" | "Today" | string
 
 export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScreen(props) {
   const { libraryStore, dataStore } = useStores()
@@ -50,6 +52,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
 
   const [refreshing, setRefreshing] = useState(false)
   const [recentPdfItems, setRecentPdfItems] = useState<ILibrary[]>([])
+  const [monthItems, setMonthItems] = useState<ILibrary[]>([])
   const [activeTab, setActiveTab] = useState<TabType>("Recent")
   const [hasNewTodayItems] = useState(true)
   const [previewItem, setPreviewItem] = useState<ILibrary | null>(null)
@@ -62,6 +65,12 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
 
   const tabs: TabType[] = ["Recent", "Today", "Bookmarks"]
 
+  const hijri = new HijriDate()
+  const monthName = hijri.getShortMonthName()
+
+  // add monthName to tabs at index 1
+  tabs.splice(2, 0, monthName)
+
   const fetchLibraryData = useCallback(async () => {
     await libraryStore.fetchHomeData()
     await libraryStore.fetchCategories()
@@ -73,9 +82,19 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     fetchLibraryData()
   }, [])
 
+  const fetchMonthItems = useCallback(async () => {
+    try {
+      const items = await libraryStore.fetchByTags([monthName])
+      setMonthItems(items || [])
+    } catch (error) {
+      console.error("Error loading month items:", error)
+      setMonthItems([])
+    }
+  }, [monthName, libraryStore])
+
   // Fetch recent PDF items by IDs
   const fetchRecentPdfItems = useCallback(async () => {
-    const history = dataStore.getRecentPdfHistory(12).map((entry) => ({
+    const history = dataStore.getRecentPdfHistory(25).map((entry) => ({
       pdfId: entry.pdfId,
       lastOpened: entry.lastOpened,
       openedCount: entry.openedCount,
@@ -83,7 +102,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     if (history.length > 0) {
       const ids = history.map((entry) => entry.pdfId)
       const items = await libraryStore.fetchItemsByIds(ids)
-      setRecentPdfItems(items.slice(0, 12))
+      setRecentPdfItems(items)
     } else {
       setRecentPdfItems([])
     }
@@ -92,6 +111,13 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   useEffect(() => {
     fetchRecentPdfItems()
   }, [fetchRecentPdfItems])
+
+  // Fetch month items when monthName tab is active
+  useEffect(() => {
+    if (activeTab === monthName) {
+      fetchMonthItems()
+    }
+  }, [activeTab, monthName, fetchMonthItems])
 
   const animateIconPress = useCallback(() => {
     Animated.sequence([
@@ -118,10 +144,13 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     try {
       await fetchLibraryData()
       await fetchRecentPdfItems()
+      if (activeTab === monthName) {
+        await fetchMonthItems()
+      }
     } finally {
       setRefreshing(false)
     }
-  }, [activeTab, fetchLibraryData, fetchRecentPdfItems, getTodayItems])
+  }, [activeTab, fetchLibraryData, fetchRecentPdfItems, fetchMonthItems, monthName, getTodayItems])
 
   // Get data based on active tab
   const getDisplayItems = (): Array<ILibrary & { lastOpened?: string }> => {
@@ -139,6 +168,8 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
       }))
     } else if (activeTab === "Today") {
       return getTodayItems()
+    } else if (activeTab === monthName) {
+      return monthItems
     } else {
       // Recent tab - sort by lastOpened date (most recent first)
       return recentPdfItems
@@ -191,7 +222,21 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
               "saturday",
               "joshan",
               "daily-dua",
-            ].includes(cat.id),
+              "Shabaan Al-Karim",
+              "Ramadaan Al-Moazzam",
+              "Shawwal Al-Mukarram",
+              "Zilqadah al-haraam",
+              "Zilhaj al-haraam",
+              "Moharram al-haraam",
+              "Safar al-muzaffar",
+              "Rabi al-awwal",
+              "Rabi al-akhar",
+              "Jumada al-ula",
+              "Jumada al-ukhra",
+              "Rajab al-asab",
+            ]
+              .map((item) => item.toLowerCase())
+              .includes(cat.id.toLowerCase()),
         )}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -213,7 +258,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
           >
             <Image source={require("../../../assets/images/folder.png")} style={$folderIcon} />
             <Text
-              text={item.title}
+              text={formatLabel(item.title)}
               style={$folderTitle}
               numberOfLines={2}
               weight="medium"
@@ -230,7 +275,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
       preset="fixed"
       backgroundColor={colors.background}
       safeAreaEdges={["top"]}
-      contentContainerStyle={$screenContainer}
+      contentContainerStyle={$screenContainer(colors)}
     >
       <Header
         title="PDF Library"
@@ -324,10 +369,6 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   )
 })
 
-const $screenContainer: ViewStyle = {
-  flex: 1,
-}
-
 const $tabsContainer = (colors: any): ViewStyle => ({
   paddingVertical: spacing.md,
   borderBottomColor: colors.border,
@@ -395,8 +436,6 @@ const $foldersScrollContent: ViewStyle = {
 }
 
 const $folderCard: ViewStyle = {
-  marginBottom: spacing.md,
-  marginRight: spacing.sm,
   borderColor: colors.border,
   width: 80,
   minHeight: 80,
@@ -411,8 +450,10 @@ const $folderIcon: ImageStyle = {
 
 const $folderTitle: TextStyle = {
   fontSize: 14,
+  lineHeight: 20,
   fontFamily: typography.primary.medium,
   textTransform: "capitalize",
+  height: 40,
 }
 
 const $emptyContainer: ViewStyle = {
@@ -425,3 +466,8 @@ const $emptyText: TextStyle = {
   fontFamily: typography.primary.medium,
   color: colors.palette.neutral500,
 }
+
+const $screenContainer = (colors: any): ViewStyle => ({
+  flex: 1,
+  backgroundColor: colors.background,
+})

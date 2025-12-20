@@ -5,10 +5,17 @@ import { useSoundPlayer } from "app/hooks/useAudio"
 import { useStores } from "app/models"
 import { ILibrary } from "app/models/LibraryStore"
 import { AppStackScreenProps } from "app/navigators"
-import { colors } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
 import React, { FC, useEffect, useRef, useState } from "react"
-import { Alert, Dimensions, TextStyle, TouchableHighlight, ViewStyle } from "react-native"
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  TextStyle,
+  TouchableHighlight,
+  ViewStyle,
+} from "react-native"
 import Pdf from "react-native-pdf"
 import * as Progress from "react-native-progress"
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
@@ -19,8 +26,8 @@ import { Header } from "./PdfHeader"
 interface PdfScreenProps extends AppStackScreenProps<"PdfViewer"> {}
 
 export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) {
+  const colors = useColors()
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [enablePaging, setEnablePaging] = useState(false)
   const [loading, setLoading] = useState(true)
   const $pdfRef = useRef<Pdf>(null)
 
@@ -98,7 +105,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
   return (
     <Screen
       preset="fixed"
-      backgroundColor={isFullscreen ? "white" : "white"}
+      backgroundColor={isFullscreen ? colors.background : colors.background}
       safeAreaEdges={["top"]}
       style={isFullscreen ? $fullscreenContainer : $container}
     >
@@ -106,7 +113,11 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
       {!loading && item.audio_url && (
         <>
           <Animated.View
-            style={[$player, $animatedHeaderStyle, showPlayer ? $playerVisible : $playerHidden]}
+            style={[
+              $player(colors),
+              $animatedHeaderStyle,
+              showPlayer ? $playerVisible : $playerHidden,
+            ]}
           >
             {showPlayer && (
               <Slider
@@ -123,7 +134,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
               />
             )}
             {showPlayer && (
-              <Text weight="bold" style={$playerText}>
+              <Text weight="bold" style={$playerText(colors)}>
                 {formatTime(position ?? 0)}
               </Text>
             )}
@@ -131,12 +142,12 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
             {showPlayer && (
               <TouchableHighlight
                 underlayColor={colors.palette.primary400}
-                style={$actionButton}
+                style={$actionButton(colors)}
                 onPress={() => {
                   setSpeed(1.5)
                 }}
               >
-                <Text weight="bold" style={$speedText}>
+                <Text weight="bold" style={$speedText(colors)}>
                   {speed}
                 </Text>
               </TouchableHighlight>
@@ -144,7 +155,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
             {showPlayer && (
               <TouchableHighlight
                 underlayColor={colors.palette.primary400}
-                style={$actionButton}
+                style={$actionButton(colors)}
                 onPress={() => {
                   seek((position ?? 0) - 10)
                 }}
@@ -154,7 +165,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
             )}
             <TouchableHighlight
               underlayColor={colors.palette.primary400}
-              style={$playerButton}
+              style={$playerButton(colors)}
               onPress={() => {
                 if (showPlayer) {
                   toggleSound()
@@ -183,7 +194,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
             {showPlayer && (
               <TouchableHighlight
                 underlayColor={colors.palette.primary400}
-                style={$actionButton}
+                style={$actionButton(colors)}
                 onPress={() => {
                   seek((position ?? 0) + 10)
                 }}
@@ -194,7 +205,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
             {showPlayer && (
               <TouchableHighlight
                 underlayColor={colors.palette.primary400}
-                style={$actionButton}
+                style={$actionButton(colors)}
                 onPress={() => {
                   stopSound()
                 }}
@@ -203,7 +214,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
               </TouchableHighlight>
             )}
             {showPlayer && (
-              <Text weight="bold" style={$playerText}>
+              <Text weight="bold" style={$playerText(colors)}>
                 {formatTime(duration ?? 0)}
               </Text>
             )}
@@ -214,14 +225,14 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
       <Pdf
         singlePage={false}
         spacing={0}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        showsHorizontalScrollIndicator={true}
         source={source}
         ref={$pdfRef}
-        onLoadComplete={(numberOfPages) => {
-          if (numberOfPages > 1) {
-            setEnablePaging(true)
-          }
+        renderActivityIndicator={() => {
+          return <ActivityIndicator size="large" color={colors.palette.primary500} />
+        }}
+        onLoadComplete={() => {
           setLoading(false)
         }}
         enableAnnotationRendering={true}
@@ -229,7 +240,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
         style={isFullscreen ? $fullscreenPdf : $pdf}
         fitPolicy={2}
         enableAntialiasing={true}
-        enablePaging={enablePaging}
+        enablePaging={false}
       />
     </Screen>
   )
@@ -254,20 +265,20 @@ const $slider: ViewStyle = {
   left: -3,
 }
 
-const $speedText: TextStyle = {
+const $speedText = (colors: any): TextStyle => ({
   fontSize: 12,
   color: colors.white,
-}
+})
 
-const $playerText: TextStyle = {
+const $playerText = (colors: any): TextStyle => ({
   color: colors.palette.neutral600,
   fontSize: 14,
   fontWeight: "800",
   width: 50,
   textAlign: "center",
-}
+})
 
-const $player: ViewStyle = {
+const $player = (colors: any): ViewStyle => ({
   position: "absolute",
   bottom: 0,
   zIndex: 100,
@@ -282,9 +293,9 @@ const $player: ViewStyle = {
   borderTopColor: colors.border,
   paddingBottom: 24,
   paddingTop: 16,
-}
+})
 
-const $playerButton: ViewStyle = {
+const $playerButton = (colors: any): ViewStyle => ({
   backgroundColor: colors.palette.primary500,
   borderRadius: 100,
   borderWidth: 0,
@@ -294,9 +305,9 @@ const $playerButton: ViewStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-}
+})
 
-const $actionButton: ViewStyle = {
+const $actionButton = (colors: any): ViewStyle => ({
   backgroundColor: colors.palette.primary500,
   borderRadius: 100,
   borderWidth: 0,
@@ -306,7 +317,7 @@ const $actionButton: ViewStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-}
+})
 
 const $container: ViewStyle = {
   flex: 1,
@@ -324,6 +335,7 @@ const $pdf: ViewStyle = {
   width: Dimensions.get("window").width,
   height: Dimensions.get("window").height,
   shadowOpacity: 0,
+  paddingTop: 60,
   elevation: 0,
   backgroundColor: "white",
 }
@@ -332,5 +344,5 @@ const $fullscreenPdf: ViewStyle = {
   ...$pdf,
   width: Dimensions.get("window").width,
   height: Dimensions.get("window").height,
-  backgroundColor: "white",
+  paddingTop: 0,
 }

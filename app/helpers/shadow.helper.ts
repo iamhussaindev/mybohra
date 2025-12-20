@@ -11,10 +11,3 @@ export const shadowProps: ViewStyle = {
   borderCurve: "continuous",
   borderColor: colors.border,
 }
-
-export const shadowPropsOnlyShadow: ViewStyle = {
-  shadowOpacity: 0.05,
-  shadowRadius: 4,
-  shadowOffset: { width: 0, height: 5 },
-  backgroundColor: "transparent",
-}

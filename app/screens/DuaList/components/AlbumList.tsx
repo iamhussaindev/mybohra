@@ -2,6 +2,7 @@ import { IconFolderCheck } from "@tabler/icons-react-native"
 import { Text } from "app/components"
 import { shadowProps } from "app/helpers/shadow.helper"
 import { colors, spacing } from "app/theme"
+import { formatLabel } from "app/utils/labelHelper"
 import React from "react"
 import { Dimensions, Pressable, TextStyle, View, ViewStyle } from "react-native"
 
@@ -64,7 +65,12 @@ export default function AlbumList({ onSelectAlbum, categories }: AlbumListProps)
                 <View style={$albumEmojiContainer}>
                   <IconFolderCheck size={24} color={colors.palette.primary800} />
                 </View>
-                <Text style={$albumTitle} text={album.title} numberOfLines={2} weight="medium" />
+                <Text
+                  style={$albumTitle}
+                  text={formatLabel(album.title)}
+                  numberOfLines={2}
+                  weight="medium"
+                />
               </Pressable>
             )
           })}

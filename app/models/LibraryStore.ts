@@ -110,10 +110,13 @@ export const LibraryStoreModel = types
       }
     }),
 
-    // Fetch items by categories from Supabase
-    fetchByCategories: flow(function* (categories: string[]) {
+    // Fetch items by categories from Supabase with pagination
+    fetchByCategories: flow(function* (
+      categories: string[],
+      options?: { limit?: number; offset?: number },
+    ) {
       try {
-        const response = yield apiSupabase.fetchByCategories(categories)
+        const response = yield apiSupabase.fetchByCategories(categories, options)
         if (response.kind === "ok") {
           return response.data as ILibrary[]
         }

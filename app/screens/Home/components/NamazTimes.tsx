@@ -1,11 +1,12 @@
-import { SBox, Text } from "app/components"
+import { Text } from "app/components"
 import { CurrentGhari } from "app/helpers/namaz.helper"
+import { shadowProps } from "app/helpers/shadow.helper"
 import { spacing } from "app/theme"
 import { useColors } from "app/theme/useColors"
 import { getFormattedTime } from "app/utils/common"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { Dimensions, FlatList, TextStyle, View, ViewStyle } from "react-native"
+import { Dimensions, FlatList, Pressable, TextStyle, View, ViewStyle } from "react-native"
 
 const namazTimes = [
   { key: "4", text: "Sehori End", time_key: "sihori" },
@@ -76,23 +77,23 @@ function NamazCard(props: {
 }) {
   return (
     <>
-      <SBox
-        height={75}
-        width={screenWidth / 3 - 36}
-        cornerRadius={0.5}
-        borderRadius={8}
-        backgroundColor={
-          props.activeIndex === props.index
-            ? props.colors.palette.primary10
-            : props.colors.palette.neutral100
-        }
-        borderColor={
-          props.activeIndex === props.index ? props.colors.palette.primary200 : props.colors.border
-        }
+      <Pressable
         onPress={() => {
-          props.navigation.navigate("Namaz")
+          props.navigation.navigate("PdfViewer", {
+            id: props.timeKey,
+            name: props.text,
+            description: props.time,
+            audio_url: props.time,
+            pdf_url: props.time,
+            youtube_url: props.time,
+          })
         }}
-        style={[props.index === 0 && $firstNamazCard, props.index === 4 && $lastNamazCard]}
+        style={[
+          $namazCard(props.colors),
+          props.activeIndex === props.index && getActiveNamazCard(props.colors),
+          props.index === 0 && $firstNamazCard,
+          props.index === 4 && $lastNamazCard,
+        ]}
       >
         {props.activeIndex === props.index ? (
           <View style={getCurrentGhariContainer(props.colors)}>
@@ -101,7 +102,12 @@ function NamazCard(props: {
             </Text>
           </View>
         ) : null}
-        <View style={[$grContainer, props.activeIndex === props.index && getActiveNamazCard()]}>
+        <View
+          style={[
+            $grContainer,
+            props.activeIndex === props.index && getActiveNamazCard(props.colors),
+          ]}
+        >
           <Text
             weight="normal"
             style={[
@@ -121,10 +127,25 @@ function NamazCard(props: {
             {getFormattedTime(props.time)}
           </Text>
         </View>
-      </SBox>
+      </Pressable>
     </>
   )
 }
+
+const $namazCard = (colors: any): ViewStyle => ({
+  width: screenWidth / 3 - 36,
+  height: 75,
+  minHeight: 75,
+  justifyContent: "center",
+  flexDirection: "column",
+  alignItems: "center",
+  ...shadowProps,
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: 12,
+  borderColor: colors.border,
+  borderWidth: 1,
+  borderCurve: "continuous",
+})
 
 const $flatListStyle: ViewStyle = {
   overflow: "visible",
@@ -143,7 +164,7 @@ const getCurrentGhariContainer = (colors: any): ViewStyle => ({
   width: 75,
   backgroundColor: colors.palette.primary500,
   zIndex: 20,
-  borderRadius: 8,
+  borderRadius: 12,
   borderWidth: 0,
   borderCurve: "continuous",
 })
@@ -163,12 +184,17 @@ const $grContainer: ViewStyle = {
   flexDirection: "column",
   alignItems: "center",
   padding: 0,
-  borderRadius: 8,
+  borderRadius: 12,
   borderCurve: "continuous",
   position: "relative",
 }
 
-const getActiveNamazCard = (): ViewStyle => ({})
+const getActiveNamazCard = (colors: any): ViewStyle => ({
+  backgroundColor: colors.palette.primary10,
+  borderColor: colors.palette.primary500,
+  borderWidth: 1,
+  borderCurve: "continuous",
+})
 
 const $firstNamazCard: ViewStyle = {
   marginLeft: spacing.lg,

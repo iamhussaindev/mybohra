@@ -2,7 +2,8 @@ import { BackButton } from "app/appComponents/BackButton"
 import { Icon, Text } from "app/components"
 import { useStores } from "app/models"
 import { ILibrary } from "app/models/LibraryStore"
-import { colors, spacing } from "app/theme"
+import { spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
 import { Pressable, TextStyle, View, ViewStyle } from "react-native"
@@ -21,6 +22,7 @@ interface HeaderProps extends ILibrary {
 
 export const Header = observer(function Header(props: HeaderProps) {
   const { dataStore } = useStores()
+  const colors = useColors()
   const [isPinned, setIsPinned] = useState<boolean>(false)
   const translateY = useSharedValue(0)
   const iconScale = useSharedValue(1)
@@ -65,13 +67,14 @@ export const Header = observer(function Header(props: HeaderProps) {
   }
 
   return (
-    <Animated.View style={[$header, animatedHeaderStyle]}>
+    <Animated.View style={[$header(colors), animatedHeaderStyle]}>
       <BackButton style={$backButton} />
       <View style={$headerLocation}>
         <Text
           weight="medium"
           style={$headerTitle}
           text={props.name}
+          color={colors.text}
           numberOfLines={1}
           ellipsizeMode="tail"
         />
@@ -129,20 +132,14 @@ const $headerLocation: ViewStyle = {
   right: 0,
 }
 
-const $header: ViewStyle = {
+const $header = (colors: any): ViewStyle => ({
   flexDirection: "row",
   justifyContent: "space-between",
-  backgroundColor: colors.palette.neutral100,
+  backgroundColor: colors.background,
   alignItems: "center",
   position: "absolute",
   top: 0,
   left: 0,
   right: 0,
   zIndex: 100,
-  borderBottomWidth: 1,
-  borderBottomColor: colors.border,
-  shadowColor: colors.gray,
-  shadowOpacity: 0.5,
-  shadowRadius: 5,
-  shadowOffset: { width: 0, height: 5 },
-}
+})

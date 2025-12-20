@@ -4,16 +4,18 @@ import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import { useStores } from "app/models"
 import { ILibrary } from "app/models/LibraryStore"
 import { AppStackScreenProps } from "app/navigators"
-import { colors } from "app/theme"
+import { useColors } from "app/theme/useColors"
+import { formatLabel } from "app/utils/labelHelper"
 import { observer } from "mobx-react-lite"
 import React, { FC, useCallback, useRef, useState, useEffect } from "react"
-import { ViewStyle, Pressable, Animated, FlatList } from "react-native"
+import { ViewStyle, Pressable, Animated, FlatList, View, ActivityIndicator } from "react-native"
 
 import { PdfItemCard } from "./components/PdfItemCard"
 
 interface DuaListScreenProps extends AppStackScreenProps<"DuaList"> {}
 
 export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListScreen(props) {
+  const colors = useColors()
   const { libraryStore, dataStore } = useStores()
   const album = props.route.params?.album
 
@@ -41,21 +43,71 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
     fetchLibraryData()
   }, [fetchLibraryData])
 
-  // Fetch items by categories if album is provided
+  // Fetch items by categories if album is provided with pagination
   const [categoryItems, setCategoryItems] = useState<ILibrary[]>([])
-  const [, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const ITEMS_PER_PAGE = 50
+
+  const loadItems = useCallback(
+    async (currentOffset: number, append = false) => {
+      if (!album) return
+
+      if (currentOffset === 0) {
+        setLoading(true)
+      } else {
+        setLoadingMore(true)
+      }
+
+      try {
+        console.log("album.id", album.id)
+        const items = await libraryStore.fetchByCategories([album.id], {
+          limit: ITEMS_PER_PAGE,
+          offset: currentOffset,
+        })
+
+        if (items.length < ITEMS_PER_PAGE) {
+          setHasMore(false)
+        } else {
+          setHasMore(true)
+        }
+
+        if (append) {
+          setCategoryItems((prev) => [...prev, ...items])
+        } else {
+          setCategoryItems(items)
+        }
+        setOffset(currentOffset + items.length)
+      } catch (error) {
+        console.error("Error loading items:", error)
+      } finally {
+        setLoading(false)
+        setLoadingMore(false)
+      }
+    },
+    [album, libraryStore],
+  )
 
   useEffect(() => {
     if (album) {
-      setLoading(true)
-      libraryStore.fetchByCategories([album.id]).then((items) => {
-        setCategoryItems(items)
-        setLoading(false)
-      })
+      setOffset(0)
+      setHasMore(true)
+      setCategoryItems([])
+      loadItems(0, false)
     } else {
       setCategoryItems([])
+      setOffset(0)
+      setHasMore(false)
     }
-  }, [album, libraryStore])
+  }, [album, loadItems])
+
+  const handleLoadMore = useCallback(() => {
+    if (!loadingMore && hasMore && !loading && album) {
+      loadItems(offset, true)
+    }
+  }, [loadingMore, hasMore, loading, album, offset, loadItems])
 
   const animateIconPress = useCallback(() => {
     Animated.sequence([
@@ -87,10 +139,10 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
       preset="fixed"
       backgroundColor={colors.background}
       safeAreaEdges={["top"]}
-      contentContainerStyle={$screenContainer}
+      contentContainerStyle={$screenContainer(colors)}
     >
       <Header
-        title={album ? album.title : "Dua Library"}
+        title={album ? formatLabel(album.title) : "Dua Library"}
         showBackButton
         rightActions={
           <Pressable
@@ -105,11 +157,26 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
           </Pressable>
         }
       />
-      <FlatList
-        data={categoryItems}
-        renderItem={renderPdfItem}
-        keyExtractor={(item) => item.id.toString()}
-      />
+      {loading && categoryItems.length === 0 ? (
+        <View style={$loadingContainer}>
+          <ActivityIndicator size="large" color={colors.palette.primary500} />
+        </View>
+      ) : (
+        <FlatList
+          data={categoryItems}
+          renderItem={renderPdfItem}
+          keyExtractor={(item) => item.id.toString()}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={$loadingMoreContainer}>
+                <ActivityIndicator size="small" color={colors.palette.primary500} />
+              </View>
+            ) : null
+          }
+        />
+      )}
       <PDFOptionsBottomSheet
         ref={bottomSheetRef}
         item={selectedItem}
@@ -123,7 +190,18 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
   )
 })
 
-const $screenContainer: ViewStyle = {
-  backgroundColor: colors.background,
+const $screenContainer = (colors: any): ViewStyle => ({
   flex: 1,
+  backgroundColor: colors.background,
+})
+
+const $loadingContainer: ViewStyle = {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+}
+
+const $loadingMoreContainer: ViewStyle = {
+  padding: 20,
+  alignItems: "center",
 }

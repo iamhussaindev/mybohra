@@ -2,7 +2,7 @@ import { Text } from "app/components"
 import { useSoundPlayer } from "app/hooks/useAudio"
 // Removed manual analytics - using Firebase only
 import { ILibrary } from "app/models/LibraryStore"
-import { colors, spacing } from "app/theme"
+import { spacing } from "app/theme"
 import { useColors } from "app/theme/useColors"
 import LottieView from "lottie-react-native"
 import React, { useEffect, useRef } from "react"
@@ -68,8 +68,13 @@ export default function DuaGridList({
             preset="subheading"
           />
           {onViewAll && (
-            <TouchableOpacity onPress={onViewAll} style={$viewAllButton}>
-              <Text weight="bold" style={$viewAllText} text="View All" preset="formHelper" />
+            <TouchableOpacity onPress={onViewAll} style={$viewAllButton(colors)}>
+              <Text
+                weight="bold"
+                style={$viewAllText(colors)}
+                text="View All"
+                preset="formHelper"
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -128,18 +133,18 @@ const $header: TextStyle = {
   flex: 1,
 }
 
-const $viewAllButton: ViewStyle = {
+const $viewAllButton = (colors: any): ViewStyle => ({
   paddingHorizontal: spacing.xs,
   borderWidth: 1,
   borderColor: colors.palette.primary500,
   borderRadius: 8,
-}
+})
 
-const $viewAllText: TextStyle = {
+const $viewAllText = (colors: any): TextStyle => ({
   color: colors.palette.primary500,
   fontWeight: "800",
   fontSize: 12,
-}
+})
 
 interface DailyCardProps {
   item: ILibrary
@@ -157,6 +162,7 @@ interface DailyCardProps {
 }
 
 function DuaCard(props: DailyCardProps) {
+  const colors = useColors()
   const isCurrentPlaying = props.item.id === props.currentSoundId
   const { state } = useSoundPlayer()
 
@@ -178,7 +184,7 @@ function DuaCard(props: DailyCardProps) {
     <Pressable
       onPress={handlePress}
       style={[
-        $cardContainer,
+        $cardContainer(colors),
         props.columns === 1
           ? { width: screenWidth - spacing.lg * 2 }
           : { width: (screenWidth - spacing.lg * 2 - 10) / (props.columns ?? 2) },
@@ -187,7 +193,7 @@ function DuaCard(props: DailyCardProps) {
       <View style={$cardContent}>
         {!isCurrentPlaying ? (
           <View style={$cardPdfImage}>
-            <Image source={require("../../../assets/icons/pdf.png")} style={$pdfImage} />
+            <Image source={require("../../../assets/images/file.png")} style={$pdfImage} />
           </View>
         ) : (
           <LottieView
@@ -202,19 +208,11 @@ function DuaCard(props: DailyCardProps) {
           lineBreakMode="tail"
           numberOfLines={2}
           ellipsizeMode="tail"
-          style={[$cardText, props.columns === 1 ? $cardTextFull : {}]}
+          style={[$cardText(colors), props.columns === 1 ? $cardTextFull : {}]}
           text={props.item.name}
+          color={colors.text}
         />
       </View>
-
-      {/* {props.showOptions && (
-        <Pressable
-          onPress={props.showOptions ? handleLongPress : undefined}
-          style={$longPressButton}
-        >
-          <IconDotsVertical size={18} color={colors.palette.neutral900} />
-        </Pressable>
-      )} */}
     </Pressable>
   )
 }
@@ -229,16 +227,6 @@ const $cardTextFull: TextStyle = {
 
   fontSize: 15,
 }
-
-// const $longPressButton: ViewStyle = {
-//   position: "absolute",
-//   height: 60,
-//   right: 0,
-//   padding: spacing.sm,
-//   zIndex: 100,
-//   alignItems: "center",
-//   justifyContent: "center",
-// }
 
 const $cardContent: ViewStyle = {
   flexDirection: "row",
@@ -272,7 +260,7 @@ const $cardLottie: ViewStyle = {
   zIndex: 100,
 }
 
-const $cardContainer: ViewStyle = {
+const $cardContainer = (colors: any): ViewStyle => ({
   position: "relative",
   zIndex: 100,
   marginBottom: spacing.sm,
@@ -289,15 +277,16 @@ const $cardContainer: ViewStyle = {
   shadowOffset: { width: 0, height: 5 },
   backgroundColor: colors.white,
   borderCurve: "continuous",
-}
+})
 
-const $cardText: TextStyle = {
+const $cardText = (colors: any): TextStyle => ({
   fontSize: 14,
   lineHeight: 18,
   flexWrap: "wrap",
   textTransform: "capitalize",
   maxWidth: "75%",
-}
+  color: colors.text,
+})
 
 const $emptySpace: ViewStyle = {
   width: (screenWidth - spacing.lg * 2 - 30) / 2,
@@ -308,5 +297,4 @@ const $container: ViewStyle = {
   marginTop: 10,
   overflow: "visible",
   marginBottom: 16,
-  // backgroundColor: colors.palette.neutral100,
 }

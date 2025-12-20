@@ -578,7 +578,6 @@ export class ApiSupabase {
         .from("library")
         .select("categories")
         .not("categories", "is", null)
-        .eq("album", "DUA")
       if (error) {
         console.error("Error fetching categories:", error)
         return { kind: "bad-data" }
@@ -633,6 +632,7 @@ export class ApiSupabase {
         .select("tags")
         .eq("album", "DUA")
         .not("tags", "is", null)
+        .order("created_at", { ascending: true })
 
       if (error) {
         console.error("Error fetching tags:", error)
@@ -674,7 +674,7 @@ export class ApiSupabase {
     try {
       const { data, error } = await supabase
         .from("library")
-        .select("*")
+        .select("id, name, pdf_url, audio_url, youtube_url")
         .eq("album", album)
         .order("name")
 
@@ -691,9 +691,12 @@ export class ApiSupabase {
   }
 
   /**
-   * Fetch library items by categories
+   * Fetch library items by categories with pagination
    */
-  async fetchByCategories(categories: string[]): Promise<
+  async fetchByCategories(
+    categories: string[],
+    options?: { limit?: number; offset?: number },
+  ): Promise<
     | {
         kind: "ok"
         data: LibraryRow[]
@@ -705,12 +708,17 @@ export class ApiSupabase {
         return { kind: "ok", data: [] }
       }
 
-      const { data, error } = await supabase
+      const limit = options?.limit ?? 50
+      const offset = options?.offset ?? 0
+
+      const query = supabase
         .from("library")
-        .select("*")
+        .select("id, name, pdf_url, audio_url, youtube_url")
         .overlaps("categories", categories)
-        .eq("album", "DUA")
         .order("name")
+        .range(offset, offset + limit - 1)
+
+      const { data, error } = await query
 
       if (error) {
         console.error("Error fetching by categories:", error)
@@ -741,9 +749,12 @@ export class ApiSupabase {
 
       const { data, error } = await supabase
         .from("library")
-        .select("*")
-        .overlaps("tags", tags)
-        .eq("album", "DUA")
+        .select("id, name, pdf_url, audio_url, youtube_url, created_at, updated_at")
+        .overlaps(
+          "tags",
+          tags.map((tag) => tag.toLowerCase()),
+        )
+        .order("album", { ascending: true })
         .order("name")
 
       if (error) {
