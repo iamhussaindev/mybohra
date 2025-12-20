@@ -1,11 +1,13 @@
 import { SBox, Text } from "app/components"
-import { colors, spacing } from "app/theme"
+import { spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import React from "react"
 import { Dimensions, Image, ImageStyle, TextStyle, View, ViewStyle } from "react-native"
 
 const screenWidth = Dimensions.get("window").width
 
 function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }) {
+  const colors = useColors()
   const $heroTitle: TextStyle = {
     color: colors.text,
     marginBottom: spacing.xxs,
@@ -15,6 +17,10 @@ function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }
     width: screenWidth / 3 - 64,
     height: screenWidth / 3 - 64,
     objectFit: "contain",
+    borderWidth: 2,
+    borderColor: "white",
+    alignItems: "center",
+    borderRadius: 100,
   }
 
   const $heroCard: ViewStyle = {
@@ -57,7 +63,7 @@ export default function HeroIcons({ onNavigation }: { onNavigation: (screen: any
     <View style={$heroIconContainer}>
       <HeroCard
         onNavigation={() => onNavigation("DuaHome")}
-        text="Duas"
+        text="PDFs"
         icon={require("../../../../assets/images/duas.png")}
       />
       <HeroCard

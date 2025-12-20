@@ -2,6 +2,7 @@ import { ListView, Text } from "app/components"
 import HijriDate from "app/libs/HijriDate"
 import { IMiqaat } from "app/models/MiqaatStore"
 import { colors, spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import React from "react"
 import { View, ViewStyle, Image, ImageStyle, TextStyle } from "react-native"
 
@@ -15,6 +16,7 @@ export function MiqaatCard({
   item: IMiqaat
   style?: ViewStyle
 }) {
+  const colors = useColors()
   return (
     <View style={[$cardContainer, style]}>
       <View style={$cardContent}>
@@ -23,13 +25,13 @@ export function MiqaatCard({
             source={
               item.image ? { uri: item.image } : require("../../../assets/images/event_icon.png")
             }
-            style={[$cardImage, showCount && { borderColor: colors.transparent }]}
+            style={$cardImage}
             resizeMode="cover"
           />
         </View>
         {showCount && (
           <View style={$countDownContainer}>
-            <Text weight="medium" style={$countDownText}>
+            <Text weight="medium" style={$countDownText} color={colors.tint}>
               {HijriDate.fromMiqaat(item).toMoment().fromNow(true)}
             </Text>
           </View>
@@ -38,12 +40,14 @@ export function MiqaatCard({
           <Text
             weight="medium"
             style={$cardTitle}
+            color={colors.text}
             text={item.name}
             numberOfLines={2}
             ellipsizeMode="tail"
           />
           {item.description ? (
             <Text
+              color={colors.text}
               weight="normal"
               style={$cardDescriptionText}
               text={`${item.description ?? ""} ${item.location ? ` - ${item.location}` : ``}`}
@@ -73,8 +77,7 @@ const $cardImageContainer: ViewStyle = {
 }
 
 const $countDownText: TextStyle = {
-  fontSize: 10,
-  color: colors.palette.primary500,
+  fontSize: 12,
   margin: 0,
 }
 
@@ -132,9 +135,16 @@ export default function MiqaatList({
   title: string
   list: IMiqaat[]
 }) {
+  const colors = useColors()
   return (
     <View style={$listContainer}>
-      <Text preset="subheading" style={$listHeader} text={title} weight="bold" />
+      <Text
+        preset="subheading"
+        style={$listHeader}
+        color={colors.text}
+        text={title}
+        weight="bold"
+      />
       <ListView<IMiqaat>
         estimatedItemSize={50}
         contentContainerStyle={$listContentContainer}

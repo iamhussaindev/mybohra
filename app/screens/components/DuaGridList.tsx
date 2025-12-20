@@ -3,6 +3,7 @@ import { useSoundPlayer } from "app/hooks/useAudio"
 // Removed manual analytics - using Firebase only
 import { ILibrary } from "app/models/LibraryStore"
 import { colors, spacing } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import LottieView from "lottie-react-native"
 import React, { useEffect, useRef } from "react"
 import {
@@ -53,13 +54,19 @@ export default function DuaGridList({
   showOptions?: boolean
   onViewAll?: () => void
 }) {
-  // Removed manual analytics - using Firebase only
+  const colors = useColors()
 
   return (
     <View style={$container}>
       {!hideTitle && (
         <View style={$headerContainer}>
-          <Text style={$header} text={title} weight="bold" preset="subheading" />
+          <Text
+            style={$header}
+            color={colors.text}
+            text={title}
+            weight="bold"
+            preset="subheading"
+          />
           {onViewAll && (
             <TouchableOpacity onPress={onViewAll} style={$viewAllButton}>
               <Text weight="bold" style={$viewAllText} text="View All" preset="formHelper" />

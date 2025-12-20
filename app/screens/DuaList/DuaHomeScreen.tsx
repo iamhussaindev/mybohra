@@ -1,5 +1,3 @@
-import { TouchableHighlight } from "@gorhom/bottom-sheet"
-import { IconDotsVertical } from "@tabler/icons-react-native"
 import { Icon, PDFOptionsBottomSheet, PDFPreviewModal, Screen, Text } from "app/components"
 import Header from "app/components/Header"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
@@ -8,8 +6,7 @@ import { ILibrary } from "app/models/LibraryStore"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { typography } from "app/theme/typography"
-import { momentTime } from "app/utils/currentTime"
-import * as storage from "app/utils/storage"
+import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
 import React, { FC, useCallback, useRef, useState, useEffect } from "react"
 import {
@@ -25,33 +22,13 @@ import {
   SectionList,
   ImageStyle,
 } from "react-native"
-import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
 import { AlbumCategory } from "./components/AlbumList"
+import { PdfItemCard } from "./components/PdfItemCard"
 
 interface DuaHomeScreen extends AppStackScreenProps<"DuaHome"> {}
 
 type TabType = "Recent" | "Bookmarks" | "Today"
-
-// Helper function to format relative time
-const formatTimeAgo = (dateString: string): string => {
-  const date = momentTime(new Date(dateString))
-  const now = momentTime()
-  const diffInHours = now.diff(date, "hours")
-  const diffInDays = now.diff(date, "days")
-
-  if (diffInHours < 1) {
-    const diffInMinutes = now.diff(date, "minutes")
-    if (diffInMinutes < 1) return "Just now"
-    return `Opened ${diffInMinutes} ${diffInMinutes === 1 ? "minute" : "minutes"} ago`
-  } else if (diffInHours < 24) {
-    return `Opened ${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`
-  } else if (diffInDays < 7) {
-    return `Opened ${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`
-  } else {
-    return date.format("MMM D, YYYY")
-  }
-}
 
 export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScreen(props) {
   const { libraryStore, dataStore } = useStores()
@@ -67,14 +44,14 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     handleReportPDF,
     isPinned,
   } = usePdfOptionsBottomSheet({ navigation: props.navigation })
-
+  const colors = useColors()
   // Animated values
   const iconScale = useRef(new Animated.Value(1)).current
 
   const [refreshing, setRefreshing] = useState(false)
   const [recentPdfItems, setRecentPdfItems] = useState<ILibrary[]>([])
   const [activeTab, setActiveTab] = useState<TabType>("Recent")
-  const [hasNewTodayItems, setHasNewTodayItems] = useState(false)
+  const [hasNewTodayItems] = useState(true)
   const [previewItem, setPreviewItem] = useState<ILibrary | null>(null)
   const [anchorPosition, setAnchorPosition] = useState<{
     x: number
@@ -84,7 +61,6 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   } | null>(null)
 
   const tabs: TabType[] = ["Recent", "Today", "Bookmarks"]
-  const TODAY_SNAPSHOT_KEY = "TODAY_TAB_SNAPSHOT"
 
   const fetchLibraryData = useCallback(async () => {
     await libraryStore.fetchHomeData()
@@ -137,101 +113,15 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     return libraryStore.homeData
   }, [libraryStore.homeData])
 
-  // Create snapshot from items (array of {id, lastOpened})
-  const createSnapshot = useCallback(
-    (
-      items: Array<ILibrary & { lastOpened?: string }>,
-    ): Array<{ id: number; lastOpened: string }> => {
-      return items
-        .filter((item): item is ILibrary & { lastOpened: string } => !!item.lastOpened)
-        .map((item) => ({
-          id: item.id,
-          lastOpened: item.lastOpened,
-        }))
-        .sort((a, b) => new Date(b.lastOpened).getTime() - new Date(a.lastOpened).getTime())
-    },
-    [],
-  )
-
-  // Compare snapshots to detect changes
-  const compareSnapshots = useCallback(
-    (
-      current: Array<{ id: number; lastOpened: string }>,
-      stored: Array<{ id: number; lastOpened: string }> | null,
-    ): boolean => {
-      if (!stored || stored.length === 0) {
-        return current.length > 0
-      }
-
-      // Check if there are new items (IDs not in stored snapshot)
-      const storedIds = new Set(stored.map((item) => item.id))
-      const hasNewItems = current.some((item) => !storedIds.has(item.id))
-
-      if (hasNewItems) return true
-
-      // Check if any existing items have newer lastOpened timestamps
-      const storedMap = new Map(stored.map((item) => [item.id, item.lastOpened]))
-      const hasUpdatedItems = current.some((item) => {
-        const storedTimestamp = storedMap.get(item.id)
-        return storedTimestamp && new Date(item.lastOpened) > new Date(storedTimestamp)
-      })
-
-      return hasUpdatedItems
-    },
-    [],
-  )
-
-  // Check for new items when data changes
-  useEffect(() => {
-    const checkForNewItems = async () => {
-      const todayItems = getTodayItems()
-      const currentSnapshot = createSnapshot(todayItems)
-      const storedSnapshot = (await storage.load(TODAY_SNAPSHOT_KEY)) as Array<{
-        id: number
-        lastOpened: string
-      }> | null
-
-      const hasChanges = compareSnapshots(currentSnapshot, storedSnapshot)
-      setHasNewTodayItems(hasChanges)
-    }
-
-    if (recentPdfItems.length > 0) {
-      checkForNewItems()
-    }
-  }, [recentPdfItems, getTodayItems, createSnapshot, compareSnapshots])
-
-  // Update snapshot when user views Today tab
-  useEffect(() => {
-    if (activeTab === "Today") {
-      const updateSnapshot = async () => {
-        const todayItems = getTodayItems()
-        const currentSnapshot = createSnapshot(todayItems)
-        await storage.save(TODAY_SNAPSHOT_KEY, currentSnapshot)
-        setHasNewTodayItems(false)
-      }
-
-      updateSnapshot()
-    }
-  }, [activeTab, getTodayItems, createSnapshot])
-
-  // Update snapshot on refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
     try {
       await fetchLibraryData()
-      // Refresh recent PDF items after history is reloaded
       await fetchRecentPdfItems()
-      // Update snapshot after refresh if on Today tab
-      if (activeTab === "Today") {
-        const todayItems = getTodayItems()
-        const currentSnapshot = createSnapshot(todayItems)
-        await storage.save(TODAY_SNAPSHOT_KEY, currentSnapshot)
-        setHasNewTodayItems(false)
-      }
     } finally {
       setRefreshing(false)
     }
-  }, [activeTab, fetchLibraryData, fetchRecentPdfItems, getTodayItems, createSnapshot])
+  }, [activeTab, fetchLibraryData, fetchRecentPdfItems, getTodayItems])
 
   // Get data based on active tab
   const getDisplayItems = (): Array<ILibrary & { lastOpened?: string }> => {
@@ -272,71 +162,16 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   }
 
   const renderPdfItem = ({ item }: { item: ILibrary & { lastOpened?: string } }) => {
-    const timeAgo = item.lastOpened ? formatTimeAgo(item.lastOpened) : ""
-    const itemRef = useRef<View>(null)
-
-    const handleLongPress = (e: any) => {
-      e.stopPropagation()
-      // Trigger stronger haptic feedback on long press
-      try {
-        ReactNativeHapticFeedback.trigger("impactMedium", {
-          enableVibrateFallback: true,
-          ignoreAndroidSystemSettings: false,
-        })
-      } catch (error) {
-        console.log("Haptic feedback error:", error)
-      }
-
-      // Measure the item position
-      itemRef.current?.measure((x, y, width, height, pageX, pageY) => {
-        setAnchorPosition({
-          x: pageX,
-          y: pageY,
-          width,
-          height,
-        })
-        setPreviewItem(item)
-      })
-    }
-
     return (
-      <View ref={itemRef} collapsable={false}>
-        <TouchableHighlight
-          underlayColor={colors.palette.neutral200}
-          onPress={() => handleItemPress(item)}
-          onLongPress={handleLongPress}
-          style={$pdfCard}
-        >
-          <View style={$pdfCardContent}>
-            <View style={$pdfIconContainer}>
-              <Image source={require("../../../assets/images/file.png")} style={$icon} />
-            </View>
-            <View style={$pdfTextContainer}>
-              <Text text={item.name} style={$pdfTitle} numberOfLines={2} weight="medium" />
-              {timeAgo && <Text text={timeAgo} style={$pdfTimestamp} />}
-            </View>
-            <Pressable
-              onPress={(e) => {
-                e.stopPropagation()
-                // Trigger haptic feedback on press
-                try {
-                  ReactNativeHapticFeedback.trigger("impactLight", {
-                    enableVibrateFallback: true,
-                    ignoreAndroidSystemSettings: false,
-                  })
-                } catch (error) {
-                  console.log("Haptic feedback error:", error)
-                }
-                handleItemLongPress(item)
-              }}
-              style={({ pressed }) => [$bookmarkButton, pressed && $bookmarkButtonPressed]}
-              hitSlop={8}
-            >
-              <IconDotsVertical size={20} color={colors.palette.neutral800} />
-            </Pressable>
-          </View>
-        </TouchableHighlight>
-      </View>
+      <PdfItemCard
+        item={item}
+        onPress={handleItemPress}
+        onLongPress={(item, position) => {
+          setAnchorPosition(position)
+          setPreviewItem(item)
+        }}
+        onOptionsPress={handleItemLongPress}
+      />
     )
   }
 
@@ -377,7 +212,13 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
             }}
           >
             <Image source={require("../../../assets/images/folder.png")} style={$folderIcon} />
-            <Text text={item.title} style={$folderTitle} numberOfLines={2} weight="medium" />
+            <Text
+              text={item.title}
+              style={$folderTitle}
+              numberOfLines={2}
+              weight="medium"
+              color={colors.text}
+            />
           </Pressable>
         )}
       />
@@ -392,7 +233,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
       contentContainerStyle={$screenContainer}
     >
       <Header
-        title="Dua Library"
+        title="PDF Library"
         showBackButton
         rightActions={
           <Pressable
@@ -419,7 +260,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
         keyExtractor={(item) => item.id.toString()}
         ListHeaderComponent={renderFoldersHeader}
         renderSectionHeader={() => (
-          <View style={$tabsContainer}>
+          <View style={$tabsContainer(colors)}>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -429,14 +270,15 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
                 <Pressable
                   key={tab}
                   onPress={() => setActiveTab(tab)}
-                  style={[$tabButton, activeTab === tab && $activeTabButton]}
+                  style={[$tabButton(colors), activeTab === tab && $activeTabButton(colors)]}
                 >
                   <View style={$tabContent}>
                     {tab === "Today" && hasNewTodayItems && <View style={$redDot} />}
                     <Text
                       text={tab}
-                      style={[$tabText, activeTab === tab && $activeTabText]}
+                      style={[$tabText, activeTab === tab && $activeTabText(colors)]}
                       weight="medium"
+                      color={colors.text}
                     />
                   </View>
                 </Pressable>
@@ -483,16 +325,15 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
 })
 
 const $screenContainer: ViewStyle = {
-  backgroundColor: colors.background,
   flex: 1,
 }
 
-const $tabsContainer: ViewStyle = {
-  backgroundColor: colors.background,
+const $tabsContainer = (colors: any): ViewStyle => ({
   paddingVertical: spacing.md,
   borderBottomColor: colors.border,
   marginBottom: spacing.sm,
-}
+  backgroundColor: colors.background,
+})
 
 const $tabsScrollContent: ViewStyle = {
   paddingHorizontal: spacing.md,
@@ -500,16 +341,16 @@ const $tabsScrollContent: ViewStyle = {
   gap: spacing.sm,
 }
 
-const $tabButton: ViewStyle = {
+const $tabButton = (colors: any): ViewStyle => ({
   paddingHorizontal: spacing.sm,
   borderRadius: 100,
   borderWidth: 1,
   borderColor: colors.border,
-  backgroundColor: colors.white,
+  backgroundColor: colors.background,
   minHeight: 32,
   justifyContent: "center",
   alignItems: "center",
-}
+})
 
 const $tabContent: ViewStyle = {
   flexDirection: "row",
@@ -526,19 +367,18 @@ const $redDot: ViewStyle = {
   marginRight: spacing.xs,
 }
 
-const $activeTabButton: ViewStyle = {
-  backgroundColor: colors.palette.neutral200,
+const $activeTabButton = (colors: any): ViewStyle => ({
+  backgroundColor: colors.palette.neutral300,
   borderColor: colors.border,
-}
+})
 
 const $tabText: TextStyle = {
   fontSize: 14,
-  color: colors.palette.neutral800,
 }
 
-const $activeTabText: TextStyle = {
-  color: colors.palette.neutral800,
-}
+const $activeTabText = (colors: any): TextStyle => ({
+  color: colors.text,
+})
 
 const $listContainer: ViewStyle = {
   paddingBottom: spacing.xxl,
@@ -557,7 +397,6 @@ const $foldersScrollContent: ViewStyle = {
 const $folderCard: ViewStyle = {
   marginBottom: spacing.md,
   marginRight: spacing.sm,
-  backgroundColor: colors.white,
   borderColor: colors.border,
   width: 80,
   minHeight: 80,
@@ -573,63 +412,7 @@ const $folderIcon: ImageStyle = {
 const $folderTitle: TextStyle = {
   fontSize: 14,
   fontFamily: typography.primary.medium,
-  color: colors.palette.neutral900,
   textTransform: "capitalize",
-}
-
-const $pdfCard: ViewStyle = {
-  backgroundColor: colors.white,
-  marginBottom: spacing.sm,
-  paddingHorizontal: spacing.sm,
-  paddingVertical: spacing.xxs,
-  borderColor: colors.border,
-}
-
-const $pdfCardContent: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-}
-
-const $pdfIconContainer: ViewStyle = {
-  width: 40,
-  height: 40,
-  justifyContent: "center",
-  alignItems: "center",
-  marginRight: spacing.md,
-}
-
-const $icon: ImageStyle = {
-  width: 24,
-  height: 24,
-}
-
-const $pdfTextContainer: ViewStyle = {
-  flex: 1,
-  justifyContent: "center",
-}
-
-const $pdfTitle: TextStyle = {
-  fontSize: 16,
-  fontFamily: typography.primary.medium,
-  color: colors.palette.neutral800,
-  textTransform: "capitalize",
-}
-
-const $pdfTimestamp: TextStyle = {
-  fontSize: 13,
-  fontFamily: typography.primary.normal,
-  color: colors.palette.neutral500,
-}
-
-const $bookmarkButton: ViewStyle = {
-  padding: spacing.xs,
-  justifyContent: "center",
-  alignItems: "center",
-  borderRadius: 8,
-}
-
-const $bookmarkButtonPressed: ViewStyle = {
-  backgroundColor: colors.palette.neutral200,
 }
 
 const $emptyContainer: ViewStyle = {

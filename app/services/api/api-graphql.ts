@@ -577,9 +577,8 @@ export class ApiSupabase {
       const { data, error } = await supabase
         .from("library")
         .select("categories")
-        .eq("album", "DUA")
         .not("categories", "is", null)
-
+        .eq("album", "DUA")
       if (error) {
         console.error("Error fetching categories:", error)
         return { kind: "bad-data" }
@@ -808,9 +807,13 @@ export class ApiSupabase {
         return { kind: "ok", data: [] }
       }
 
+      // @ts-ignore
       const { data, error } = await supabase.rpc("search_library", {
-        search_query: searchQuery.trim(),
-      } as any)
+        p_query: searchQuery.trim(),
+        p_limit: 20,
+      })
+
+      console.log("searchLibrary", data)
 
       if (error) {
         console.error("Error searching library:", error)

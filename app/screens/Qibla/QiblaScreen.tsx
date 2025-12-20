@@ -1,11 +1,9 @@
-import { useNavigation } from "@react-navigation/native"
 import { IconGpsFilled } from "@tabler/icons-react-native"
-import { Screen, Text, Icon } from "app/components"
+import { Screen, Text } from "app/components"
 import Header from "app/components/Header"
 import { useTheme } from "app/contexts/ThemeContext"
 import { useLocationCoords } from "app/hooks/useLocationCoords"
 import { useStores } from "app/models"
-import { AppStackScreenProps } from "app/navigators"
 import { spacing } from "app/theme"
 import { useColors } from "app/theme/useColors"
 import React, { useEffect, useRef, useState } from "react"
@@ -18,7 +16,6 @@ import {
   TextStyle,
   Dimensions,
   ImageStyle,
-  TouchableOpacity,
 } from "react-native"
 import CompassHeading from "react-native-compass-heading"
 import Geolocation from "react-native-geolocation-service"
@@ -29,7 +26,6 @@ const KAABA_LNG = 39.826206
 export function QiblaScreen() {
   const colors = useColors()
   const theme = useTheme()
-  const navigation = useNavigation<AppStackScreenProps<"Qibla">["navigation"]>()
   const locationCoords = useLocationCoords()
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
@@ -163,10 +159,6 @@ export function QiblaScreen() {
     )
   }
 
-  const handleNavigateToAR = () => {
-    navigation.navigate("ARNamazMat")
-  }
-
   return (
     <Screen
       safeAreaEdges={["top"]}
@@ -174,22 +166,18 @@ export function QiblaScreen() {
       preset="fixed"
       style={$screen(colors)}
     >
-      <Header
-        title="Qibla Direction"
-        showBackButton
-        rightActions={
-          <TouchableOpacity
-            onPress={handleNavigateToAR}
-            style={$arButton}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Icon icon="view" size={24} color={colors.tint} />
-          </TouchableOpacity>
-        }
-      />
+      <Header title="Qibla Direction" showBackButton />
       <View style={$contentContainer}>
         <View style={$compassWrapper}>
           <View style={$compassContainer}>
+            <View style={$note1Container}>
+              <Text
+                text="Move your phone in the direction of the arrow pointer to see the Qibla direction"
+                color={colors.text}
+                style={$noteLabel}
+                weight="bold"
+              />
+            </View>
             <View style={$dialContainer}>
               <Animated.Image
                 source={
@@ -243,7 +231,7 @@ export function QiblaScreen() {
 
             <View style={$noteContainer}>
               <Text
-                text="Note: This is the Qibla direction from your current location to the Kaaba."
+                text="Note: This app calculates the Qibla direction from your current location to the Kaaba"
                 color={colors.text}
                 style={$noteLabel}
                 weight="bold"
@@ -254,6 +242,14 @@ export function QiblaScreen() {
       </View>
     </Screen>
   )
+}
+
+const $note1Container: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "center",
+  marginTop: 120,
+  maxWidth: "80%",
+  marginBottom: 60,
 }
 
 const $noteContainer: ViewStyle = {
@@ -356,8 +352,6 @@ const $compassContainer: ViewStyle = {
 
 const $centerContainer = {
   flex: 1,
-  // justifyContent: "center" as const,
-  // alignItems: "center" as const,
   padding: spacing.xl,
 }
 
@@ -365,31 +359,3 @@ const $loadingText: TextStyle = {
   marginTop: spacing.md,
   textAlign: "center",
 }
-
-const $arButton: ViewStyle = {
-  padding: spacing.xs,
-  alignItems: "center",
-  justifyContent: "center",
-}
-
-// const $infoLabel: ViewStyle = {
-//   marginBottom: spacing.xs,
-// }
-
-// const $infoValue: ViewStyle = {
-//   marginTop: spacing.xs,
-// }
-
-// const styles = StyleSheet.create({
-//   compassImage: {
-//     height: COMPASS_SIZE,
-//     width: COMPASS_SIZE,
-//   },
-//   qiblaArrow: {
-//     height: COMPASS_SIZE * 0.75,
-//     left: COMPASS_SIZE * 0.125,
-//     position: "absolute",
-//     top: COMPASS_SIZE * 0.125,
-//     width: COMPASS_SIZE * 0.75,
-//   },
-// })

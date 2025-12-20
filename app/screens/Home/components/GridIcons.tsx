@@ -51,6 +51,9 @@ const getIcon = (): ImageStyle => ({
   height: 60,
   marginBottom: spacing.sm,
   borderRadius: 100,
+  borderWidth: 2,
+  borderColor: "white",
+  alignItems: "center",
 })
 
 const getTextStyle = (colors: any): TextStyle => ({

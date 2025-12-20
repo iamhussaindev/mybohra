@@ -77,7 +77,6 @@ export type AppStackParamList = {
   DuaListSearch: undefined
   Settings: undefined
   Qibla: undefined
-  ARNamazMat: undefined
 }
 
 /**
@@ -99,7 +98,7 @@ const AppStack = observer(function AppStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="Qibla"
+      initialRouteName="DuaHome"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,
@@ -109,15 +108,7 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="Namaz" component={Screens.NamazScreen} />
       <Stack.Screen name="Calendar" component={Screens.CalendarScreen} />
       <Stack.Screen name="CalendarSearch" component={Screens.CalendarSearch} />
-      <Stack.Screen
-        options={{
-          animation: "fade",
-          animationDuration: 300,
-          customAnimationOnGesture: true,
-        }}
-        name="PdfViewer"
-        component={Screens.PdfScreen}
-      />
+      <Stack.Screen name="PdfViewer" component={Screens.PdfScreen} />
       <Stack.Screen name="Counter" component={Screens.CounterScreen} />
       <Stack.Screen name="SavedTasbeeh" component={Screens.SavedTasbeehScreen} />
       <Stack.Screen name="EventReminder" component={Screens.EventReminderScreen} />
@@ -127,23 +118,8 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="DuaListSearch" component={Screens.DuaListSearch} />
       <Stack.Screen name="Reminder" component={Screens.ReminderScreen} />
       <Stack.Screen name="ReminderSettings" component={Screens.ReminderSettingsScreen} />
-      <Stack.Screen
-        name="Settings"
-        component={Screens.SettingsScreen}
-        options={{
-          headerShown: true,
-          title: "Settings",
-          headerBackTitle: "Back",
-        }}
-      />
+      <Stack.Screen name="Settings" component={Screens.SettingsScreen} />
       <Stack.Screen name="Qibla" component={Screens.QiblaScreen} />
-      <Stack.Screen
-        name="ARNamazMat"
-        component={Screens.ARNamazMatScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
     </Stack.Navigator>
   )
 })

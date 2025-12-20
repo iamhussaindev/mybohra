@@ -4,9 +4,8 @@ import { shadowProps } from "app/helpers/shadow.helper"
 import { ILibrary, useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing, typography } from "app/theme"
-import Fuse from "fuse.js"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useRef, useState, useCallback } from "react"
 import {
   FlatList,
   Image,
@@ -16,6 +15,7 @@ import {
   TextStyle,
   View,
   ViewStyle,
+  ActivityIndicator,
 } from "react-native"
 
 type DuaListSearchProps = AppStackScreenProps<"DuaListSearch">
@@ -24,14 +24,12 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
   const { navigation } = props
   const { libraryStore } = useStores()
   const [query, setQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<ILibrary[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
 
   const inputRef = useRef<TextInput>(null)
-
-  useEffect(() => {
-    if (libraryStore.allLibraryItems.length === 0) {
-      libraryStore.fetchList()
-    }
-  }, [libraryStore])
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -41,36 +39,61 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
     return () => clearTimeout(timeout)
   }, [])
 
-  const allLibraryItems = libraryStore.allLibraryItems
+  // Debounced search function
+  const performSearch = useCallback(
+    async (searchQuery: string) => {
+      if (!searchQuery.trim()) {
+        setSearchResults([])
+        setIsSearching(false)
+        setHasSearched(false)
+        return
+      }
 
-  const fuse = useMemo(() => {
-    if (allLibraryItems.length === 0) return null
-    return new Fuse(allLibraryItems.slice(), {
-      keys: [
-        { name: "name", weight: 0.5 },
-        { name: "description", weight: 0.3 },
-        { name: "tags", weight: 0.1 },
-        { name: "categories", weight: 0.05 },
-        { name: "search_text", weight: 0.05 },
-      ],
-      threshold: 0.3,
-      ignoreLocation: true,
-      includeScore: true,
-    })
-  }, [allLibraryItems])
+      setIsSearching(true)
+      setHasSearched(true)
 
-  const defaultResults = useMemo(() => allLibraryItems, [allLibraryItems])
+      try {
+        const results = await libraryStore.searchLibrary(searchQuery.trim())
+        setSearchResults(results)
+      } catch (error) {
+        console.error("Error searching library:", error)
+        setSearchResults([])
+      } finally {
+        setIsSearching(false)
+      }
+    },
+    [libraryStore],
+  )
 
-  const searchResults = useMemo(() => {
-    if (!query.trim()) {
-      return defaultResults
+  // Handle query changes with debouncing
+  useEffect(() => {
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
     }
 
-    if (!fuse) return []
+    if (!query.trim()) {
+      setSearchResults([])
+      setIsSearching(false)
+      setHasSearched(false)
+      return
+    }
 
-    const results = fuse.search(query.trim())
-    return results.map((result) => result.item)
-  }, [query, defaultResults, fuse])
+    // Set loading state immediately
+    setIsSearching(true)
+    setHasSearched(true)
+
+    // Debounce the search by 500ms
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(query)
+    }, 500)
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [query, performSearch])
 
   const handleSelect = (item: ILibrary) => {
     navigation.navigate("PdfViewer", {
@@ -131,23 +154,37 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
         />
       </View>
 
-      <FlatList
-        data={searchResults}
-        keyExtractor={(item) => `dua-${item.id}`}
-        renderItem={renderItem}
-        contentContainerStyle={$listContent}
-        keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          query.trim() ? (
-            <View style={$emptyContainer}>
-              <Text style={$emptyText}>No results found</Text>
-              <Text size="xs" style={$emptySubtext}>
-                Try a different search term
-              </Text>
-            </View>
-          ) : null
-        }
-      />
+      {isSearching ? (
+        <View style={$loadingContainer}>
+          <ActivityIndicator size="large" color={colors.palette.primary500} />
+          <Text style={$loadingText}>Searching...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item) => `dua-${item.id}`}
+          renderItem={renderItem}
+          contentContainerStyle={$listContent}
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={
+            hasSearched && query.trim() ? (
+              <View style={$emptyContainer}>
+                <Text style={$emptyText}>No results found</Text>
+                <Text size="xs" style={$emptySubtext}>
+                  Try a different search term
+                </Text>
+              </View>
+            ) : !hasSearched ? (
+              <View style={$emptyContainer}>
+                <Text style={$emptyText}>Start typing to search</Text>
+                <Text size="xs" style={$emptySubtext}>
+                  Search for duas by name, description, or tags
+                </Text>
+              </View>
+            ) : null
+          }
+        />
+      )}
     </Screen>
   )
 })
@@ -236,6 +273,19 @@ const $emptyText: TextStyle = {
 
 const $emptySubtext: TextStyle = {
   color: colors.palette.neutral500,
+}
+
+const $loadingContainer: ViewStyle = {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  paddingVertical: spacing.xxl,
+}
+
+const $loadingText: TextStyle = {
+  marginTop: spacing.md,
+  fontSize: 16,
+  color: colors.palette.neutral600,
 }
 
 export default DuaListSearch
