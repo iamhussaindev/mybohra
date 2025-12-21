@@ -5,6 +5,7 @@ import { LibraryStoreModel } from "./LibraryStore"
 import { MiqaatStoreModel } from "./MiqaatStore"
 import { ReminderStoreModel } from "./ReminderStore"
 import { TasbeehStoreModel } from "./TasbeehStore"
+import { YouTubeStoreModel } from "./YouTubeStore"
 
 /**
  * A RootStore model.
@@ -33,6 +34,10 @@ export const RootStoreModel = types.model("RootStore").props({
     list: [],
     defaultTasbeehCount: 0,
     savingCount: false,
+  }),
+
+  youtubeStore: types.optional(YouTubeStoreModel, {
+    videos: [],
   }),
 })
 

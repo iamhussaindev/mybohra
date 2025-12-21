@@ -11,6 +11,7 @@ import React, { FC, useCallback, useRef, useState, useEffect } from "react"
 import { ViewStyle, Pressable, Animated, FlatList, View, ActivityIndicator } from "react-native"
 
 import { PdfItemCard } from "./components/PdfItemCard"
+import { PdfItemCardSkeleton } from "./components/PdfItemCardSkeleton"
 
 interface DuaListScreenProps extends AppStackScreenProps<"DuaList"> {}
 
@@ -152,31 +153,34 @@ export const DuaListScreen: FC<DuaListScreenProps> = observer(function DuaListSc
             }}
           >
             <Animated.View style={{ transform: [{ scale: iconScale }] }}>
-              <Icon icon="search" size={20} color={colors.palette.primary500} />
+              <Icon icon="search" size={20} color={colors.text} />
             </Animated.View>
           </Pressable>
         }
       />
-      {loading && categoryItems.length === 0 ? (
-        <View style={$loadingContainer}>
-          <ActivityIndicator size="large" color={colors.palette.primary500} />
-        </View>
-      ) : (
-        <FlatList
-          data={categoryItems}
-          renderItem={renderPdfItem}
-          keyExtractor={(item) => item.id.toString()}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            loadingMore ? (
-              <View style={$loadingMoreContainer}>
-                <ActivityIndicator size="small" color={colors.palette.primary500} />
-              </View>
-            ) : null
-          }
-        />
-      )}
+      <FlatList
+        data={categoryItems}
+        renderItem={renderPdfItem}
+        keyExtractor={(item) => item.id.toString()}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          loading && categoryItems.length === 0 ? (
+            <View>
+              {[...Array(5)].map((_, index) => (
+                <PdfItemCardSkeleton key={index} />
+              ))}
+            </View>
+          ) : null
+        }
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={$loadingMoreContainer}>
+              <ActivityIndicator size="small" color={colors.palette.primary500} />
+            </View>
+          ) : null
+        }
+      />
       <PDFOptionsBottomSheet
         ref={bottomSheetRef}
         item={selectedItem}
@@ -194,12 +198,6 @@ const $screenContainer = (colors: any): ViewStyle => ({
   flex: 1,
   backgroundColor: colors.background,
 })
-
-const $loadingContainer: ViewStyle = {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-}
 
 const $loadingMoreContainer: ViewStyle = {
   padding: 20,

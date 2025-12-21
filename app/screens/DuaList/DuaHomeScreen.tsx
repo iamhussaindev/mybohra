@@ -1,5 +1,6 @@
 import { Icon, PDFOptionsBottomSheet, PDFPreviewModal, Screen, Text } from "app/components"
 import Header from "app/components/Header"
+import { SearchPillButton } from "app/components/SearchPillButton"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import HijriDate from "app/libs/HijriDate"
 import { useStores } from "app/models"
@@ -27,6 +28,7 @@ import {
 
 import { AlbumCategory } from "./components/AlbumList"
 import { PdfItemCard } from "./components/PdfItemCard"
+import { PdfItemCardSkeleton } from "./components/PdfItemCardSkeleton"
 
 interface DuaHomeScreen extends AppStackScreenProps<"DuaHome"> {}
 
@@ -53,6 +55,8 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   const [refreshing, setRefreshing] = useState(false)
   const [recentPdfItems, setRecentPdfItems] = useState<ILibrary[]>([])
   const [monthItems, setMonthItems] = useState<ILibrary[]>([])
+  const [loadingRecent, setLoadingRecent] = useState(true)
+  const [loadingMonth, setLoadingMonth] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>("Recent")
   const [hasNewTodayItems] = useState(true)
   const [previewItem, setPreviewItem] = useState<ILibrary | null>(null)
@@ -83,28 +87,36 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   }, [])
 
   const fetchMonthItems = useCallback(async () => {
+    setLoadingMonth(true)
     try {
       const items = await libraryStore.fetchByTags([monthName])
       setMonthItems(items || [])
     } catch (error) {
       console.error("Error loading month items:", error)
       setMonthItems([])
+    } finally {
+      setLoadingMonth(false)
     }
   }, [monthName, libraryStore])
 
   // Fetch recent PDF items by IDs
   const fetchRecentPdfItems = useCallback(async () => {
-    const history = dataStore.getRecentPdfHistory(25).map((entry) => ({
-      pdfId: entry.pdfId,
-      lastOpened: entry.lastOpened,
-      openedCount: entry.openedCount,
-    }))
-    if (history.length > 0) {
-      const ids = history.map((entry) => entry.pdfId)
-      const items = await libraryStore.fetchItemsByIds(ids)
-      setRecentPdfItems(items)
-    } else {
-      setRecentPdfItems([])
+    setLoadingRecent(true)
+    try {
+      const history = dataStore.getRecentPdfHistory(25).map((entry) => ({
+        pdfId: entry.pdfId,
+        lastOpened: entry.lastOpened,
+        openedCount: entry.openedCount,
+      }))
+      if (history.length > 0) {
+        const ids = history.map((entry) => entry.pdfId)
+        const items = await libraryStore.fetchItemsByIds(ids)
+        setRecentPdfItems(items)
+      } else {
+        setRecentPdfItems([])
+      }
+    } finally {
+      setLoadingRecent(false)
     }
   }, [libraryStore, dataStore])
 
@@ -143,14 +155,37 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     setRefreshing(true)
     try {
       await fetchLibraryData()
-      await fetchRecentPdfItems()
+      // Don't show loading skeleton during refresh, just update data
+      const history = dataStore.getRecentPdfHistory(25).map((entry) => ({
+        pdfId: entry.pdfId,
+        lastOpened: entry.lastOpened,
+        openedCount: entry.openedCount,
+      }))
+      if (history.length > 0) {
+        const ids = history.map((entry) => entry.pdfId)
+        const items = await libraryStore.fetchItemsByIds(ids)
+        setRecentPdfItems(items)
+      } else {
+        setRecentPdfItems([])
+      }
       if (activeTab === monthName) {
-        await fetchMonthItems()
+        const monthItemsData = await libraryStore.fetchByTags([monthName])
+        setMonthItems(monthItemsData || [])
       }
     } finally {
       setRefreshing(false)
     }
-  }, [activeTab, fetchLibraryData, fetchRecentPdfItems, fetchMonthItems, monthName, getTodayItems])
+  }, [activeTab, fetchLibraryData, libraryStore, dataStore, monthName])
+
+  // Get loading state based on active tab
+  const getIsLoading = (): boolean => {
+    if (activeTab === "Recent") {
+      return loadingRecent
+    } else if (activeTab === monthName) {
+      return loadingMonth
+    }
+    return false
+  }
 
   // Get data based on active tab
   const getDisplayItems = (): Array<ILibrary & { lastOpened?: string }> => {
@@ -186,6 +221,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
   }
 
   const displayItems = getDisplayItems()
+  const isLoading = getIsLoading()
   const categories = (libraryStore.getCategories() as unknown as AlbumCategory[]) || []
 
   const handleItemPress = (item: ILibrary) => {
@@ -270,6 +306,8 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     </View>
   )
 
+  console.log("isLoading", isLoading)
+
   return (
     <Screen
       preset="fixed"
@@ -286,22 +324,33 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
               animateIconPress()
               props.navigation.navigate("DuaListSearch")
             }}
+            style={$searchButton}
+            hitSlop={8}
           >
             <Animated.View style={{ transform: [{ scale: iconScale }] }}>
-              <Icon icon="search" size={20} color={colors.palette.neutral900} />
+              <Icon icon="search" size={18} color={colors.text} />
             </Animated.View>
           </Pressable>
         }
       />
 
       <SectionList
-        sections={[
-          {
-            title: "tabs",
-            data: displayItems,
-            renderItem: renderPdfItem,
-          },
-        ]}
+        sections={
+          isLoading ? [] : [{ title: "tabs", data: displayItems, renderItem: renderPdfItem }]
+        }
+        ListEmptyComponent={
+          isLoading ? (
+            <View style={$skeletonContainer}>
+              {[...Array(5)].map((_, index) => (
+                <PdfItemCardSkeleton key={index} />
+              ))}
+            </View>
+          ) : (
+            <View style={$emptyContainer}>
+              <Text text="No items found" style={$emptyText} />
+            </View>
+          )
+        }
         keyExtractor={(item) => item.id.toString()}
         ListHeaderComponent={renderFoldersHeader}
         renderSectionHeader={() => (
@@ -335,11 +384,13 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
         contentContainerStyle={$listContainer}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={$emptyContainer}>
-            <Text text="No items found" style={$emptyText} />
-          </View>
-        }
+      />
+
+      <SearchPillButton
+        onPress={() => {
+          animateIconPress()
+          props.navigation.navigate("DuaListSearchModal")
+        }}
       />
 
       <PDFOptionsBottomSheet
@@ -368,6 +419,16 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
     </Screen>
   )
 })
+
+const $skeletonContainer: ViewStyle = {
+  paddingVertical: spacing.md,
+}
+
+const $searchButton: ViewStyle = {
+  padding: spacing.xs,
+  justifyContent: "center",
+  alignItems: "center",
+}
 
 const $tabsContainer = (colors: any): ViewStyle => ({
   paddingVertical: spacing.md,

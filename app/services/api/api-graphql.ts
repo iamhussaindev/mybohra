@@ -27,6 +27,31 @@ type MiqaatRow = Database["public"]["Tables"]["miqaat"]["Row"]
 
 type DataRow = Database["public"]["Tables"]["data"]["Row"]
 type DailyDuaRow = Database["public"]["Tables"]["daily_duas"]["Row"]
+
+// YouTube Video type definition
+type YouTubeVideoRow = {
+  id: number
+  video_id: string
+  title: string
+  description: string | null
+  duration: number | null
+  view_count: number | null
+  upload_date: string | null
+  url: string
+  thumbnail: string | null
+  thumbnail_default: string | null
+  thumbnail_medium: string | null
+  thumbnail_high: string | null
+  thumbnail_standard: string | null
+  thumbnail_maxres: string | null
+  channel_url: string | null
+  channel_handle: string | null
+  created_at: string
+  updated_at: string
+  tags: string[] | null
+  categories: string[] | null
+  library_id: number | null
+}
 /**
  * New Supabase-based API service using PostgREST
  */
@@ -749,7 +774,7 @@ export class ApiSupabase {
 
       const { data, error } = await supabase
         .from("library")
-        .select("id, name, pdf_url, audio_url, youtube_url, created_at, updated_at")
+        .select("id, name, description, pdf_url, audio_url, youtube_url, created_at, updated_at")
         .overlaps(
           "tags",
           tags.map((tag) => tag.toLowerCase()),
@@ -819,12 +844,10 @@ export class ApiSupabase {
       }
 
       // @ts-ignore
-      const { data, error } = await supabase.rpc("search_library", {
-        p_query: searchQuery.trim(),
-        p_limit: 20,
+      const { data, error } = await supabase.rpc("search_library_v1", {
+        search_query: searchQuery.trim(),
+        limit_results: 20,
       })
-
-      console.log("searchLibrary", data)
 
       if (error) {
         console.error("Error searching library:", error)
@@ -834,6 +857,126 @@ export class ApiSupabase {
       return { kind: "ok", data: (data || []) as LibraryRow[] }
     } catch (error) {
       console.error("Error searching library:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch YouTube videos with optional filters and sorting
+   */
+  async fetchYouTubeVideos(options?: {
+    limit?: number
+    offset?: number
+    categories?: string[]
+    tags?: string[]
+    sortBy?: "view_count" | "created_at" | "upload_date"
+    sortOrder?: "asc" | "desc"
+  }): Promise<
+    | {
+        kind: "ok"
+        data: YouTubeVideoRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = options?.limit ?? 50
+      const offset = options?.offset ?? 0
+      const sortBy = options?.sortBy ?? "created_at"
+      const sortOrder = options?.sortOrder ?? "desc"
+
+      let query = supabase.from("youtube_videos").select("*")
+
+      // Filter by categories if provided
+      if (options?.categories && options.categories.length > 0) {
+        query = query.overlaps("categories", options.categories)
+      }
+
+      // Filter by tags if provided
+      if (options?.tags && options.tags.length > 0) {
+        query = query.overlaps("tags", options.tags)
+      }
+
+      // Sort by specified field
+      query = query.order(sortBy, { ascending: sortOrder === "asc" })
+
+      // Apply pagination
+      query = query.range(offset, offset + limit - 1)
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error("Error fetching YouTube videos:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as YouTubeVideoRow[] }
+    } catch (error) {
+      console.error("Error fetching YouTube videos:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch YouTube video by video_id
+   */
+  async fetchYouTubeVideoById(videoId: string): Promise<
+    | {
+        kind: "ok"
+        data: YouTubeVideoRow | null
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("youtube_videos")
+        .select("*")
+        .eq("video_id", videoId)
+        .single()
+
+      if (error) {
+        console.error("Error fetching YouTube video:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || null) as YouTubeVideoRow | null }
+    } catch (error) {
+      console.error("Error fetching YouTube video:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch YouTube videos by channel handle
+   */
+  async fetchYouTubeVideosByChannel(
+    channelHandle: string,
+    options?: { limit?: number; offset?: number },
+  ): Promise<
+    | {
+        kind: "ok"
+        data: YouTubeVideoRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = options?.limit ?? 50
+      const offset = options?.offset ?? 0
+
+      const { data, error } = await supabase
+        .from("youtube_videos")
+        .select("*")
+        .eq("channel_handle", channelHandle)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1)
+
+      if (error) {
+        console.error("Error fetching YouTube videos by channel:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as YouTubeVideoRow[] }
+    } catch (error) {
+      console.error("Error fetching YouTube videos by channel:", error)
       return { kind: "bad-data" }
     }
   }

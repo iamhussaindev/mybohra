@@ -77,6 +77,8 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
+  - ExpoBlur (12.9.2):
+    - ExpoModulesCore
   - ExpoFileSystem (16.0.8):
     - ExpoModulesCore
   - ExpoKeepAwake (12.8.2):
@@ -1014,6 +1016,10 @@ PODS:
     - SwiftAudioEx (= 1.1.0)
   - react-native-view-shot (3.8.0):
     - React-Core
+  - react-native-webview (13.16.0):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - React-nativeconfig (0.73.4)
   - React-NativeModulesApple (0.73.4):
     - glog
@@ -1242,6 +1248,7 @@ DEPENDENCIES:
   - expo-dev-launcher (from `../node_modules/expo-dev-launcher`)
   - expo-dev-menu (from `../node_modules/expo-dev-menu`)
   - expo-dev-menu-interface (from `../node_modules/expo-dev-menu-interface/ios`)
+  - ExpoBlur (from `../node_modules/expo-blur/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
@@ -1287,6 +1294,7 @@ DEPENDENCIES:
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-track-player (from `../node_modules/react-native-track-player`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
+  - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -1352,6 +1360,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-dev-menu"
   expo-dev-menu-interface:
     :path: "../node_modules/expo-dev-menu-interface/ios"
+  ExpoBlur:
+    :path: "../node_modules/expo-blur/ios"
   ExpoFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   ExpoKeepAwake:
@@ -1437,6 +1447,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-track-player"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
+  react-native-webview:
+    :path: "../node_modules/react-native-webview"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -1516,6 +1528,7 @@ SPEC CHECKSUMS:
   expo-dev-launcher: 3f2a78d97842a3fdc2f0116f775d8dbc32396cbd
   expo-dev-menu: b964921baa1bda2a7ff42a407d1d7698ce215faf
   expo-dev-menu-interface: 7ba029c9d1a82ac22b9b584c00514860b060553e
+  ExpoBlur: e832d874bd94afc0645daddbd3162ec1ce172080
   ExpoFileSystem: eecaf6796aed0f4dd20042dc2ca2cac6c4bc1185
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
   ExpoLinearGradient: 4ad1449a2408e0435ac959076562b3921f2e32a1
@@ -1561,6 +1574,7 @@ SPEC CHECKSUMS:
   react-native-slider: 07df44a6b615c6bf8584a5ee88288024b3cbf498
   react-native-track-player: 82ef1756ffeea61140fea17519ecd6d64ec3cf3e
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
+  react-native-webview: 7d0c64838547dfff210dd3dd18cad0094bf7c00f
   React-nativeconfig: d7af5bae6da70fa15ce44f045621cf99ed24087c
   React-NativeModulesApple: 0123905d5699853ac68519607555a9a4f5c7b3ac
   React-perflogger: 8a1e1af5733004bdd91258dcefbde21e0d1faccd

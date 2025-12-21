@@ -3,7 +3,8 @@ import { Screen, Text } from "app/components"
 import { shadowProps } from "app/helpers/shadow.helper"
 import { ILibrary, useStores } from "app/models"
 import { AppStackScreenProps } from "app/navigators"
-import { colors, spacing, typography } from "app/theme"
+import { spacing, typography } from "app/theme"
+import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import {
@@ -18,10 +19,11 @@ import {
   ActivityIndicator,
 } from "react-native"
 
-type DuaListSearchProps = AppStackScreenProps<"DuaListSearch">
+type DuaListSearchProps = AppStackScreenProps<"DuaListSearch" | "DuaListSearchModal">
 
 export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function DuaListSearch(props) {
   const { navigation } = props
+  const colors = useColors()
   const { libraryStore } = useStores()
   const [query, setQuery] = useState("")
   const [searchResults, setSearchResults] = useState<ILibrary[]>([])
@@ -32,9 +34,10 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
+    // Focus input immediately when screen opens
     const timeout = setTimeout(() => {
       inputRef.current?.focus()
-    }, 500)
+    }, 100)
 
     return () => clearTimeout(timeout)
   }, [])
@@ -111,17 +114,17 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
 
   const renderItem = ({ item }: { item: ILibrary }) => {
     return (
-      <Pressable style={$resultItem} onPress={() => handleSelect(item)}>
-        <View style={$resultContent}>
-          <View style={$resultImageContainer}>
+      <Pressable style={$resultItem(colors)} onPress={() => handleSelect(item)}>
+        <View style={$resultContent()}>
+          <View style={$resultImageContainer()}>
             <Image
               source={require("../../../assets/icons/pdf.png")}
-              style={$resultImage}
+              style={$resultImage()}
               resizeMode="contain"
             />
           </View>
-          <View style={$resultTextContainer}>
-            <Text weight="medium" style={$resultTitle} numberOfLines={2}>
+          <View style={$resultTextContainer()}>
+            <Text weight="medium" style={$resultTitle(colors)} numberOfLines={2}>
               {item.name}
             </Text>
           </View>
@@ -134,12 +137,12 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
     <Screen
       preset="fixed"
       safeAreaEdges={["top"]}
-      backgroundColor={colors.palette.neutral100}
-      contentContainerStyle={$screenContainer}
+      backgroundColor={colors.background}
+      contentContainerStyle={$screenContainer(colors)}
     >
-      <View style={$searchContainer}>
+      <View style={$searchContainer(colors)}>
         <Pressable onPress={() => navigation.goBack()} style={$searchIconButton} hitSlop={8}>
-          <IconChevronLeft color={colors.palette.primary500} />
+          <IconChevronLeft color={colors.text} />
         </Pressable>
         <TextInput
           ref={inputRef}
@@ -147,7 +150,7 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
           placeholderTextColor={colors.palette.neutral400}
           value={query}
           onChangeText={setQuery}
-          style={$searchInput}
+          style={$searchInput(colors)}
           autoCorrect={false}
           autoCapitalize="none"
           clearButtonMode="while-editing"
@@ -155,30 +158,30 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
       </View>
 
       {isSearching ? (
-        <View style={$loadingContainer}>
+        <View style={$loadingContainer()}>
           <ActivityIndicator size="large" color={colors.palette.primary500} />
-          <Text style={$loadingText}>Searching...</Text>
+          <Text style={$loadingText(colors)}>Searching...</Text>
         </View>
       ) : (
         <FlatList
           data={searchResults}
           keyExtractor={(item) => `dua-${item.id}`}
           renderItem={renderItem}
-          contentContainerStyle={$listContent}
+          contentContainerStyle={$listContent()}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             hasSearched && query.trim() ? (
-              <View style={$emptyContainer}>
-                <Text style={$emptyText}>No results found</Text>
-                <Text size="xs" style={$emptySubtext}>
+              <View style={$emptyContainer()}>
+                <Text style={$emptyText(colors)}>No results found</Text>
+                <Text size="xs" style={$emptySubtext(colors)}>
                   Try a different search term
                 </Text>
               </View>
             ) : !hasSearched ? (
-              <View style={$emptyContainer}>
-                <Text style={$emptyText}>Start typing to search</Text>
-                <Text size="xs" style={$emptySubtext}>
-                  Search for duas by name, description, or tags
+              <View style={$emptyContainer()}>
+                <Text style={$emptyText(colors)}>Start typing to search</Text>
+                <Text size="xs" style={$emptySubtext(colors)}>
+                  Search for duas by name
                 </Text>
               </View>
             ) : null
@@ -189,103 +192,103 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
   )
 })
 
-const $screenContainer: ViewStyle = {
+const $screenContainer = (colors: any): ViewStyle => ({
   flex: 1,
-  backgroundColor: colors.palette.neutral100,
-}
+  backgroundColor: colors.background,
+})
 
-const $searchContainer: ViewStyle = {
+const $searchContainer = (colors: any): ViewStyle => ({
   flexDirection: "row",
   alignItems: "center",
   marginBottom: spacing.md,
   marginHorizontal: spacing.md,
-  backgroundColor: colors.palette.neutral100,
   ...shadowProps,
   height: 50,
   marginTop: spacing.md,
-  borderRadius: spacing.sm,
-}
+  borderRadius: 100,
+  backgroundColor: colors.background,
+})
 
 const $searchIconButton: ViewStyle = {
   padding: spacing.xs,
 }
 
-const $searchInput: TextStyle = {
+const $searchInput = (colors: any): TextStyle => ({
   flex: 1,
   fontSize: 16,
   fontFamily: typography.primary.medium,
   color: colors.palette.neutral900,
   paddingHorizontal: spacing.xs,
   paddingVertical: spacing.xs,
-}
+})
 
-const $listContent: ViewStyle = {
+const $listContent = (): ViewStyle => ({
   paddingHorizontal: spacing.xxs,
   paddingBottom: spacing.xxl,
-}
+})
 
-const $resultItem: ViewStyle = {
-  backgroundColor: colors.white,
+const $resultItem = (colors: any): ViewStyle => ({
+  backgroundColor: colors.background,
   paddingVertical: spacing.md,
   paddingHorizontal: spacing.md,
   borderBottomWidth: 1,
   borderBottomColor: colors.palette.neutral200,
-}
+})
 
-const $resultContent: ViewStyle = {
+const $resultContent = (): ViewStyle => ({
   alignItems: "center",
   flexDirection: "row",
-}
+})
 
-const $resultImageContainer: ViewStyle = {
+const $resultImageContainer = (): ViewStyle => ({
   width: 32,
   height: 32,
-}
+})
 
-const $resultImage: ImageStyle = {
+const $resultImage = (): ImageStyle => ({
   height: 24,
   width: 24,
-}
+})
 
-const $resultTextContainer: ViewStyle = {
+const $resultTextContainer = (): ViewStyle => ({
   flex: 1,
   marginLeft: spacing.sm,
-}
+})
 
-const $resultTitle: TextStyle = {
+const $resultTitle = (colors: any): TextStyle => ({
   fontSize: 15,
   color: colors.palette.neutral900,
   marginBottom: spacing.xxxs,
-}
+})
 
-const $emptyContainer: ViewStyle = {
+const $emptyContainer = (): ViewStyle => ({
   flex: 1,
   justifyContent: "center",
   alignItems: "center",
   paddingVertical: spacing.xxl,
-}
+})
 
-const $emptyText: TextStyle = {
+const $emptyText = (colors: any): TextStyle => ({
   fontSize: 18,
   color: colors.palette.neutral600,
   marginBottom: spacing.xs,
-}
+})
 
-const $emptySubtext: TextStyle = {
+const $emptySubtext = (colors: any): TextStyle => ({
   color: colors.palette.neutral500,
-}
+})
 
-const $loadingContainer: ViewStyle = {
+const $loadingContainer = (): ViewStyle => ({
   flex: 1,
   justifyContent: "center",
   alignItems: "center",
   paddingVertical: spacing.xxl,
-}
+})
 
-const $loadingText: TextStyle = {
+const $loadingText = (colors: any): TextStyle => ({
   marginTop: spacing.md,
   fontSize: 16,
   color: colors.palette.neutral600,
-}
+})
 
 export default DuaListSearch

@@ -75,8 +75,10 @@ export type AppStackParamList = {
   ReminderSettings: undefined
   CalendarSearch: undefined
   DuaListSearch: undefined
+  DuaListSearchModal: undefined
   Settings: undefined
   Qibla: undefined
+  Sautuliman: undefined
 }
 
 /**
@@ -116,10 +118,18 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="DuaHome" component={Screens.DuaLHomeScreen} />
       <Stack.Screen name="DuaList" component={Screens.DuaListScreen} />
       <Stack.Screen name="DuaListSearch" component={Screens.DuaListSearch} />
+      <Stack.Screen
+        name="DuaListSearchModal"
+        component={Screens.DuaListSearch}
+        options={{
+          presentation: "modal",
+        }}
+      />
       <Stack.Screen name="Reminder" component={Screens.ReminderScreen} />
       <Stack.Screen name="ReminderSettings" component={Screens.ReminderSettingsScreen} />
       <Stack.Screen name="Settings" component={Screens.SettingsScreen} />
       <Stack.Screen name="Qibla" component={Screens.QiblaScreen} />
+      <Stack.Screen name="Sautuliman" component={Screens.SautulimanScreen} />
     </Stack.Navigator>
   )
 })
