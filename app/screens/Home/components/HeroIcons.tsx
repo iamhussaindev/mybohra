@@ -9,7 +9,6 @@ const screenWidth = Dimensions.get("window").width
 function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }) {
   const colors = useColors()
   const $heroTitle: TextStyle = {
-    color: colors.darkHighlight,
     fontWeight: "600",
     zIndex: 10,
   }
@@ -32,9 +31,9 @@ function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }
 
   return (
     <SBox
-      backgroundColor={colors.palette.primary10}
+      backgroundColor={colors.backgroundHighlight}
       borderRadius={8}
-      borderColor={colors.palette.primary100}
+      borderColor="transparent"
       cornerRadius={0.75}
       height={screenWidth / 3 - 25}
       width={screenWidth / 3 - 25}
@@ -44,7 +43,7 @@ function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }
       style={$heroCard}
     >
       <Image source={props.icon} style={$heroImage} />
-      <Text style={$heroTitle} weight="bold" text={props.text} />
+      <Text style={$heroTitle} weight="bold" text={props.text} color={colors.text} />
     </SBox>
   )
 }

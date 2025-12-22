@@ -1,8 +1,6 @@
 import { BottomTabScreenProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { CompositeScreenProps } from "@react-navigation/native"
 import {
-  IconGlobe,
-  IconGlobeFilled,
   IconHome,
   IconHomeFilled,
   IconSearch,
@@ -10,6 +8,7 @@ import {
   IconShoppingCartFilled,
   IconUser,
   IconUserFilled,
+  IconWorldBolt,
 } from "@tabler/icons-react-native"
 import { Text } from "app/components"
 import { AccountScreen } from "app/screens/Account/AccountScreen"
@@ -122,9 +121,9 @@ export function NavigationTab() {
           ),
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <IconGlobeFilled color={colors.tint} size={36} />
+              <IconWorldBolt color={colors.tint} size={36} />
             ) : (
-              <IconGlobe color={colors.textDim} size={36} />
+              <IconWorldBolt color={colors.textDim} size={36} />
             ),
         }}
       />

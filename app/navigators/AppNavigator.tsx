@@ -118,6 +118,7 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="DuaHome" component={Screens.DuaLHomeScreen} />
       <Stack.Screen name="DuaList" component={Screens.DuaListScreen} />
       <Stack.Screen name="DuaListSearch" component={Screens.DuaListSearch} />
+
       <Stack.Screen
         name="DuaListSearchModal"
         component={Screens.DuaListSearch}

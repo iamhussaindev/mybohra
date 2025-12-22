@@ -322,7 +322,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
           <Pressable
             onPress={() => {
               animateIconPress()
-              props.navigation.navigate("DuaListSearch")
+              props.navigation.navigate("DuaListSearchModal")
             }}
             style={$searchButton}
             hitSlop={8}

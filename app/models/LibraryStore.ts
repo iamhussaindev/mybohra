@@ -156,9 +156,9 @@ export const LibraryStoreModel = types
     }),
 
     // Search library using RPC
-    searchLibrary: flow(function* (searchQuery: string) {
+    searchLibrary: flow(function* (searchQuery: string, searchAlbum?: string | null) {
       try {
-        const response = yield apiSupabase.searchLibrary(searchQuery)
+        const response = yield apiSupabase.searchLibrary(searchQuery, searchAlbum)
         if (response.kind === "ok") {
           return response.data as ILibrary[]
         }

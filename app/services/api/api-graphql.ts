@@ -359,8 +359,6 @@ export class ApiSupabase {
         .eq("month", params.month)
         .order("created_at", { ascending: true })
 
-      console.log("data", data)
-
       const { data: librariesFromCategories, error: error2 } = await supabase
         .from("library")
         .select("*")
@@ -546,7 +544,23 @@ export class ApiSupabase {
   }
 
   /**
-   * Fetch distinct albums from library
+   * Fetch distinct albums from library using direct SQL query via RPC
+   *
+   * Requires this SQL function in your Supabase database:
+   *
+   * CREATE OR REPLACE FUNCTION get_distinct_albums()
+   * RETURNS TABLE(album text, count bigint) AS $$
+   * BEGIN
+   *   RETURN QUERY
+   *   SELECT
+   *     l.album::text as album,
+   *     COUNT(*)::bigint as count
+   *   FROM library l
+   *   WHERE l.album IS NOT NULL
+   *   GROUP BY l.album
+   *   ORDER BY l.album::text;
+   * END;
+   * $$ LANGUAGE plpgsql;
    */
   async fetchAlbums(): Promise<
     | {
@@ -556,32 +570,17 @@ export class ApiSupabase {
     | GeneralApiProblem
   > {
     try {
-      const { data, error } = await supabase
-        .from("library")
-        .select("album")
-        .not("album", "is", null)
-        .eq("album", "DUA")
+      // Use RPC to execute direct SQL query for distinct albums with counts
+      // @ts-ignore
+      const { data, error } = await supabase.rpc("get_distinct_albums")
 
       if (error) {
-        console.error("Error fetching albums:", error)
+        console.error("Error fetching distinct albums:", error)
         return { kind: "bad-data" }
       }
 
-      // Count albums
-      const albumCounts = new Map<string, number>()
-      data?.forEach((item: { album: string | null }) => {
-        if (item.album) {
-          const album = item.album
-          albumCounts.set(album, (albumCounts.get(album) || 0) + 1)
-        }
-      })
-
-      const albums = Array.from(albumCounts.entries()).map(([album, count]) => ({
-        album,
-        count,
-      }))
-
-      return { kind: "ok", data: albums }
+      // RPC function returned data successfully
+      return { kind: "ok", data: (data || []) as Array<{ album: string; count: number }> }
     } catch (error) {
       console.error("Error fetching albums:", error)
       return { kind: "bad-data" }
@@ -831,7 +830,10 @@ export class ApiSupabase {
   /**
    * Search library using RPC function
    */
-  async searchLibrary(searchQuery: string): Promise<
+  async searchLibrary(
+    searchQuery: string,
+    searchAlbum?: string | null,
+  ): Promise<
     | {
         kind: "ok"
         data: LibraryRow[]
@@ -846,6 +848,7 @@ export class ApiSupabase {
       // @ts-ignore
       const { data, error } = await supabase.rpc("search_library_v1", {
         search_query: searchQuery.trim(),
+        search_album: searchAlbum || null,
         limit_results: 20,
       })
 

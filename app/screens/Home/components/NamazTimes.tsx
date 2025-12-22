@@ -220,7 +220,7 @@ const getActiveNamazLabel = (colors: any): TextStyle => ({
 })
 
 const getActiveNamazValue = (colors: any): TextStyle => ({
-  color: colors.darkHighlight,
+  color: colors.tint,
 })
 
 const $gap: ViewStyle = {

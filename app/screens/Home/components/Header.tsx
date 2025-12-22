@@ -1,3 +1,4 @@
+import { IconSend } from "@tabler/icons-react-native"
 import { Icon, Text, Skeleton } from "app/components"
 import { ILocation } from "app/models/DataStore"
 import { spacing } from "app/theme"
@@ -21,24 +22,9 @@ interface HeaderProps {
 
 export const Header = observer(function Header(props: HeaderProps) {
   const colors = useColors()
-  const $shadow: ViewStyle = {
-    shadowColor: colors.border,
-    shadowOffset: {
-      width: 0,
-      height: props.shadowOffset ?? 0,
-    },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-  }
 
   return (
-    <View
-      style={[
-        getHeader(colors),
-        props.showBorder && getBorder(colors),
-        props.showBorder && $shadow,
-      ]}
-    >
+    <View style={[getHeader(colors), props.showBorder && getBorder(colors)]}>
       <View style={$headerLocation}>
         <TouchableOpacity
           style={$headerLocationContainer}
@@ -61,8 +47,13 @@ export const Header = observer(function Header(props: HeaderProps) {
         </TouchableOpacity>
         <CurrentTime />
       </View>
-      <View style={$headerRightIcon}>
-        <Icon size={20} icon="settings" />
+      <View style={$headerRightIcons}>
+        <TouchableOpacity>
+          <IconSend size={26} color={colors.text} />
+        </TouchableOpacity>
+        {/* <TouchableOpacity>
+          <IconSettings size={28} color={colors.text} />
+        </TouchableOpacity> */}
       </View>
     </View>
   )
@@ -95,7 +86,9 @@ const getBorder = (colors: any): ViewStyle => ({
   borderBottomColor: colors.border,
 })
 
-const $headerRightIcon: ViewStyle = {
+const $headerRightIcons: ViewStyle = {
+  flexDirection: "row",
+  gap: spacing.lg,
   alignItems: "center",
   justifyContent: "center",
   marginEnd: spacing.lg,
@@ -104,7 +97,6 @@ const $headerRightIcon: ViewStyle = {
 const $headerLocation: ViewStyle = {
   alignItems: "flex-start",
   paddingStart: spacing.lg,
-  // paddingEnd: spacing.lg,
 }
 
 const getHeader = (colors: any): ViewStyle => ({

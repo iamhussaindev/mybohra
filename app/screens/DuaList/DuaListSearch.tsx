@@ -17,6 +17,7 @@ import {
   View,
   ViewStyle,
   ActivityIndicator,
+  ScrollView,
 } from "react-native"
 
 type DuaListSearchProps = AppStackScreenProps<"DuaListSearch" | "DuaListSearchModal">
@@ -29,9 +30,17 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
   const [searchResults, setSearchResults] = useState<ILibrary[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null)
 
   const inputRef = useRef<TextInput>(null)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    async function fetchAlbums() {
+      await libraryStore.fetchAlbums()
+    }
+    fetchAlbums()
+  }, [])
 
   useEffect(() => {
     // Focus input immediately when screen opens
@@ -44,7 +53,7 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
 
   // Debounced search function
   const performSearch = useCallback(
-    async (searchQuery: string) => {
+    async (searchQuery: string, album: string | null) => {
       if (!searchQuery.trim()) {
         setSearchResults([])
         setIsSearching(false)
@@ -56,7 +65,7 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
       setHasSearched(true)
 
       try {
-        const results = await libraryStore.searchLibrary(searchQuery.trim())
+        const results = await libraryStore.searchLibrary(searchQuery.trim(), album)
         setSearchResults(results)
       } catch (error) {
         console.error("Error searching library:", error)
@@ -88,7 +97,7 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
 
     // Debounce the search by 500ms
     searchTimeoutRef.current = setTimeout(() => {
-      performSearch(query)
+      performSearch(query, selectedAlbum)
     }, 500)
 
     return () => {
@@ -99,16 +108,17 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
   }, [query, performSearch])
 
   const handleSelect = (item: ILibrary) => {
+    navigation.pop()
     navigation.navigate("PdfViewer", {
       id: item.id,
       name: item.name,
       description: item.description,
-      audio_url: item.audio_url ?? "",
-      pdf_url: item.pdf_url ?? "",
-      youtube_url: item.youtube_url ?? "",
+      audio_url: item.audio_url ?? null,
+      pdf_url: item.pdf_url ?? null,
+      youtube_url: item.youtube_url ?? null,
       metadata: item.metadata,
-      tags: item.tags ?? [],
-      categories: item.categories ?? [],
+      tags: item.tags ?? null,
+      categories: item.categories ?? null,
     })
   }
 
@@ -133,6 +143,8 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
     )
   }
 
+  const albums = libraryStore.getAlbums()
+
   return (
     <Screen
       preset="fixed"
@@ -155,6 +167,38 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
           autoCapitalize="none"
           clearButtonMode="while-editing"
         />
+      </View>
+
+      <View style={$searchTabContainer(colors)}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={$searchTabContent(colors)}
+          keyboardShouldPersistTaps="handled"
+        >
+          {albums.map((album, idx) => {
+            const isSelected = selectedAlbum === album.album
+            return (
+              <Pressable
+                style={[
+                  $searchTabItem(colors, isSelected),
+                  idx === albums.length - 1 && { marginEnd: spacing.md },
+                ]}
+                key={album.album}
+                onPress={() => {
+                  const newAlbum = isSelected ? null : album.album
+                  setSelectedAlbum(newAlbum)
+                  // Trigger search if there's already a query
+                  if (query.trim()) {
+                    performSearch(query, newAlbum)
+                  }
+                }}
+              >
+                <Text style={$searchTabItemText(colors, isSelected)}>{album.album}</Text>
+              </Pressable>
+            )
+          })}
+        </ScrollView>
       </View>
 
       {isSearching ? (
@@ -192,6 +236,32 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
   )
 })
 
+const $searchTabContainer = (_colors: any): ViewStyle => ({
+  marginStart: spacing.md,
+  marginBottom: spacing.md,
+  gap: spacing.md,
+})
+
+const $searchTabContent = (_colors: any): ViewStyle => ({
+  gap: spacing.xs,
+})
+
+const $searchTabItem = (colors: any, isSelected: boolean): ViewStyle => ({
+  paddingHorizontal: spacing.sm,
+  paddingVertical: spacing.xxxs,
+  borderRadius: 100,
+  borderWidth: 1,
+  borderColor: isSelected ? colors.palette.primary500 : colors.palette.neutral400,
+  backgroundColor: isSelected ? colors.palette.neutral300 : colors.palette.neutral300,
+})
+
+const $searchTabItemText = (colors: any, isSelected: boolean): TextStyle => ({
+  fontSize: 14,
+  fontFamily: typography.primary.medium,
+  color: isSelected ? colors.palette.neutral900 : colors.palette.neutral900,
+  textTransform: "capitalize",
+})
+
 const $screenContainer = (colors: any): ViewStyle => ({
   flex: 1,
   backgroundColor: colors.background,
@@ -203,10 +273,11 @@ const $searchContainer = (colors: any): ViewStyle => ({
   marginBottom: spacing.md,
   marginHorizontal: spacing.md,
   ...shadowProps,
+  borderColor: colors.palette.neutral400,
   height: 50,
   marginTop: spacing.md,
   borderRadius: 100,
-  backgroundColor: colors.background,
+  backgroundColor: colors.palette.neutral200,
 })
 
 const $searchIconButton: ViewStyle = {

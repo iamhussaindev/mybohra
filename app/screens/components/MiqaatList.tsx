@@ -47,7 +47,7 @@ export function MiqaatCard({
           />
           {item.description ? (
             <Text
-              color={colors.text}
+              color={colors.textDim}
               weight="normal"
               style={$cardDescriptionText}
               text={`${item.description ?? ""} ${item.location ? ` - ${item.location}` : ``}`}
@@ -99,7 +99,6 @@ const $countDownContainer: ViewStyle = {
 
 const $cardDescriptionText: TextStyle = {
   fontSize: 14,
-  color: colors.palette.neutral900,
   flexWrap: "wrap",
   flex: 1,
   lineHeight: 20,
