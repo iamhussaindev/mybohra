@@ -1,6 +1,17 @@
 import { BottomTabScreenProps, createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { CompositeScreenProps } from "@react-navigation/native"
-import { Icon, Text } from "app/components"
+import {
+  IconGlobe,
+  IconGlobeFilled,
+  IconHome,
+  IconHomeFilled,
+  IconSearch,
+  IconShoppingCart,
+  IconShoppingCartFilled,
+  IconUser,
+  IconUserFilled,
+} from "@tabler/icons-react-native"
+import { Text } from "app/components"
 import { AccountScreen } from "app/screens/Account/AccountScreen"
 import { MarketScreen } from "app/screens/Market/MarketScreen"
 import { SearchScreen } from "app/screens/Search/SearchScreen"
@@ -19,6 +30,7 @@ export type TabParamList = {
   Search: undefined
   Market: undefined
   Account: undefined
+  Explore: undefined
 }
 
 /**
@@ -74,9 +86,12 @@ export function NavigationTab() {
           tabBarLabel: ({ focused }) => (
             <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>Home</Text>
           ),
-          tabBarIcon: ({ focused }) => (
-            <Icon icon="home" color={focused ? colors.tint : idleColor} size={24} />
-          ),
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <IconHomeFilled color={colors.tint} size={36} />
+            ) : (
+              <IconHome color={colors.textDim} size={36} />
+            ),
         }}
       />
 
@@ -87,9 +102,30 @@ export function NavigationTab() {
           tabBarLabel: ({ focused }) => (
             <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>Search</Text>
           ),
-          tabBarIcon: ({ focused }) => (
-            <Icon icon="search" color={focused ? colors.tint : idleColor} size={24} />
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <IconSearch color={colors.tint} size={36} />
+            ) : (
+              <IconSearch color={colors.textDim} size={36} />
+            ),
+        }}
+      />
+
+      <Tab.Screen
+        name="Explore"
+        component={MarketScreen}
+        options={{
+          tabBarLabel: ({ focused }) => (
+            <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>
+              Explore
+            </Text>
           ),
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <IconGlobeFilled color={colors.tint} size={36} />
+            ) : (
+              <IconGlobe color={colors.textDim} size={36} />
+            ),
         }}
       />
 
@@ -101,9 +137,12 @@ export function NavigationTab() {
           tabBarLabel: ({ focused }) => (
             <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>Market</Text>
           ),
-          tabBarIcon: ({ focused }) => (
-            <Icon icon="shop" color={focused ? colors.tint : idleColor} size={24} />
-          ),
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <IconShoppingCartFilled color={colors.tint} size={36} />
+            ) : (
+              <IconShoppingCart color={colors.textDim} size={36} />
+            ),
         }}
       />
 
@@ -113,13 +152,16 @@ export function NavigationTab() {
         options={{
           tabBarLabel: ({ focused }) => (
             <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>
-              Settings
+              Account
             </Text>
           ),
 
-          tabBarIcon: ({ focused }) => (
-            <Icon icon="settings" color={focused ? colors.tint : idleColor} size={24} />
-          ),
+          tabBarIcon: ({ focused }) =>
+            focused ? (
+              <IconUserFilled color={colors.tint} size={36} />
+            ) : (
+              <IconUser color={colors.textDim} size={36} />
+            ),
         }}
       />
     </Tab.Navigator>

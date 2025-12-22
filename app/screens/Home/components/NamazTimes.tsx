@@ -79,7 +79,7 @@ function NamazCard(props: {
     <>
       <Pressable
         onPress={() => {
-          props.navigation.navigate("PdfViewer", {
+          props.navigation.navigate("Namaz", {
             id: props.timeKey,
             name: props.text,
             description: props.time,
@@ -220,7 +220,7 @@ const getActiveNamazLabel = (colors: any): TextStyle => ({
 })
 
 const getActiveNamazValue = (colors: any): TextStyle => ({
-  color: colors.palette.primary500,
+  color: colors.darkHighlight,
 })
 
 const $gap: ViewStyle = {

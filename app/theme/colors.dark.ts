@@ -61,6 +61,8 @@ export const darkColors = {
   text: darkPalette.neutral700,
   textDim: darkPalette.neutral600,
   background: darkPalette.neutral200,
+  backgroundHighlight: darkPalette.neutral200,
+  darkHighlight: darkPalette.accent100,
   border: "#2a2a2a",
   tint: darkPalette.primary500,
   separator: darkPalette.neutral700,
@@ -69,6 +71,5 @@ export const darkColors = {
   green: "#06954f",
   switchGreen: "#3ebd89",
   switchBackground: "#4a4a4a",
-
   accentBackground: darkPalette.neutral200,
 }

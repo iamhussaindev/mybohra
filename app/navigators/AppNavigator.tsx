@@ -100,7 +100,7 @@ const AppStack = observer(function AppStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="DuaHome"
+      initialRouteName="Tabs"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,

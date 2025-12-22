@@ -9,8 +9,8 @@ const data = [
   { key: "2", name: "Quran", icon: require(`../../../../assets/images/quran.png`) },
   { key: "3", name: "Qibla", icon: require(`../../../../assets/images/qibla.png`) },
   { key: "4", name: "Counter", icon: require(`../../../../assets/images/counter.png`) },
-  { key: "5", name: "TasbeehList", icon: require(`../../../../assets/images/tasbeeh.png`) },
-  { key: "6", name: "Sadqah", icon: require(`../../../../assets/images/sadqah.png`) },
+  { key: "5", name: "Tasbeeh", icon: require(`../../../../assets/images/tasbeeh.png`) },
+  { key: "6", name: "Halal Food", icon: require(`../../../../assets/images/sadqah.png`) },
   { key: "7", name: "Miqaats", icon: require(`../../../../assets/images/miqaats.png`) },
   { key: "8", name: "Mazaar", icon: require(`../../../../assets/images/mazaar.png`) },
 ]

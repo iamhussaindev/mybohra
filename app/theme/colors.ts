@@ -84,9 +84,17 @@ export const colors = {
    * The default color of the screen background.
    */
   background: palette.neutral100,
+
+  /**
+   * The background color of the highlighted item.
+   */
+  backgroundHighlight: "#f3eae1",
   /**
    * The default border color.
    */
+
+  darkHighlight: "#471515",
+
   border: "#E9E9E9",
   /**
    * The main tinting color.
