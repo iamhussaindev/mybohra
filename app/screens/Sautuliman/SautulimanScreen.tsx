@@ -23,7 +23,7 @@ export const SautulimanScreen: FC<SautulimanScreenProps> = observer(function Sau
   const fetchVideos = useCallback(async () => {
     setLoading(true)
     try {
-      const items = await youtubeStore.fetchVideosByTags(["satuliman"], {
+      const items = await youtubeStore.fetchVideosByTags([], {
         limit: 50,
         sortBy: "created_at",
         sortOrder: "desc",
@@ -49,6 +49,8 @@ export const SautulimanScreen: FC<SautulimanScreenProps> = observer(function Sau
   const renderVideoItem = ({ item }: { item: IYouTubeVideo }) => {
     return <YouTubeVideoCard item={item} onPress={handleVideoPress} />
   }
+
+  console.log("videos", videos)
 
   return (
     <Screen

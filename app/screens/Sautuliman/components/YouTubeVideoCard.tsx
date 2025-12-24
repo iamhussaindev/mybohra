@@ -21,18 +21,6 @@ interface YouTubeVideoCardProps {
   onPress?: (item: IYouTubeVideo) => void
 }
 
-// Helper function to format view count
-const formatViewCount = (count: number | null): string => {
-  if (!count) return ""
-  if (count >= 1000000) {
-    return `${(count / 1000000).toFixed(1)}M views`
-  }
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}K views`
-  }
-  return `${count} views`
-}
-
 // Helper function to format duration
 const formatDuration = (seconds: number | null): string => {
   if (!seconds) return ""
@@ -105,17 +93,17 @@ export function YouTubeVideoCard({ item, onPress }: YouTubeVideoCardProps) {
               )}
               {/* Play overlay */}
               <View style={$playOverlay}>
-                <View style={$playButton(colors)}>
+                {/* <View style={$playButton()}>
                   <IconBrandYoutube
                     size={24}
                     color={colors.palette.neutral100}
                     fill={colors.palette.neutral100}
                   />
-                </View>
+                </View> */}
               </View>
               {/* Duration badge */}
               {item.duration && (
-                <View style={$durationBadge(colors)}>
+                <View style={$durationBadge()}>
                   <Text style={$durationText}>{formatDuration(item.duration)}</Text>
                 </View>
               )}
@@ -130,21 +118,8 @@ export function YouTubeVideoCard({ item, onPress }: YouTubeVideoCardProps) {
                 numberOfLines={2}
                 weight="medium"
               />
-              {item.channel_handle && (
-                <Text
-                  color={colors.palette.neutral600}
-                  text={item.channel_handle}
-                  style={$channelName}
-                />
-              )}
+
               <View style={$metadataRow}>
-                {item.view_count && (
-                  <Text
-                    color={colors.palette.neutral500}
-                    text={formatViewCount(item.view_count)}
-                    style={$metadataText}
-                  />
-                )}
                 {item.upload_date && item.view_count && (
                   <Text color={colors.palette.neutral500} text=" • " style={$metadataText} />
                 )}
@@ -181,13 +156,10 @@ const $videoCard = (colors: any): ViewStyle => ({
   backgroundColor: colors.background,
   borderRadius: 12,
   overflow: "hidden",
-  borderWidth: 1,
-  borderColor: colors.border,
 })
 
 const $videoCardContent: ViewStyle = {
   flexDirection: "row",
-  padding: spacing.sm,
 }
 
 const $thumbnailContainer: ViewStyle = {
@@ -197,7 +169,8 @@ const $thumbnailContainer: ViewStyle = {
   overflow: "hidden",
   marginRight: spacing.md,
   position: "relative",
-  backgroundColor: "#000",
+  borderWidth: 1,
+  borderColor: "#f4f5f9",
 }
 
 const $thumbnail: ImageStyle = {
@@ -222,10 +195,9 @@ const $playOverlay: ViewStyle = {
   bottom: 0,
   justifyContent: "center",
   alignItems: "center",
-  backgroundColor: "rgba(0, 0, 0, 0.3)",
 }
 
-const $playButton = (colors: any): ViewStyle => ({
+const $playButton = (): ViewStyle => ({
   width: 48,
   height: 48,
   borderRadius: 24,
@@ -234,7 +206,7 @@ const $playButton = (colors: any): ViewStyle => ({
   alignItems: "center",
 })
 
-const $durationBadge = (colors: any): ViewStyle => ({
+const $durationBadge = (): ViewStyle => ({
   position: "absolute",
   bottom: 4,
   right: 4,
@@ -260,12 +232,6 @@ const $videoTitle: TextStyle = {
   fontFamily: typography.primary.medium,
   marginBottom: spacing.xxs,
   lineHeight: 20,
-}
-
-const $channelName: TextStyle = {
-  fontSize: 14,
-  fontFamily: typography.primary.normal,
-  marginBottom: spacing.xxs,
 }
 
 const $metadataRow: ViewStyle = {

@@ -158,6 +158,8 @@ export const YouTubeStoreModel = types
           sortBy: "view_count",
           sortOrder: options?.sortOrder || "desc",
         })
+
+        console.log("response", response)
         if (response.kind === "ok") {
           return response.data as IYouTubeVideo[]
         }
@@ -179,7 +181,7 @@ export const YouTubeStoreModel = types
      * Clear videos from store
      */
     clearVideos: function () {
-      self.videos = []
+      self.videos = [] as any
     },
   }))
   .views((self) => ({
@@ -215,4 +217,3 @@ export const YouTubeStoreModel = types
 export interface YouTubeStore extends Instance<typeof YouTubeStoreModel> {}
 export interface YouTubeStoreSnapshot extends SnapshotOut<typeof YouTubeStoreModel> {}
 export interface IYouTubeVideo extends Instance<typeof YouTubeVideoModel> {}
-
