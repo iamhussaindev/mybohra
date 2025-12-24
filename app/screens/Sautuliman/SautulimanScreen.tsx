@@ -50,8 +50,6 @@ export const SautulimanScreen: FC<SautulimanScreenProps> = observer(function Sau
     return <YouTubeVideoCard item={item} onPress={handleVideoPress} />
   }
 
-  console.log("videos", videos)
-
   return (
     <Screen
       preset="fixed"
