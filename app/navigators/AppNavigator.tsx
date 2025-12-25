@@ -56,6 +56,14 @@ export type AppStackParamList = {
     tags: string[] | null
     categories: string[] | null
   }
+  PdfViewerModal: {
+    id: number
+    name: string
+    description: string | null
+    audio_url: string | null
+    pdf_url: string | null
+    youtube_url: string | null
+  }
   Counter: undefined
   SavedTasbeeh: undefined
   EventReminder: { date: HijriDate }
@@ -79,6 +87,36 @@ export type AppStackParamList = {
   Settings: undefined
   Qibla: undefined
   Sautuliman: undefined
+  YouTubePlayer: {
+    video: {
+      id: number
+      video_id: string
+      title: string
+      description: string | null
+      duration: number | null
+      view_count: number | null
+      upload_date: string | null
+      url: string
+      thumbnail: string | null
+      thumbnail_default: string | null
+      thumbnail_medium: string | null
+      thumbnail_high: string | null
+      thumbnail_standard: string | null
+      thumbnail_maxres: string | null
+      channel_url: string | null
+      channel_handle: string | null
+      created_at: string
+      updated_at: string
+      tags: string[] | null
+      categories: string[] | null
+      library_id: number | null
+    }
+  }
+  YouTubeSearch: undefined
+  Library: undefined
+  AudioPlayer: {
+    album?: string
+  }
 }
 
 /**
@@ -100,7 +138,7 @@ const AppStack = observer(function AppStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="Sautuliman"
+      initialRouteName="Library"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,
@@ -111,6 +149,18 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="Calendar" component={Screens.CalendarScreen} />
       <Stack.Screen name="CalendarSearch" component={Screens.CalendarSearch} />
       <Stack.Screen name="PdfViewer" component={Screens.PdfScreen} />
+
+      <Stack.Screen
+        name="PdfViewerModal"
+        component={Screens.PdfScreen}
+        options={{
+          presentation: "fullScreenModal",
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          gestureDirection: "vertical",
+        }}
+      />
+
       <Stack.Screen name="Counter" component={Screens.CounterScreen} />
       <Stack.Screen name="SavedTasbeeh" component={Screens.SavedTasbeehScreen} />
       <Stack.Screen name="EventReminder" component={Screens.EventReminderScreen} />
@@ -131,6 +181,24 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="Settings" component={Screens.SettingsScreen} />
       <Stack.Screen name="Qibla" component={Screens.QiblaScreen} />
       <Stack.Screen name="Sautuliman" component={Screens.SautulimanScreen} />
+      <Stack.Screen
+        name="YouTubePlayer"
+        options={{
+          presentation: "fullScreenModal",
+          gestureEnabled: true,
+          gestureDirection: "vertical",
+        }}
+        component={Screens.YouTubePlayerScreen}
+      />
+      <Stack.Screen name="YouTubeSearch" component={Screens.YouTubeSearchScreen} />
+      <Stack.Screen name="Library" component={Screens.LibraryScreen} />
+      <Stack.Screen
+        name="AudioPlayer"
+        options={{
+          presentation: "transparentModal",
+        }}
+        component={Screens.AudioPlayerScreen}
+      />
     </Stack.Navigator>
   )
 })

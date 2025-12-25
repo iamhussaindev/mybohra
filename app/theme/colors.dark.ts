@@ -53,6 +53,7 @@ const darkPalette = {
 
 export const darkColors = {
   palette: darkPalette,
+  audioPlayerBackground: "#131E3A",
   white: "#000000",
   gray: "#1a1a1a",
   yellow: "#f0932b",

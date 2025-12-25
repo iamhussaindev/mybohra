@@ -256,14 +256,14 @@ export function Screen(props: ScreenProps) {
     keyboardOffset = 0,
     safeAreaEdges,
     StatusBarProps,
-    statusBarStyle = "dark",
+    statusBarStyle,
   } = props
 
   const $containerInsets = useSafeAreaInsetsStyle(safeAreaEdges)
 
   return (
     <View style={[$containerStyle, { backgroundColor }, $containerInsets]}>
-      <Statusbar style={theme.isDark ? "light" : "dark"} {...StatusBarProps} />
+      <Statusbar style={statusBarStyle || theme.isDark ? "light" : "dark"} {...StatusBarProps} />
       <KeyboardAvoidingView
         behavior={isIos ? "padding" : "height"}
         keyboardVerticalOffset={keyboardOffset}

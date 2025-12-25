@@ -118,6 +118,8 @@ export const colors = {
 
   switchGreen: "#3ebd89",
   switchBackground: "#cdd1e2",
+
+  audioPlayerBackground: "#131E3A",
 }
 
 // Export dark colors

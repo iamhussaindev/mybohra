@@ -49,14 +49,14 @@ export function YouTubeVideoCard({ item, onPress }: YouTubeVideoCardProps) {
     if (onPress) {
       onPress(item)
     } else {
-      // Toggle player or open in browser
+      // Toggle player if no onPress handler provided
       setShowPlayer(!showPlayer)
     }
   }, [item, onPress, showPlayer])
 
-  const handleThumbnailPress = useCallback(() => {
-    setShowPlayer(true)
-  }, [])
+  // const handleThumbnailPress = useCallback(() => {
+  //   setShowPlayer(true)
+  // }, [])
 
   const thumbnailUrl =
     item.thumbnail_high || item.thumbnail_medium || item.thumbnail || item.thumbnail_default
@@ -83,7 +83,7 @@ export function YouTubeVideoCard({ item, onPress }: YouTubeVideoCardProps) {
         >
           <View style={$videoCardContent}>
             {/* Thumbnail */}
-            <Pressable onPress={handleThumbnailPress} style={$thumbnailContainer}>
+            <View style={$thumbnailContainer}>
               {thumbnailUrl ? (
                 <Image source={{ uri: thumbnailUrl }} style={$thumbnail} />
               ) : (
@@ -107,7 +107,7 @@ export function YouTubeVideoCard({ item, onPress }: YouTubeVideoCardProps) {
                   <Text style={$durationText}>{formatDuration(item.duration)}</Text>
                 </View>
               )}
-            </Pressable>
+            </View>
 
             {/* Video Info */}
             <View style={$videoInfo}>
@@ -115,30 +115,9 @@ export function YouTubeVideoCard({ item, onPress }: YouTubeVideoCardProps) {
                 color={colors.text}
                 text={item.title}
                 style={$videoTitle}
-                numberOfLines={2}
+                numberOfLines={4}
                 weight="medium"
               />
-
-              <View style={$metadataRow}>
-                {item.upload_date && item.view_count && (
-                  <Text color={colors.palette.neutral500} text=" • " style={$metadataText} />
-                )}
-                {item.upload_date && (
-                  <Text
-                    color={colors.palette.neutral500}
-                    text={item.upload_date}
-                    style={$metadataText}
-                  />
-                )}
-              </View>
-              {item.description && (
-                <Text
-                  color={colors.palette.neutral600}
-                  text={item.description}
-                  style={$videoDescription}
-                  numberOfLines={2}
-                />
-              )}
             </View>
           </View>
         </TouchableHighlight>
@@ -163,8 +142,8 @@ const $videoCardContent: ViewStyle = {
 }
 
 const $thumbnailContainer: ViewStyle = {
-  width: 160,
-  height: 90,
+  width: 160 / 1.2,
+  height: 90 / 1.2,
   borderRadius: 8,
   overflow: "hidden",
   marginRight: spacing.md,
@@ -197,15 +176,6 @@ const $playOverlay: ViewStyle = {
   alignItems: "center",
 }
 
-const $playButton = (): ViewStyle => ({
-  width: 48,
-  height: 48,
-  borderRadius: 24,
-  backgroundColor: "rgba(0, 0, 0, 0.7)",
-  justifyContent: "center",
-  alignItems: "center",
-})
-
 const $durationBadge = (): ViewStyle => ({
   position: "absolute",
   bottom: 4,
@@ -224,7 +194,7 @@ const $durationText: TextStyle = {
 
 const $videoInfo: ViewStyle = {
   flex: 1,
-  justifyContent: "flex-start",
+  justifyContent: "center",
 }
 
 const $videoTitle: TextStyle = {
@@ -232,23 +202,6 @@ const $videoTitle: TextStyle = {
   fontFamily: typography.primary.medium,
   marginBottom: spacing.xxs,
   lineHeight: 20,
-}
-
-const $metadataRow: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  marginBottom: spacing.xs,
-}
-
-const $metadataText: TextStyle = {
-  fontSize: 12,
-  fontFamily: typography.primary.normal,
-}
-
-const $videoDescription: TextStyle = {
-  fontSize: 13,
-  fontFamily: typography.primary.normal,
-  lineHeight: 18,
 }
 
 const $closeButton = (colors: any): ViewStyle => ({

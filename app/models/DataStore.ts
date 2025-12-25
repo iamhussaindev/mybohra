@@ -8,11 +8,43 @@ import { LibraryModel, ILibrary } from "./LibraryStore"
 
 export const QIYAM_KEY = "current_qiyam"
 export const PDF_HISTORY_KEY = "pdf_history"
+export const AUDIO_ACTIVITY_KEY = "audio_activity"
+export const PDF_FROM_AUDIO_KEY = "pdf_from_audio"
 
 const PdfHistoryModel = types.model("PdfHistoryModel", {
   pdfId: types.number,
   openedCount: types.number,
   lastOpened: types.string,
+})
+
+// Audio Activity Tracking Models
+const AudioPlayEventModel = types.model("AudioPlayEventModel", {
+  itemId: types.number,
+  timestamp: types.string,
+  eventType: types.enumeration("EventType", ["play", "pause", "complete", "seek"]),
+  duration: types.maybeNull(types.number), // Total duration in seconds
+  position: types.maybeNull(types.number), // Position when event occurred in seconds
+  timeListened: types.maybeNull(types.number), // Time listened in this session (seconds)
+  album: types.maybeNull(types.string),
+  startedFrom: types.maybeNull(types.enumeration("StartedFrom", ["PDF", "LIBRARY"])),
+})
+
+const AudioActivityModel = types.model("AudioActivityModel", {
+  itemId: types.number,
+  playCount: types.number,
+  totalTimeListened: types.number, // Total seconds listened
+  lastPlayed: types.string,
+  lastCompleted: types.maybeNull(types.string),
+  album: types.maybeNull(types.string),
+  events: types.optional(types.array(AudioPlayEventModel), []),
+})
+
+// PDF viewed from audio player tracking
+const PdfFromAudioModel = types.model("PdfFromAudioModel", {
+  pdfId: types.number,
+  audioId: types.number, // The audio item ID that was playing when PDF was opened
+  timestamp: types.string,
+  album: types.maybeNull(types.string),
 })
 
 export const LocationModel = types.model("LocationModel", {
@@ -61,6 +93,10 @@ export const DataStoreModel = types
     pinnedPdfs: types.optional(types.array(LibraryModel), []),
     // PDF history
     pdfHistory: types.optional(types.array(PdfHistoryModel), []),
+    // Audio activity tracking
+    audioActivity: types.optional(types.array(AudioActivityModel), []),
+    // PDF views from audio player
+    pdfFromAudio: types.optional(types.array(PdfFromAudioModel), []),
   })
   .actions((self) => {
     // Helper: Normalize location object to avoid MST duplicate node errors
@@ -135,6 +171,55 @@ export const DataStoreModel = types
         .sort((a, b) => new Date(b.lastOpened).getTime() - new Date(a.lastOpened).getTime())
       self.pdfHistory.replace(sorted)
     }
+
+    // Audio Activity Tracking Helpers
+    const persistAudioActivity = flow(function* () {
+      try {
+        const snapshot = self.audioActivity.map((activity) => ({
+          itemId: activity.itemId,
+          playCount: activity.playCount,
+          totalTimeListened: activity.totalTimeListened,
+          lastPlayed: activity.lastPlayed,
+          lastCompleted: activity.lastCompleted,
+          album: activity.album,
+          events: activity.events.slice().map((event) => ({
+            itemId: event.itemId,
+            timestamp: event.timestamp,
+            eventType: event.eventType,
+            duration: event.duration,
+            position: event.position,
+            timeListened: event.timeListened,
+            album: event.album,
+            startedFrom: event.startedFrom,
+          })),
+        }))
+        yield storage.save(AUDIO_ACTIVITY_KEY, snapshot)
+      } catch (error) {
+        console.log("Failed to persist audio activity", error)
+      }
+    })
+
+    const persistPdfFromAudio = flow(function* () {
+      try {
+        const snapshot = self.pdfFromAudio.map((entry) => ({
+          pdfId: entry.pdfId,
+          audioId: entry.audioId,
+          timestamp: entry.timestamp,
+          album: entry.album,
+        }))
+        yield storage.save(PDF_FROM_AUDIO_KEY, snapshot)
+      } catch (error) {
+        console.log("Failed to persist PDF from audio", error)
+      }
+    })
+
+    // Track active playback session (for calculating time listened)
+    let activeSession: {
+      itemId: number
+      startTime: number
+      lastPosition: number
+      totalTime: number
+    } | null = null
 
     return {
       // Method to add a location to past selected locations
@@ -607,6 +692,246 @@ export const DataStoreModel = types
           console.log("Failed to record PDF open", error)
         }
       }),
+
+      // Audio Activity Tracking Actions
+      loadAudioActivity: flow(function* () {
+        try {
+          const savedActivity = yield storage.load(AUDIO_ACTIVITY_KEY)
+          if (savedActivity && Array.isArray(savedActivity)) {
+            self.audioActivity.replace(savedActivity)
+          }
+        } catch (error) {
+          console.log("Error loading audio activity", error)
+        }
+      }),
+
+      loadPdfFromAudio: flow(function* () {
+        try {
+          const savedPdfFromAudio = yield storage.load(PDF_FROM_AUDIO_KEY)
+          if (savedPdfFromAudio && Array.isArray(savedPdfFromAudio)) {
+            self.pdfFromAudio.replace(savedPdfFromAudio)
+          }
+        } catch (error) {
+          console.log("Error loading PDF from audio", error)
+        }
+      }),
+
+      recordAudioPlay: flow(function* (
+        itemId: number,
+        item: { album?: string | null; startedFrom?: "PDF" | "LIBRARY" | null },
+      ) {
+        try {
+          const now = new Date().toISOString()
+          const existingActivity = self.audioActivity.find((activity) => activity.itemId === itemId)
+
+          // Check if we're resuming an existing session or starting a new one
+          if (activeSession && activeSession.itemId === itemId) {
+            // Resuming - update startTime to now
+            activeSession.startTime = Date.now()
+          } else {
+            // New play - initialize active session
+            activeSession = {
+              itemId,
+              startTime: Date.now(),
+              lastPosition: 0,
+              totalTime: 0,
+            }
+          }
+
+          if (existingActivity) {
+            existingActivity.playCount += 1
+            existingActivity.lastPlayed = now
+            // Update album if it wasn't set before
+            if (!existingActivity.album && item.album) {
+              existingActivity.album = item.album
+            }
+          } else {
+            self.audioActivity.unshift({
+              itemId,
+              playCount: 1,
+              totalTimeListened: 0,
+              lastPlayed: now,
+              lastCompleted: null,
+              album: item.album ?? null,
+              events: [],
+            })
+          }
+
+          // Add play event only if it's a new play (not a resume)
+          // We can detect this by checking if the last event was a pause
+          const activity = self.audioActivity.find((a) => a.itemId === itemId)
+          if (activity) {
+            const lastEvent = activity.events[0]
+            // Only add play event if last event wasn't a pause (meaning it's a new play, not a resume)
+            if (!lastEvent || lastEvent.eventType !== "pause") {
+              activity.events.unshift({
+                itemId,
+                timestamp: now,
+                eventType: "play",
+                duration: null,
+                position: 0,
+                timeListened: 0,
+                album: item.album ?? null,
+                startedFrom: item.startedFrom ?? null,
+              })
+              // Keep only last 100 events per item to prevent storage bloat
+              if (activity.events.length > 100) {
+                activity.events.splice(100)
+              }
+            }
+          }
+
+          yield persistAudioActivity()
+        } catch (error) {
+          console.log("Failed to record audio play", error)
+        }
+      }),
+
+      recordAudioPause: flow(function* (itemId: number, position: number, duration: number | null) {
+        try {
+          const now = new Date().toISOString()
+          const activity = self.audioActivity.find((a) => a.itemId === itemId)
+
+          if (activity && activeSession && activeSession.itemId === itemId) {
+            // Calculate time listened in this session
+            const currentTime = Date.now()
+            const sessionTime = (currentTime - activeSession.startTime) / 1000 // Convert to seconds
+            activeSession.totalTime += sessionTime
+            activeSession.lastPosition = position
+            activeSession.startTime = currentTime // Reset for when play resumes
+
+            // Add pause event
+            activity.events.unshift({
+              itemId,
+              timestamp: now,
+              eventType: "pause",
+              duration,
+              position,
+              timeListened: sessionTime,
+              album: activity.album,
+              startedFrom: null,
+            })
+
+            // Update total time listened
+            activity.totalTimeListened += sessionTime
+
+            // Keep only last 100 events per item
+            if (activity.events.length > 100) {
+              activity.events.splice(100)
+            }
+
+            yield persistAudioActivity()
+          }
+        } catch (error) {
+          console.log("Failed to record audio pause", error)
+        }
+      }),
+
+      recordAudioComplete: flow(function* (itemId: number, duration: number | null) {
+        try {
+          const now = new Date().toISOString()
+          const activity = self.audioActivity.find((a) => a.itemId === itemId)
+
+          if (activity && activeSession && activeSession.itemId === itemId) {
+            // Calculate final time listened
+            const finalTime = (Date.now() - activeSession.startTime) / 1000
+            activeSession.totalTime += finalTime
+
+            // Add complete event
+            activity.events.unshift({
+              itemId,
+              timestamp: now,
+              eventType: "complete",
+              duration,
+              position: duration ?? 0,
+              timeListened: finalTime,
+              album: activity.album,
+              startedFrom: null,
+            })
+
+            // Update totals
+            activity.totalTimeListened += finalTime
+            activity.lastCompleted = now
+
+            // Keep only last 100 events per item
+            if (activity.events.length > 100) {
+              activity.events.splice(100)
+            }
+
+            activeSession = null
+
+            yield persistAudioActivity()
+          }
+        } catch (error) {
+          console.log("Failed to record audio complete", error)
+        }
+      }),
+
+      recordAudioSeek: flow(function* (itemId: number, position: number, duration: number | null) {
+        try {
+          const now = new Date().toISOString()
+          const activity = self.audioActivity.find((a) => a.itemId === itemId)
+
+          if (activity && activeSession && activeSession.itemId === itemId) {
+            // Update session time before seek
+            const currentTime = Date.now()
+            const sessionTime = (currentTime - activeSession.startTime) / 1000
+            activeSession.totalTime += sessionTime
+            activeSession.lastPosition = position
+            activeSession.startTime = currentTime
+
+            // Add seek event (keep only recent seeks to avoid too many events)
+            const recentSeeks = activity.events.filter(
+              (e) => e.eventType === "seek" && Date.now() - new Date(e.timestamp).getTime() < 60000, // Last minute
+            )
+            if (recentSeeks.length < 10) {
+              activity.events.unshift({
+                itemId,
+                timestamp: now,
+                eventType: "seek",
+                duration,
+                position,
+                timeListened: 0,
+                album: activity.album,
+                startedFrom: null,
+              })
+            }
+          }
+        } catch (error) {
+          console.log("Failed to record audio seek", error)
+        }
+      }),
+
+      recordPdfFromAudio: flow(function* (pdfId: number, audioId: number, album?: string | null) {
+        try {
+          const now = new Date().toISOString()
+          self.pdfFromAudio.unshift({
+            pdfId,
+            audioId,
+            timestamp: now,
+            album: album ?? null,
+          })
+
+          // Keep only last 500 entries to prevent storage bloat
+          if (self.pdfFromAudio.length > 500) {
+            self.pdfFromAudio.splice(500)
+          }
+
+          yield persistPdfFromAudio()
+        } catch (error) {
+          console.log("Failed to record PDF from audio", error)
+        }
+      }),
+
+      clearAudioActivity() {
+        self.audioActivity.clear()
+        storage.save(AUDIO_ACTIVITY_KEY, [])
+      },
+
+      clearPdfFromAudio() {
+        self.pdfFromAudio.clear()
+        storage.save(PDF_FROM_AUDIO_KEY, [])
+      },
     }
   })
   .views((self) => ({
@@ -617,6 +942,101 @@ export const DataStoreModel = types
 
     getRecentPdfHistory(limit = 6) {
       return self.pdfHistory.slice(0, limit)
+    },
+
+    // Recommendation Logic Views
+    getRecommendedItems(limit = 10): number[] {
+      // Combine multiple signals for recommendations
+      const recommendations: Map<number, number> = new Map()
+
+      // 1. Most played audio items (by play count)
+      self.audioActivity.forEach((activity) => {
+        const score = activity.playCount * 10 + activity.totalTimeListened / 60 // Play count weighted more
+        recommendations.set(activity.itemId, (recommendations.get(activity.itemId) ?? 0) + score)
+      })
+
+      // 2. Recently completed audio items (users who complete are highly engaged)
+      self.audioActivity
+        .filter((activity) => activity.lastCompleted)
+        .forEach((activity) => {
+          if (!activity.lastCompleted) return
+          const daysSince =
+            (Date.now() - new Date(activity.lastCompleted).getTime()) / (1000 * 60 * 60 * 24)
+          const recencyScore = Math.max(0, 100 - daysSince) // Decay over time
+          recommendations.set(
+            activity.itemId,
+            (recommendations.get(activity.itemId) ?? 0) + recencyScore * 2,
+          )
+        })
+
+      // 3. Items from same albums as frequently played items
+      const popularAlbums = new Map<string, number>()
+      self.audioActivity.forEach((activity) => {
+        if (activity.album) {
+          popularAlbums.set(
+            activity.album,
+            (popularAlbums.get(activity.album) ?? 0) + activity.playCount,
+          )
+        }
+      })
+
+      // 4. PDFs viewed from audio player (strong signal of interest)
+      self.pdfFromAudio.forEach((entry) => {
+        recommendations.set(entry.pdfId, (recommendations.get(entry.pdfId) ?? 0) + 50)
+        // Also boost related audio items
+        recommendations.set(entry.audioId, (recommendations.get(entry.audioId) ?? 0) + 30)
+      })
+
+      // Sort by score and return top items
+      return Array.from(recommendations.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([itemId]) => itemId)
+    },
+
+    getRecommendedByAlbum(album: string, limit = 5): number[] {
+      // Get items from same album that user has interacted with
+      const albumItems = new Map<number, number>()
+
+      self.audioActivity
+        .filter((activity) => activity.album === album)
+        .forEach((activity) => {
+          albumItems.set(activity.itemId, activity.playCount * 10 + activity.totalTimeListened / 60)
+        })
+
+      self.pdfFromAudio
+        .filter((entry) => entry.album === album)
+        .forEach((entry) => {
+          albumItems.set(entry.pdfId, (albumItems.get(entry.pdfId) ?? 0) + 50)
+          albumItems.set(entry.audioId, (albumItems.get(entry.audioId) ?? 0) + 30)
+        })
+
+      return Array.from(albumItems.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([itemId]) => itemId)
+    },
+
+    getMostPlayedItems(
+      limit = 10,
+    ): Array<{ itemId: number; playCount: number; totalTime: number }> {
+      return self.audioActivity
+        .slice()
+        .sort((a, b) => b.playCount - a.playCount)
+        .slice(0, limit)
+        .map((activity) => ({
+          itemId: activity.itemId,
+          playCount: activity.playCount,
+          totalTime: activity.totalTimeListened,
+        }))
+    },
+
+    getRecentlyPlayedItems(limit = 10): number[] {
+      return self.audioActivity
+        .slice()
+        .sort((a, b) => new Date(b.lastPlayed).getTime() - new Date(a.lastPlayed).getTime())
+        .slice(0, limit)
+        .map((activity) => activity.itemId)
     },
   }))
 

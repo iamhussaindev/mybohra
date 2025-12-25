@@ -28,6 +28,8 @@ export const YouTubeVideoModel = types.model("YouTubeVideoModel", {
 export const YouTubeStoreModel = types
   .model("YouTubeStore", {
     videos: types.optional(types.array(YouTubeVideoModel), []),
+    tags: types.optional(types.array(types.frozen()), []),
+    categories: types.optional(types.array(types.frozen()), []),
   })
   .actions((self) => ({
     /**
@@ -183,6 +185,70 @@ export const YouTubeStoreModel = types
     clearVideos: function () {
       self.videos = [] as any
     },
+
+    /**
+     * Fetch distinct tags from YouTube videos
+     */
+    fetchTags: flow(function* () {
+      try {
+        const response = yield apiSupabase.fetchYouTubeTags()
+        if (response.kind === "ok") {
+          self.tags = response.data as any
+          return response.data as Array<{ tag: string; count: number }>
+        }
+        return []
+      } catch (error) {
+        console.log("Error fetching YouTube tags:", error)
+        return []
+      }
+    }),
+
+    /**
+     * Fetch distinct categories from YouTube videos
+     */
+    fetchCategories: flow(function* () {
+      try {
+        const response = yield apiSupabase.fetchYouTubeCategories()
+        if (response.kind === "ok") {
+          self.categories = response.data as any
+          return response.data as Array<{ category: string; count: number }>
+        }
+        return []
+      } catch (error) {
+        console.log("Error fetching YouTube categories:", error)
+        return []
+      }
+    }),
+
+    /**
+     * Get tags from store
+     */
+    getTags: function () {
+      return self.tags
+    },
+
+    /**
+     * Get categories from store
+     */
+    getCategories: function () {
+      return self.categories
+    },
+
+    /**
+     * Search YouTube videos
+     */
+    searchVideos: flow(function* (searchQuery: string, limit?: number) {
+      try {
+        const response = yield apiSupabase.searchYouTubeVideos(searchQuery, limit)
+        if (response.kind === "ok") {
+          return response.data as IYouTubeVideo[]
+        }
+        return []
+      } catch (error) {
+        console.log("Error searching YouTube videos:", error)
+        return []
+      }
+    }),
   }))
   .views((self) => ({
     /**

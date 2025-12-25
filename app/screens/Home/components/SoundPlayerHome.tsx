@@ -33,6 +33,19 @@ export default function SoundPlayerHome({ navigation }: { navigation: any }) {
           const item = JSON.parse(currentSound.item)
           navigation.navigate("PdfViewer", item)
         }
+        const item = JSON.parse(currentSound.item)
+        navigation.navigate("AudioPlayer", {
+          album: item.album,
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          audio_url: item.audio_url,
+          pdf_url: item.pdf_url,
+          youtube_url: item.youtube_url,
+          metadata: item.metadata,
+          tags: item.tags,
+          categories: item.categories,
+        })
       }}
       style={$container}
     >
@@ -46,23 +59,30 @@ export default function SoundPlayerHome({ navigation }: { navigation: any }) {
               icon={state === "playing" ? "pause" : "play"}
             />
           </Pressable>
-          <Text>{currentSound.title}</Text>
+          <Text style={$soundTitle}>{currentSound.title}</Text>
         </View>
         <View style={$soundContainerRight}>
           <Text weight="bold" style={$soundText}>
             {formatTime(position ?? 0)}
           </Text>
-          <LottieView
+          {/* <LottieView
             style={$soundIcon}
             ref={soundAnimation}
             source={require("../../../../assets/animation/music.json")}
             autoPlay
             loop
-          />
+          /> */}
         </View>
       </View>
     </Pressable>
   )
+}
+
+const $soundTitle: TextStyle = {
+  fontSize: 16,
+  color: colors.text,
+  maxWidth: "80%",
+  overflow: "hidden",
 }
 
 const $innerContainer: ViewStyle = {
@@ -116,11 +136,6 @@ const $icon: ImageStyle = {
   height: 12,
 }
 
-const $soundIcon: ViewStyle = {
-  width: 20,
-  height: 20,
-}
-
 const $container: ViewStyle = {
   height: 46,
   marginHorizontal: spacing.lg,
@@ -129,7 +144,6 @@ const $container: ViewStyle = {
   borderColor: colors.gray,
   borderRadius: 10,
   backgroundColor: colors.white,
-
   shadowOpacity: 0.5,
   shadowOffset: { width: 0, height: 2 },
   shadowRadius: 4,

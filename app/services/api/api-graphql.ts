@@ -548,7 +548,7 @@ export class ApiSupabase {
    *
    * Requires this SQL function in your Supabase database:
    *
-   * CREATE OR REPLACE FUNCTION get_distinct_albums()
+   * CREATE OR REPLACE FUNCTION get_distinct_albums(filter_audio_only integer DEFAULT 0)
    * RETURNS TABLE(album text, count bigint) AS $$
    * BEGIN
    *   RETURN QUERY
@@ -557,12 +557,13 @@ export class ApiSupabase {
    *     COUNT(*)::bigint as count
    *   FROM library l
    *   WHERE l.album IS NOT NULL
+   *     AND (filter_audio_only = 0 OR l.audio_url IS NOT NULL)
    *   GROUP BY l.album
    *   ORDER BY l.album::text;
    * END;
    * $$ LANGUAGE plpgsql;
    */
-  async fetchAlbums(): Promise<
+  async fetchAlbums(options?: { filterAudioOnly?: boolean }): Promise<
     | {
         kind: "ok"
         data: Array<{ album: string; count: number }>
@@ -572,7 +573,9 @@ export class ApiSupabase {
     try {
       // Use RPC to execute direct SQL query for distinct albums with counts
       // @ts-ignore
-      const { data, error } = await supabase.rpc("get_distinct_albums")
+      const { data, error } = await supabase.rpc("get_distinct_albums", {
+        filter_audio_only: options?.filterAudioOnly ? 1 : 0,
+      })
 
       if (error) {
         console.error("Error fetching distinct albums:", error)
@@ -688,7 +691,10 @@ export class ApiSupabase {
   /**
    * Fetch library items by album
    */
-  async fetchByAlbum(album: string): Promise<
+  async fetchByAlbum(
+    album: string,
+    options?: { filterAudioOnly?: boolean },
+  ): Promise<
     | {
         kind: "ok"
         data: LibraryRow[]
@@ -696,11 +702,14 @@ export class ApiSupabase {
     | GeneralApiProblem
   > {
     try {
-      const { data, error } = await supabase
-        .from("library")
-        .select("id, name, pdf_url, audio_url, youtube_url")
-        .eq("album", album)
-        .order("name")
+      let query = supabase.from("library").select("*").eq("album", album).order("name")
+
+      // Filter for items with audio_url if requested
+      if (options?.filterAudioOnly) {
+        query = query.not("audio_url", "is", null)
+      }
+
+      const { data, error } = await query
 
       if (error) {
         console.error("Error fetching by album:", error)
@@ -980,6 +989,132 @@ export class ApiSupabase {
       return { kind: "ok", data: (data || []) as YouTubeVideoRow[] }
     } catch (error) {
       console.error("Error fetching YouTube videos by channel:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch distinct tags from YouTube videos
+   */
+  async fetchYouTubeTags(): Promise<
+    | {
+        kind: "ok"
+        data: Array<{ tag: string; count: number }>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("youtube_videos")
+        .select("tags")
+        .not("tags", "is", null)
+
+      if (error) {
+        console.error("Error fetching YouTube tags:", error)
+        return { kind: "bad-data" }
+      }
+
+      // Count tags
+      const tagCounts = new Map<string, number>()
+      data?.forEach((item: { tags: string[] | null }) => {
+        if (item.tags && Array.isArray(item.tags)) {
+          item.tags.forEach((tag: string) => {
+            tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1)
+          })
+        }
+      })
+
+      const tags = Array.from(tagCounts.entries())
+        .map(([tag, count]) => ({
+          tag,
+          count,
+        }))
+        .sort((a, b) => b.count - a.count) // Sort by count descending
+
+      return { kind: "ok", data: tags }
+    } catch (error) {
+      console.error("Error fetching YouTube tags:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch distinct categories from YouTube videos
+   */
+  async fetchYouTubeCategories(): Promise<
+    | {
+        kind: "ok"
+        data: Array<{ category: string; count: number }>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const { data, error } = await supabase
+        .from("youtube_videos")
+        .select("categories")
+        .not("categories", "is", null)
+
+      if (error) {
+        console.error("Error fetching YouTube categories:", error)
+        return { kind: "bad-data" }
+      }
+
+      // Count categories
+      const categoryCounts = new Map<string, number>()
+      data?.forEach((item: { categories: string[] | null }) => {
+        if (item.categories && Array.isArray(item.categories)) {
+          item.categories.forEach((category: string) => {
+            categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1)
+          })
+        }
+      })
+
+      const categories = Array.from(categoryCounts.entries())
+        .map(([category, count]) => ({
+          category,
+          count,
+        }))
+        .sort((a, b) => b.count - a.count) // Sort by count descending
+
+      return { kind: "ok", data: categories }
+    } catch (error) {
+      console.error("Error fetching YouTube categories:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Search YouTube videos using RPC function
+   */
+  async searchYouTubeVideos(
+    searchQuery: string,
+    limit = 50,
+  ): Promise<
+    | {
+        kind: "ok"
+        data: YouTubeVideoRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      if (!searchQuery || searchQuery.trim().length === 0) {
+        return { kind: "ok", data: [] }
+      }
+
+      // @ts-ignore
+      const { data, error } = await supabase.rpc("search_youtube_videos", {
+        search_query: searchQuery.trim(),
+        limit_results: limit,
+      })
+
+      if (error) {
+        console.error("Error searching YouTube videos:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as YouTubeVideoRow[] }
+    } catch (error) {
+      console.error("Error searching YouTube videos:", error)
       return { kind: "bad-data" }
     }
   }

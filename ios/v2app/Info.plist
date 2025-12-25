@@ -59,6 +59,7 @@
 	<string>This app needs notification permissions to remind you about prayer times and important religious events.</string>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>background-processing</string>
 		<string>remote-notification</string>
 		<string>fetch</string>

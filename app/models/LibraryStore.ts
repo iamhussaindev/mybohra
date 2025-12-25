@@ -66,9 +66,9 @@ export const LibraryStoreModel = types
       return self.categories
     },
 
-    fetchAlbums: flow(function* () {
+    fetchAlbums: flow(function* (options?: { filterAudioOnly?: boolean }) {
       try {
-        const response = yield apiSupabase.fetchAlbums()
+        const response = yield apiSupabase.fetchAlbums(options)
         if (response.kind === "ok") {
           self.albums = response.data as any
         }
@@ -97,9 +97,9 @@ export const LibraryStoreModel = types
     },
     // Removed fetchList - no longer caching library data
     // Fetch items by album from Supabase
-    fetchByAlbum: flow(function* (album: string) {
+    fetchByAlbum: flow(function* (album: string, options?: { filterAudioOnly?: boolean }) {
       try {
-        const response = yield apiSupabase.fetchByAlbum(album)
+        const response = yield apiSupabase.fetchByAlbum(album, options)
         if (response.kind === "ok") {
           return response.data as ILibrary[]
         }

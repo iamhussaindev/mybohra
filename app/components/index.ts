@@ -1,3 +1,4 @@
+export * from "./AudioItem"
 export * from "./AutoImage"
 export * from "./BottomSheetDrawer"
 export * from "./Button"

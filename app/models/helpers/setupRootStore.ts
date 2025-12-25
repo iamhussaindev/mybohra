@@ -46,6 +46,17 @@ export async function setupRootStore(rootStore: RootStore) {
     }
   }
 
+  // Initialize activity tracking
+  try {
+    await rootStore.dataStore.loadPdfHistory()
+    await rootStore.dataStore.loadAudioActivity()
+    await rootStore.dataStore.loadPdfFromAudio()
+  } catch (e) {
+    if (__DEV__) {
+      if (e instanceof Error) console.error("Error loading activity data:", e.message)
+    }
+  }
+
   // stop tracking state changes if we've already setup
   if (_disposer) _disposer()
 

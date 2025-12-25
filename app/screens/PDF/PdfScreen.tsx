@@ -23,7 +23,7 @@ import { State } from "react-native-track-player"
 
 import { Header } from "./PdfHeader"
 
-interface PdfScreenProps extends AppStackScreenProps<"PdfViewer"> {}
+interface PdfScreenProps extends AppStackScreenProps<"PdfViewer" | "PdfViewerModal"> {}
 
 export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) {
   const colors = useColors()
@@ -81,7 +81,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
     seek,
   } = useSoundPlayer()
 
-  const isCurrent = currentSound?.id === item.id
+  const isCurrent = currentSound?.id?.toString() === item?.id?.toString()
 
   const showPlayer =
     (state === State.Playing ||
