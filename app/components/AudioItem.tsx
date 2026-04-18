@@ -28,13 +28,11 @@ export const AudioItem: React.FC<AudioItemProps> = ({
   state,
   onPress,
   index,
-  subtitle,
   isActive: isActiveOverride,
 }) => {
   const colors = useColors()
   const isActive = isActiveOverride ?? currentSound?.id.toString() === item.id.toString()
   const isPlaying = isActive && state === State.Playing
-  const displaySubtitle = subtitle ?? item.album
 
   const handlePress = () => {
     onPress(item, index)
@@ -68,11 +66,6 @@ export const AudioItem: React.FC<AudioItemProps> = ({
           <Text style={$audioItemTitle(colors)} weight="medium" numberOfLines={2}>
             {item.name}
           </Text>
-          {displaySubtitle && (
-            <Text style={$audioItemSubtitle(colors)} numberOfLines={1} size="xs">
-              {displaySubtitle}
-            </Text>
-          )}
         </View>
       </View>
     </Pressable>
@@ -80,7 +73,7 @@ export const AudioItem: React.FC<AudioItemProps> = ({
 }
 
 const $audioItem = (colors: any, isActive: boolean): ViewStyle => ({
-  backgroundColor: isActive ? "#f4f5f9" : colors.background,
+  backgroundColor: isActive ? colors.backgroundHighlight : colors.background,
   paddingVertical: spacing.md,
   paddingHorizontal: spacing.md,
 })
@@ -112,9 +105,4 @@ const $audioItemTextContainer: ViewStyle = {
 const $audioItemTitle = (colors: any): TextStyle => ({
   fontSize: 16,
   color: colors.text,
-})
-
-const $audioItemSubtitle = (colors: any): TextStyle => ({
-  fontSize: 12,
-  color: colors.palette.neutral600,
 })

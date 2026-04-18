@@ -47,14 +47,16 @@ export function usePdfOptionsBottomSheet({ navigation }: UsePdfOptionsBottomShee
         ignoreAndroidSystemSettings: false,
       })
 
-      if (dataStore.isPdfPinned(item.id)) {
-        dataStore.unpinPdf(item.id)
-        Alert.alert("Unpinned", `"${item.name}" has been unpinned from your home screen.`, [
-          { text: "OK" },
-        ])
+      if (dataStore.isLibraryPinned(item.id)) {
+        dataStore.unpinLibrary(item.id)
+        Alert.alert(
+          "Removed from Saved Library",
+          `"${item.name}" has been removed from your library.`,
+          [{ text: "OK" }],
+        )
       } else {
-        dataStore.pinPdf(item)
-        Alert.alert("Pinned", `"${item.name}" has been pinned to your home screen.`, [
+        dataStore.pinLibrary(item)
+        Alert.alert("Added to Saved Library", `"${item.name}" has been added to your library.`, [
           { text: "OK" },
         ])
       }
@@ -99,7 +101,7 @@ export function usePdfOptionsBottomSheet({ navigation }: UsePdfOptionsBottomShee
     ])
   }, [])
 
-  const isPinned = selectedItem ? dataStore.isPdfPinned(selectedItem.id) : false
+  const isPinned = selectedItem ? dataStore.isLibraryPinned(selectedItem.id) : false
 
   return {
     bottomSheetRef,

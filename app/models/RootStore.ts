@@ -1,6 +1,7 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
 
 import { DataStoreModel, LocationModel } from "./DataStore"
+import { InformationStoreModel } from "./InformationStore"
 import { LibraryStoreModel } from "./LibraryStore"
 import { MiqaatStoreModel } from "./MiqaatStore"
 import { ReminderStoreModel } from "./ReminderStore"
@@ -16,6 +17,16 @@ export const RootStoreModel = types.model("RootStore").props({
     currentLocationLoaded: false,
     locations: [],
     locationsLoaded: false,
+    homeLocation: LocationModel.create({
+      latitude: 0,
+      longitude: 0,
+      city: "",
+      country: "",
+      state: null,
+      timezone: "Asia/Kolkata",
+      type: "city",
+    }),
+    homeLocationLoaded: false,
   }),
   miqaatStore: types.optional(MiqaatStoreModel, {
     list: [],
@@ -38,6 +49,14 @@ export const RootStoreModel = types.model("RootStore").props({
 
   youtubeStore: types.optional(YouTubeStoreModel, {
     videos: [],
+  }),
+
+  informationStore: types.optional(InformationStoreModel, {
+    mazaars: [],
+    ziyarats: [],
+    musafirkhanas: [],
+    masjids: [],
+    nearbyPlaces: [],
   }),
 })
 

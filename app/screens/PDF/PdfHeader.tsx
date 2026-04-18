@@ -27,7 +27,7 @@ export const Header = observer(function Header(props: HeaderProps) {
   const translateY = useSharedValue(0)
   const iconScale = useSharedValue(1)
   useEffect(() => {
-    setIsPinned(dataStore.isPdfPinned(props.id))
+    setIsPinned(dataStore.isLibraryPinned(props.id))
   }, [dataStore.pinnedPdfs])
   useEffect(() => {
     if (props.isFullscreen) {

@@ -116,7 +116,11 @@ export type AppStackParamList = {
   Library: undefined
   AudioPlayer: {
     album?: string
+    trackId?: number
   }
+  Miqaats: undefined
+  MiqaatsSearch: undefined
+  Mazaar: undefined
 }
 
 /**
@@ -138,7 +142,7 @@ const AppStack = observer(function AppStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="Library"
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,
@@ -199,6 +203,13 @@ const AppStack = observer(function AppStack() {
         }}
         component={Screens.AudioPlayerScreen}
       />
+      <Stack.Screen name="Miqaats" component={Screens.MiqaatsScreen} />
+      <Stack.Screen
+        name="MiqaatsSearch"
+        options={{ presentation: "modal" }}
+        component={Screens.MiqaatsSearchScreen}
+      />
+      <Stack.Screen name="Mazaar" component={Screens.MazaarScreen} />
     </Stack.Navigator>
   )
 })

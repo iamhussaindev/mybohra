@@ -23,6 +23,8 @@ export const LibraryModel = types.model("LibraryModel", {
   categories: types.maybeNull(types.array(types.string)),
   search_text: types.maybeNull(types.string),
   search_vector: types.maybeNull(types.string),
+  view_count: types.maybeNull(types.number),
+  pdf_view_count: types.maybeNull(types.number),
   created_at: types.maybeNull(types.string),
   updated_at: types.maybeNull(types.string),
 })
@@ -112,11 +114,11 @@ export const LibraryStoreModel = types
 
     // Fetch items by categories from Supabase with pagination
     fetchByCategories: flow(function* (
-      categories: string[],
-      options?: { limit?: number; offset?: number },
+      categories: string[] | string,
+      options?: { limit?: number; offset?: number; filterAudioOnly?: boolean },
     ) {
       try {
-        const response = yield apiSupabase.fetchByCategories(categories, options)
+        const response = yield apiSupabase.fetchByCategories(categories as string[], options)
         if (response.kind === "ok") {
           return response.data as ILibrary[]
         }
@@ -165,6 +167,26 @@ export const LibraryStoreModel = types
         return []
       } catch (error) {
         console.log("Error searching library:", error)
+        return []
+      }
+    }),
+
+    // Fetch customized upnext items
+    fetchCustomizedUpnext: flow(function* (params: {
+      album: string
+      categories?: string[] | null
+      tags?: string[] | null
+      excludeIds?: number[]
+      limit?: number
+    }) {
+      try {
+        const response = yield apiSupabase.fetchCustomizedUpnext(params)
+        if (response.kind === "ok") {
+          return response.data as ILibrary[]
+        }
+        return []
+      } catch (error) {
+        console.log("Error fetching customized upnext:", error)
         return []
       }
     }),

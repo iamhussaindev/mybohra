@@ -15,13 +15,16 @@ import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-c
 import Toast from "react-native-toast-message"
 
 import Config from "./config"
+import { HomeLocationManager } from "./components/HomeLocationManager"
 import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { SoundProvider } from "./hooks/useAudio"
+import { useDeviceTracking } from "./hooks/useDeviceTracking"
 import { useInitialRootStore, useStores } from "./models"
 import { AppNavigator, useNavigationPersistence } from "./navigators"
 import { ErrorBoundary } from "./screens/ErrorScreen/ErrorBoundary"
 import { customFontsToLoad } from "./theme"
+import { getManualTestCityName, getManualTestCoordinates } from "./utils/manualTestLocation"
 import * as storage from "./utils/storage"
 import { locationStorage } from "./utils/storage"
 
@@ -53,6 +56,9 @@ function App(props: AppProps) {
   const [areFontsLoaded] = useFonts(customFontsToLoad)
   const { dataStore, miqaatStore, libraryStore, tasbeehStore } = useStores()
 
+  // Track device on app launch and when app comes to foreground
+  useDeviceTracking(true)
+
   const { rehydrated } = useInitialRootStore(() => {
     // This runs after the root store has been initialized and rehydrated.
 
@@ -64,6 +70,20 @@ function App(props: AppProps) {
   })
 
   const fetchData = async () => {
+    const manualCoords = getManualTestCoordinates()
+    if (manualCoords) {
+      await locationStorage.saveLocation(
+        String(manualCoords.latitude),
+        String(manualCoords.longitude),
+      )
+      if (__DEV__) {
+        const manualCity = getManualTestCityName()
+        console.log("[Location] Using manual coordinates from env (GPS skipped)", {
+          ...manualCoords,
+          ...(manualCity ? { cityLabel: manualCity } : {}),
+        })
+      }
+    }
     // Load saved location first, before fetching new location
     await dataStore.loadCurrentLocation()
     await fetchStorageLocation()
@@ -76,6 +96,8 @@ function App(props: AppProps) {
   }
 
   useEffect(() => {
+    if (getManualTestCoordinates()) return
+
     GetLocation.getCurrentPosition({
       enableHighAccuracy: true,
       timeout: 15000,
@@ -153,6 +175,7 @@ function App(props: AppProps) {
                     initialState={initialNavigationState}
                     onStateChange={onNavigationStateChange}
                   />
+                  <HomeLocationManager />
                   <Toast position="bottom" swipeable topOffset={200} />
                 </LocationBottomSheetProvider>
               </BottomSheetModalProvider>

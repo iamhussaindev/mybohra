@@ -31,9 +31,9 @@ function HeroCard(props: { onNavigation: () => void; icon?: any; text?: string }
 
   return (
     <SBox
-      backgroundColor={colors.backgroundHighlight}
+      backgroundColor={colors.background}
       borderRadius={8}
-      borderColor="transparent"
+      borderColor={colors.border}
       cornerRadius={0.75}
       height={screenWidth / 3 - 25}
       width={screenWidth / 3 - 25}

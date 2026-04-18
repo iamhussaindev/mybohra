@@ -74,6 +74,7 @@ export interface Database {
           categories: string[] | null
           search_text: string | null
           search_vector: unknown | null
+          view_count: number | null
           created_at: string
           updated_at: string
         }
@@ -90,6 +91,7 @@ export interface Database {
           categories?: string[] | null
           search_text?: string | null
           search_vector?: unknown | null
+          view_count?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -106,6 +108,7 @@ export interface Database {
           categories?: string[] | null
           search_text?: string | null
           search_vector?: unknown | null
+          view_count?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -293,6 +296,357 @@ export interface Database {
           unverfied_email?: string | null
           roles?: string[]
           status?: string | null
+        }
+      }
+      ziyarat: {
+        Row: {
+          id: number
+          name: string
+          city: string | null
+          address: string | null
+          history: string | null
+          photos: string[] | null
+          year: number | null
+          created_at: string
+          updated_at: string
+          created_by: number | null
+          updated_by: number | null
+          rank: number | null
+          lat: number | null
+          lng: number | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          city?: string | null
+          address?: string | null
+          history?: string | null
+          photos?: string[] | null
+          year?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+          rank?: number | null
+          lat?: number | null
+          lng?: number | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          city?: string | null
+          address?: string | null
+          history?: string | null
+          photos?: string[] | null
+          year?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+          rank?: number | null
+          lat?: number | null
+          lng?: number | null
+        }
+      }
+      musafirkhana: {
+        Row: {
+          id: number
+          name: string
+          city: string | null
+          lat: number | null
+          lng: number | null
+          photos: string[] | null
+          phone: string | null
+          contact_person_name: string | null
+          map_link: string | null
+          total_rooms: number | null
+          created_at: string
+          updated_at: string
+          created_by: number | null
+          updated_by: number | null
+          address: string | null
+          description: string | null
+          email: string | null
+          info: string | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          city?: string | null
+          lat?: number | null
+          lng?: number | null
+          photos?: string[] | null
+          phone?: string | null
+          contact_person_name?: string | null
+          map_link?: string | null
+          total_rooms?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+          address?: string | null
+          description?: string | null
+          email?: string | null
+          info?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          city?: string | null
+          lat?: number | null
+          lng?: number | null
+          photos?: string[] | null
+          phone?: string | null
+          contact_person_name?: string | null
+          map_link?: string | null
+          total_rooms?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+          address?: string | null
+          description?: string | null
+          email?: string | null
+          info?: string | null
+        }
+      }
+      masjid: {
+        Row: {
+          id: number
+          name: string
+          city: string | null
+          address: string | null
+          lat: number | null
+          lng: number | null
+          phone: string | null
+          email: string | null
+          website: string | null
+          photos: string[] | null
+          capacity: number | null
+          facilities: string[] | null
+          prayer_times_url: string | null
+          description: string | null
+          created_at: string
+          updated_at: string
+          created_by: number | null
+          updated_by: number | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          city?: string | null
+          address?: string | null
+          lat?: number | null
+          lng?: number | null
+          phone?: string | null
+          email?: string | null
+          website?: string | null
+          photos?: string[] | null
+          capacity?: number | null
+          facilities?: string[] | null
+          prayer_times_url?: string | null
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          city?: string | null
+          address?: string | null
+          lat?: number | null
+          lng?: number | null
+          phone?: string | null
+          email?: string | null
+          website?: string | null
+          photos?: string[] | null
+          capacity?: number | null
+          facilities?: string[] | null
+          prayer_times_url?: string | null
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+        }
+      }
+      nearby_places: {
+        Row: {
+          id: number
+          name: string
+          category: string | null
+          lat: number | null
+          lng: number | null
+          address: string | null
+          city: string | null
+          country: string | null
+          state: string | null
+          phone: string | null
+          email: string | null
+          website: string | null
+          photos: string[] | null
+          description: string | null
+          rating: number | null
+          distance: number | null
+          created_at: string
+          updated_at: string
+          created_by: number | null
+          updated_by: number | null
+        }
+        Insert: {
+          id?: number
+          name: string
+          category?: string | null
+          lat?: number | null
+          lng?: number | null
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          state?: string | null
+          phone?: string | null
+          email?: string | null
+          website?: string | null
+          photos?: string[] | null
+          description?: string | null
+          rating?: number | null
+          distance?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+        }
+        Update: {
+          id?: number
+          name?: string
+          category?: string | null
+          lat?: number | null
+          lng?: number | null
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          state?: string | null
+          phone?: string | null
+          email?: string | null
+          website?: string | null
+          photos?: string[] | null
+          description?: string | null
+          rating?: number | null
+          distance?: number | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+        }
+      }
+      mazaars: {
+        Row: {
+          id: string
+          name: string
+          lat: number | null
+          lng: number | null
+          contact: string | null
+          photos: string[] | null
+          created_at: string
+          updated_at: string
+          created_by: number | null
+          updated_by: number | null
+          location_id: number | null
+          website: string | null
+          social_media: string[] | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          lat?: number | null
+          lng?: number | null
+          contact?: string | null
+          photos?: string[] | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+          location_id?: number | null
+          website?: string | null
+          social_media?: string[] | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          lat?: number | null
+          lng?: number | null
+          contact?: string | null
+          photos?: string[] | null
+          created_at?: string
+          updated_at?: string
+          created_by?: number | null
+          updated_by?: number | null
+          location_id?: number | null
+          website?: string | null
+          social_media?: string[] | null
+        }
+      }
+      devices: {
+        Row: {
+          id: string
+          device_id: string
+          user_id: string | null
+          device_ip: string | null
+          model: string | null
+          platform: string | null
+          platform_version: string | null
+          manufacturer: string | null
+          os_version: string | null
+          app_version: string | null
+          user_agent: string | null
+          metadata: Json | null
+          current_lat: number | null
+          current_lng: number | null
+          location_updated_at: string | null
+          last_seen_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          device_id: string
+          user_id?: string | null
+          device_ip?: string | null
+          model?: string | null
+          platform?: string | null
+          platform_version?: string | null
+          manufacturer?: string | null
+          os_version?: string | null
+          app_version?: string | null
+          user_agent?: string | null
+          metadata?: Json | null
+          current_lat?: number | null
+          current_lng?: number | null
+          location_updated_at?: string | null
+          last_seen_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          device_id?: string
+          user_id?: string | null
+          device_ip?: string | null
+          model?: string | null
+          platform?: string | null
+          platform_version?: string | null
+          manufacturer?: string | null
+          os_version?: string | null
+          app_version?: string | null
+          user_agent?: string | null
+          metadata?: Json | null
+          current_lat?: number | null
+          current_lng?: number | null
+          location_updated_at?: string | null
+          last_seen_at?: string
+          created_at?: string
+          updated_at?: string
         }
       }
     }

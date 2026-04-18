@@ -1,13 +1,15 @@
 import { PDFOptionsBottomSheet, Screen, Text } from "app/components"
 import { useSoundPlayer } from "app/hooks/useAudio"
+import { useLocationCoords } from "app/hooks/useLocationCoords"
 import { usePdfOptionsBottomSheet } from "app/hooks/usePdfOptionsBottomSheet"
 import { useStores } from "app/models"
 import MiqaatList from "app/screens/components/MiqaatList"
 import { useColors } from "app/theme/useColors"
+import { haversineDistanceKm } from "app/utils/geoDistance"
 import { Asset } from "expo-asset"
 import LottieView from "lottie-react-native"
 import { observer } from "mobx-react-lite"
-import React, { FC, ReactElement, useCallback, useEffect, useRef, useState } from "react"
+import React, { FC, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   View,
   SectionList,
@@ -38,6 +40,7 @@ import GridIcons from "./components/GridIcons"
 import { Header } from "./components/Header"
 import HeroIcons from "./components/HeroIcons"
 import NamazUI from "./components/NamazUI"
+import { NearestMazaarBanner } from "./components/NearestMazaarBanner"
 import RamazaanNiyyat from "./components/RamazaanNiyyat"
 import SoundPlayerHome from "./components/SoundPlayerHome"
 
@@ -157,7 +160,8 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
   const tonePlaybackLock = useRef(false)
   const { openLocationBottomSheet } = useLocationBottomSheet()
 
-  const { dataStore, miqaatStore, libraryStore, reminderStore } = useStores()
+  const { dataStore, miqaatStore, libraryStore, reminderStore, informationStore } = useStores()
+  const locationCoords = useLocationCoords()
   const { currentSound } = useSoundPlayer()
   const colors = useColors()
   // Use the PDF options bottom sheet hook
@@ -188,10 +192,15 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
     await dataStore.fetchQiyam()
   }, [dataStore, libraryStore])
 
+  const fetchMazaars = useCallback(async () => {
+    await informationStore.fetchMazaars()
+  }, [informationStore])
+
   const fetchData = useCallback(async () => {
     await fetchMiqaats()
     await fetchHomeLibrary()
-  }, [fetchHomeLibrary, fetchMiqaats])
+    await fetchMazaars()
+  }, [fetchHomeLibrary, fetchMazaars, fetchMiqaats])
 
   const playLoadingTone = useCallback(async () => {
     if (tonePlaybackLock.current) return
@@ -293,6 +302,53 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
     paddingHorizontal: spacing.lg,
   }
 
+  const nearestMazaar = useMemo(() => {
+    if (!locationCoords) return null
+    const mazaars = informationStore.allMazaars
+    if (!mazaars.length) return null
+
+    let best: {
+      id: string
+      name: string
+      distanceKm: number
+      subtitle: string
+    } | null = null
+
+    for (let i = 0; i < mazaars.length; i++) {
+      const m = mazaars[i]
+      const lat = m.location?.latitude ?? m.lat
+      const lng = m.location?.longitude ?? m.lng
+      if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) continue
+
+      const km = haversineDistanceKm(locationCoords.latitude, locationCoords.longitude, lat, lng)
+      if (!best || km < best.distanceKm) {
+        const subtitle = m.location
+          ? [m.location.city, m.location.state, m.location.country].filter(Boolean).join(", ")
+          : ""
+        best = { id: String(m.id), name: m.name, distanceKm: km, subtitle }
+      }
+    }
+    return best
+  }, [locationCoords?.latitude, locationCoords?.longitude, informationStore.mazaars])
+
+  const nearestMazaarSection = nearestMazaar
+    ? [
+        {
+          name: "Nearest Mazaar",
+          description: "Shortest distance from your location",
+          data: [
+            <NearestMazaarBanner
+              key={`nearest-mazaar-${nearestMazaar.id}`}
+              name={nearestMazaar.name}
+              distanceKm={nearestMazaar.distanceKm}
+              subtitle={nearestMazaar.subtitle || undefined}
+              onPress={() => props.navigation.navigate("Mazaar" as never)}
+            />,
+          ],
+        },
+      ]
+    : []
+
   return (
     <>
       <Drawer
@@ -351,6 +407,8 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
                   ) : null,
                 ],
               },
+              ...nearestMazaarSection,
+
               {
                 name: "Hero Icons",
                 description: "Hero Icons",
@@ -387,8 +445,19 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
                 description: "Grid Icons",
                 data: [
                   <GridIcons
-                    onNavigation={(screen: "Counter") => {
-                      props.navigation.navigate(screen)
+                    onNavigation={(screen: string) => {
+                      // Map screen names to navigation routes
+                      const screenMap: Record<string, keyof typeof props.navigation.navigate> = {
+                        Library: "Library" as keyof typeof props.navigation.navigate,
+                        Qibla: "Qibla" as keyof typeof props.navigation.navigate,
+                        Counter: "Counter" as keyof typeof props.navigation.navigate,
+                        Tasbeeh: "TasbeehList" as keyof typeof props.navigation.navigate,
+                        Mazaar: "Mazaar" as keyof typeof props.navigation.navigate,
+                      }
+                      const route = screenMap[screen]
+                      if (route) {
+                        props.navigation.navigate(route as any)
+                      }
                     }}
                     key="grid_icons"
                   />,

@@ -413,7 +413,7 @@ export const DuaLHomeScreen: FC<DuaHomeScreen> = observer(function DuaLHomeScree
         onOpen={handleOpenPDF}
         onPinToHomeScreen={handlePinToHomeScreen}
         onReportPDF={handleReportPDF}
-        isPinned={previewItem ? dataStore.isPdfPinned(previewItem.id) : false}
+        isPinned={previewItem ? dataStore.isLibraryPinned(previewItem.id) : false}
         anchorPosition={anchorPosition}
       />
     </Screen>

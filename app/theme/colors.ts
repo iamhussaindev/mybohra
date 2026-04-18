@@ -11,21 +11,21 @@ const palette = {
   neutral800: "#191015",
   neutral900: "#000000",
 
-  primary10: "#fff7f2",
-  primary20: "#fff4ef",
-  primary30: "#fff2eb",
-  primary40: "#fff0e7",
-  primary50: "#ffede4",
-  primary100: "#ffe2d2",
-  primary200: "#ffcbae",
-  primary300: "#ffb38a",
-  primary400: "#ff9c66",
-  primary500: "#ff5a00",
-  primary600: "#d94d00",
-  primary700: "#ad3d00",
-  primary800: "#812e00",
-  primary900: "#561e00",
-  primary950: "#401700",
+  primary10: "#fdf2f7",
+  primary20: "#fce8f1",
+  primary30: "#fbdbeb",
+  primary40: "#f8cfe3",
+  primary50: "#f5c2db",
+  primary100: "#eda5cb",
+  primary200: "#e07fb0",
+  primary300: "#d15596",
+  primary400: "#c02b7b",
+  primary500: "#AB0256",
+  primary600: "#8a0145",
+  primary700: "#690135",
+  primary800: "#480124",
+  primary900: "#270012",
+  primary950: "#1a000c",
 
   secondary100: "#f7eee3",
   secondary200: "#BCC0D6",
@@ -53,6 +53,12 @@ const palette = {
 } as const
 
 export const colors = {
+  // tab colors
+  tabBorder: "#eff2f6",
+  tabBackground: "#ffffff",
+  tabBackgroundActive: "#eff2f6",
+
+  absoluteWhite: "#ffffff",
   accentBackground: "rgb(254, 244, 227)",
   /**
    * The palette is available to use, but prefer using the name.
@@ -79,7 +85,7 @@ export const colors = {
   /**
    * Secondary text information.
    */
-  textDim: palette.neutral600,
+  textDim: palette.neutral700,
   /**
    * The default color of the screen background.
    */
@@ -93,13 +99,15 @@ export const colors = {
    * The default border color.
    */
 
-  darkHighlight: "#471515",
+  darkHighlight: "#ffffff",
 
-  border: "#E9E9E9",
+  border: "#ced0e5",
   /**
    * The main tinting color.
    */
   tint: palette.primary500,
+
+  tintText: palette.primary500,
   /**
    * A subtle color used for lines.
    */

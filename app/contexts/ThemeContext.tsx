@@ -18,19 +18,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [systemColorScheme, setSystemColorScheme] = useState<ColorSchemeName>(
     Appearance.getColorScheme(),
   )
-  const [themeMode, setThemeModeState] = useState<ThemeMode>("system")
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("light")
 
   // Listen to system appearance changes
   useEffect(() => {
     // Get initial value
-    const initialScheme = Appearance.getColorScheme()
-    setSystemColorScheme(initialScheme)
-    console.log("Initial system color scheme:", initialScheme)
+    // const initialScheme = Appearance.getColorScheme()
+    setSystemColorScheme("light")
+    console.log("Initial system color scheme:", "light")
 
     // Listen for changes
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
       console.log("System color scheme changed to:", colorScheme)
-      setSystemColorScheme(colorScheme)
+      //
+      // setSystemColorScheme(colorScheme)
     })
 
     return () => {

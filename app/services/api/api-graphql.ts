@@ -27,6 +27,11 @@ type MiqaatRow = Database["public"]["Tables"]["miqaat"]["Row"]
 
 type DataRow = Database["public"]["Tables"]["data"]["Row"]
 type DailyDuaRow = Database["public"]["Tables"]["daily_duas"]["Row"]
+type ZiyaratRow = Database["public"]["Tables"]["ziyarat"]["Row"]
+type MusafirkhanaRow = Database["public"]["Tables"]["musafirkhana"]["Row"]
+type MasjidRow = Database["public"]["Tables"]["masjid"]["Row"]
+type NearbyPlaceRow = Database["public"]["Tables"]["nearby_places"]["Row"]
+type MazaarRow = Database["public"]["Tables"]["mazaars"]["Row"]
 
 // YouTube Video type definition
 type YouTubeVideoRow = {
@@ -363,6 +368,7 @@ export class ApiSupabase {
         .from("library")
         .select("*")
         .overlaps("categories", ["daily-dua"])
+        .order("view_count", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: true })
 
       const todayDayNames = [
@@ -380,6 +386,7 @@ export class ApiSupabase {
         .from("library")
         .select("*")
         .overlaps("categories", ["dua-joshan", duaJoshanDay])
+        .order("view_count", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: true })
 
       if (error || error2 || error3) {
@@ -702,7 +709,12 @@ export class ApiSupabase {
     | GeneralApiProblem
   > {
     try {
-      let query = supabase.from("library").select("*").eq("album", album).order("name")
+      let query = supabase
+        .from("library")
+        .select("*")
+        .eq("album", album)
+        .order("view_count", { ascending: false, nullsFirst: false })
+        .order("name")
 
       // Filter for items with audio_url if requested
       if (options?.filterAudioOnly) {
@@ -728,7 +740,7 @@ export class ApiSupabase {
    */
   async fetchByCategories(
     categories: string[],
-    options?: { limit?: number; offset?: number },
+    options?: { limit?: number; offset?: number; filterAudioOnly?: boolean },
   ): Promise<
     | {
         kind: "ok"
@@ -744,10 +756,18 @@ export class ApiSupabase {
       const limit = options?.limit ?? 50
       const offset = options?.offset ?? 0
 
-      const query = supabase
+      let query = supabase
         .from("library")
-        .select("id, name, pdf_url, audio_url, youtube_url")
+        .select("id, album, name, pdf_url, audio_url, youtube_url")
+
+      // Filter for items with audio_url if requested
+      if (options?.filterAudioOnly) {
+        query = query.not("audio_url", "is", null)
+      }
+
+      query = query
         .overlaps("categories", categories)
+        .order("view_count", { ascending: false, nullsFirst: false })
         .order("name")
         .range(offset, offset + limit - 1)
 
@@ -787,6 +807,7 @@ export class ApiSupabase {
           "tags",
           tags.map((tag) => tag.toLowerCase()),
         )
+        .order("view_count", { ascending: false, nullsFirst: false })
         .order("album", { ascending: true })
         .order("name")
 
@@ -817,11 +838,12 @@ export class ApiSupabase {
         return { kind: "ok", data: [] }
       }
 
+      // Fetch items by IDs without album filter to support audio items
       const { data, error } = await supabase
         .from("library")
         .select("*")
         .in("id", ids)
-        .eq("album", "DUA")
+        .order("view_count", { ascending: false, nullsFirst: false })
         .order("name")
 
       if (error) {
@@ -866,7 +888,18 @@ export class ApiSupabase {
         return { kind: "bad-data" }
       }
 
-      return { kind: "ok", data: (data || []) as LibraryRow[] }
+      // Sort results by view_count (descending), then by name
+      const sortedData = ((data || []) as any[]).sort((a: any, b: any) => {
+        const aViewCount = (a.view_count as number) ?? 0
+        const bViewCount = (b.view_count as number) ?? 0
+        if (aViewCount !== bViewCount) {
+          return bViewCount - aViewCount // Descending order
+        }
+        // If view_count is the same, sort by name
+        return (a.name || "").localeCompare(b.name || "")
+      })
+
+      return { kind: "ok", data: sortedData as LibraryRow[] }
     } catch (error) {
       console.error("Error searching library:", error)
       return { kind: "bad-data" }
@@ -1118,6 +1151,483 @@ export class ApiSupabase {
       return { kind: "bad-data" }
     }
   }
+
+  /**
+   * Bump engagement for a library row when a PDF is opened.
+   * Prefer RPC for an atomic increment; otherwise read-modify-write on `library.view_count`.
+   *
+   * Optional Supabase RPC (argument name must match the client call):
+   *
+   * CREATE OR REPLACE FUNCTION increment_pdf_view_count(library_id bigint)
+   * RETURNS void AS $$
+   * BEGIN
+   *   UPDATE library
+   *   SET view_count = COALESCE(view_count, 0) + 1
+   *   WHERE id = library_id;
+   * END;
+   * $$ LANGUAGE plpgsql SECURITY DEFINER;
+   */
+  async incrementPdfViewCount(libraryId: number): Promise<
+    | {
+        kind: "ok"
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      // Try using RPC function first (atomic increment)
+      // @ts-ignore
+      const { error: rpcError } = await supabase.rpc("increment_pdf_view_count", {
+        library_id: libraryId,
+      })
+
+      if (!rpcError) {
+        return { kind: "ok" }
+      }
+
+      // Fallback: read-modify-write on view_count (column used elsewhere for library ordering)
+      console.log("RPC function not available, using fallback method")
+      const { data: currentData, error: fetchError } = await supabase
+        .from("library")
+        .select("view_count")
+        .eq("id", libraryId)
+        .single()
+
+      if (fetchError) {
+        // Missing column / row — do not treat as fatal; local pdf history still records opens
+        if (fetchError.code === "42703") {
+          return { kind: "ok" }
+        }
+        console.warn("incrementPdfViewCount: could not read library.view_count", fetchError)
+        return { kind: "ok" }
+      }
+
+      const currentCount =
+        ((currentData as Pick<LibraryRow, "view_count"> | null)?.view_count as number) ?? 0
+      const { error: updateError } = await (supabase.from("library") as any)
+        .update({ view_count: currentCount + 1 })
+        .eq("id", libraryId)
+
+      if (updateError) {
+        if (updateError.code === "42703") {
+          return { kind: "ok" }
+        }
+        console.warn("incrementPdfViewCount: could not update library.view_count", updateError)
+        return { kind: "ok" }
+      }
+
+      return { kind: "ok" }
+    } catch (error) {
+      console.error("Error incrementing library view_count:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch customized upnext items for audio player
+   * Returns a mix of items from same album, sorted by views, user activity, category, and tags
+   * Excludes recently played items
+   *
+   * @param params - Parameters for fetching upnext items
+   * @returns Array of library items
+   */
+  async fetchCustomizedUpnext(params: {
+    album: string
+    categories?: string[] | null
+    tags?: string[] | null
+    excludeIds?: number[]
+    limit?: number
+  }): Promise<
+    | {
+        kind: "ok"
+        data: LibraryRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = params.limit ?? 80
+      const excludeIds = params.excludeIds ?? []
+
+      // Build query for items from same album
+      let query = supabase
+        .from("library")
+        .select("*")
+        .eq("album", params.album)
+        .not("audio_url", "is", null)
+
+      // Filter by categories if provided
+      if (params.categories && params.categories.length > 0) {
+        query = query.overlaps("categories", params.categories)
+      }
+
+      // Filter by tags if provided
+      if (params.tags && params.tags.length > 0) {
+        query = query.overlaps("tags", params.tags)
+      }
+
+      // Sort by view_count (descending), then by name
+      // Fetch more items to account for exclusions (fetch 150 to ensure we get enough after filtering)
+      query = query
+        .order("view_count", { ascending: false, nullsFirst: false })
+        .order("name", { ascending: true })
+        .limit(limit + (excludeIds.length > 0 ? excludeIds.length : 0))
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error("Error fetching customized upnext:", error)
+        return { kind: "bad-data" }
+      }
+
+      // Filter out excluded IDs client-side (Supabase doesn't support .not("id", "in", array))
+      let filteredData = (data || []) as LibraryRow[]
+      if (excludeIds.length > 0) {
+        const excludeSet = new Set(excludeIds)
+        filteredData = filteredData.filter((item) => !excludeSet.has(item.id))
+      }
+
+      // Limit to requested amount after filtering
+      filteredData = filteredData.slice(0, limit)
+
+      return { kind: "ok", data: filteredData }
+    } catch (error) {
+      console.error("Error fetching customized upnext:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch all ziyarats
+   */
+  async fetchZiyarats(options?: { limit?: number; offset?: number; city?: string }): Promise<
+    | {
+        kind: "ok"
+        data: ZiyaratRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = options?.limit ?? 50
+      const offset = options?.offset ?? 0
+
+      let query = supabase.from("ziyarat").select("*")
+
+      if (options?.city) {
+        query = query.eq("city", options.city)
+      }
+
+      query = query
+        .order("rank", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true })
+
+      const { data, error } = await query.range(offset, offset + limit - 1)
+
+      if (error) {
+        console.error("Error fetching ziyarats:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as ZiyaratRow[] }
+    } catch (error) {
+      console.error("Error fetching ziyarats:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch all musafirkhanas
+   */
+  async fetchMusafirkhanas(options?: { limit?: number; offset?: number; city?: string }): Promise<
+    | {
+        kind: "ok"
+        data: MusafirkhanaRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = options?.limit ?? 50
+      const offset = options?.offset ?? 0
+
+      let query = supabase.from("musafirkhana").select("*")
+
+      if (options?.city) {
+        query = query.eq("city", options.city)
+      }
+
+      query = query.order("name", { ascending: true })
+
+      const { data, error } = await query.range(offset, offset + limit - 1)
+
+      if (error) {
+        console.error("Error fetching musafirkhanas:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as MusafirkhanaRow[] }
+    } catch (error) {
+      console.error("Error fetching musafirkhanas:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch all masjids
+   */
+  async fetchMasjids(options?: { limit?: number; offset?: number; city?: string }): Promise<
+    | {
+        kind: "ok"
+        data: MasjidRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = options?.limit ?? 50
+      const offset = options?.offset ?? 0
+
+      let query = supabase.from("masjid").select("*")
+
+      if (options?.city) {
+        query = query.eq("city", options.city)
+      }
+
+      query = query.order("name", { ascending: true })
+
+      const { data, error } = await query.range(offset, offset + limit - 1)
+
+      if (error) {
+        console.error("Error fetching masjids:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as MasjidRow[] }
+    } catch (error) {
+      console.error("Error fetching masjids:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch all mazaars
+   */
+  async fetchMazaars(options?: { limit?: number; offset?: number; location_id?: number }): Promise<
+    | {
+        kind: "ok"
+        data: Array<MazaarRow & { location?: LocationRow | null }>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = options?.limit ?? 50
+      const offset = options?.offset ?? 0
+
+      // Try to join with location table if foreign key exists
+      // If join fails, we'll fetch locations separately
+      let query = supabase.from("mazaars").select(`
+        *,
+        location (
+          id,
+          city,
+          state,
+          country,
+          latitude,
+          longitude
+        )
+      `)
+
+      if (options?.location_id) {
+        query = query.eq("location_id", options.location_id)
+      }
+
+      query = query.order("name", { ascending: true })
+
+      const { data, error } = await query.range(offset, offset + limit - 1)
+
+      if (error) {
+        console.error("Error fetching mazaars:", error)
+        return { kind: "bad-data" }
+      }
+
+      return { kind: "ok", data: (data || []) as Array<MazaarRow & { location?: LocationRow | null }> }
+    } catch (error) {
+      console.error("Error fetching mazaars:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Fetch nearby places based on location
+   */
+  async fetchNearbyPlaces(params: {
+    latitude: number
+    longitude: number
+    radius?: number
+    category?: string
+    limit?: number
+  }): Promise<
+    | {
+        kind: "ok"
+        data: NearbyPlaceRow[]
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const limit = params.limit ?? 50
+      const radius = params.radius ?? 10000 // Default 10km radius in meters
+
+      let query = supabase.from("nearby_places").select("*")
+
+      if (params.category) {
+        query = query.eq("category", params.category)
+      }
+
+      // Note: PostGIS distance calculation would be ideal here, but for now we'll fetch and filter client-side
+      // In production, you might want to use a PostGIS function like:
+      // .rpc('get_nearby_places', { lat: params.latitude, lng: params.longitude, radius: radius })
+
+      query = query.order("name", { ascending: true }).limit(limit)
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error("Error fetching nearby places:", error)
+        return { kind: "bad-data" }
+      }
+
+      // Filter by distance client-side (simple haversine calculation)
+      const filteredData = (data || [])
+        .filter((place: NearbyPlaceRow) => place.lat !== null && place.lng !== null)
+        .map((place: NearbyPlaceRow) => {
+          const distance = calculateDistance(
+            params.latitude,
+            params.longitude,
+            (place as NearbyPlaceRow).lat!,
+            (place as NearbyPlaceRow).lng!,
+          )
+          return { ...(place as NearbyPlaceRow), distance }
+        })
+        .filter((place) => place.distance <= radius)
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, limit)
+
+      return { kind: "ok", data: filteredData as NearbyPlaceRow[] }
+    } catch (error) {
+      console.error("Error fetching nearby places:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
+   * Search across all information tables
+   */
+  async searchInformation(
+    query: string,
+    types?: string[],
+  ): Promise<
+    | {
+        kind: "ok"
+        data: Array<MazaarRow | ZiyaratRow | MusafirkhanaRow | MasjidRow | NearbyPlaceRow>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const searchTypes = types || ["ziyarat", "musafirkhana", "masjid", "nearby_places"]
+      const results: Array<ZiyaratRow | MusafirkhanaRow | MasjidRow | NearbyPlaceRow> = []
+
+      const searchQuery = query.toLowerCase().trim()
+
+      // Search mazaars
+      if (searchTypes.includes("mazaars")) {
+        const { data, error } = await supabase
+          .from("mazaars")
+          .select("*")
+          .ilike("name", `%${searchQuery}%`)
+          .limit(20)
+
+        if (!error && data) {
+          results.push(...(data as MazaarRow[]))
+        }
+      }
+
+      // Search ziyarats
+      if (searchTypes.includes("ziyarat")) {
+        const { data, error } = await supabase
+          .from("ziyarat")
+          .select("*")
+          .or(
+            `name.ilike.%${searchQuery}%,address.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,history.ilike.%${searchQuery}%`,
+          )
+          .limit(20)
+
+        if (!error && data) {
+          results.push(...(data as ZiyaratRow[]))
+        }
+      }
+
+      // Search musafirkhanas
+      if (searchTypes.includes("musafirkhana")) {
+        const { data, error } = await supabase
+          .from("musafirkhana")
+          .select("*")
+          .or(
+            `name.ilike.%${searchQuery}%,address.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`,
+          )
+          .limit(20)
+
+        if (!error && data) {
+          results.push(...(data as MusafirkhanaRow[]))
+        }
+      }
+
+      // Search masjids
+      if (searchTypes.includes("masjid")) {
+        const { data, error } = await supabase
+          .from("masjid")
+          .select("*")
+          .or(
+            `name.ilike.%${searchQuery}%,address.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`,
+          )
+          .limit(20)
+
+        if (!error && data) {
+          results.push(...(data as MasjidRow[]))
+        }
+      }
+
+      // Search nearby places
+      if (searchTypes.includes("nearby_places")) {
+        const { data, error } = await supabase
+          .from("nearby_places")
+          .select("*")
+          .or(
+            `name.ilike.%${searchQuery}%,address.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`,
+          )
+          .limit(20)
+
+        if (!error && data) {
+          results.push(...(data as NearbyPlaceRow[]))
+        }
+      }
+
+      return { kind: "ok", data: results }
+    } catch (error) {
+      console.error("Error searching information:", error)
+      return { kind: "bad-data" }
+    }
+  }
+}
+
+// Helper function to calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000 // Earth's radius in meters
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c // Distance in meters
 }
 
 // Singleton instance

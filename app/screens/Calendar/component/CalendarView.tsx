@@ -141,7 +141,7 @@ export default function CalendarView({
           description: "Miqaats",
           data: [
             selectedDate && miqaats && miqaats.length > 0 ? (
-              <View style={$miqaatsListContainer}>
+              <View key="miqaats-list" style={$miqaatsListContainer}>
                 <ListView
                   ListHeaderComponent={
                     <View style={$miqaatHeader}>
@@ -160,7 +160,7 @@ export default function CalendarView({
                 />
               </View>
             ) : selectedDate && dailyDuas && dailyDuas.length === 0 ? (
-              <View style={getEmptyContainer(colors)}>
+              <View key="no-miqaats" style={getEmptyContainer(colors)}>
                 <Text style={getEmptyContainerText(colors)}>No miqaats on this day</Text>
               </View>
             ) : null,
@@ -273,7 +273,8 @@ const $miqaatHeaderContainer: ViewStyle = {
 }
 
 const $miqaatsListContainer: ViewStyle = {
-  flex: 1,
+  minHeight: 200,
+  width: "100%",
 }
 
 // These styles need to be functions since they depend on colors

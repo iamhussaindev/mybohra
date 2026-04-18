@@ -8,12 +8,14 @@ import {
   IconShoppingCartFilled,
   IconUser,
   IconUserFilled,
-  IconWorldBolt,
 } from "@tabler/icons-react-native"
 import { Text } from "app/components"
+import { useStores } from "app/models"
 import { AccountScreen } from "app/screens/Account/AccountScreen"
 import { MarketScreen } from "app/screens/Market/MarketScreen"
 import { SearchScreen } from "app/screens/Search/SearchScreen"
+import { getManualTestCityName } from "app/utils/manualTestLocation"
+import { observer } from "mobx-react-lite"
 import React from "react"
 import { TextStyle, ViewStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -51,11 +53,19 @@ const Tab = createBottomTabNavigator<TabParamList>()
  * More info: https://reactnavigation.org/docs/bottom-tab-navigator/
  * @returns {JSX.Element} The rendered `Navigator`.
  */
-export function NavigationTab() {
+export const NavigationTab = observer(function NavigationTab() {
   const { bottom } = useSafeAreaInsets()
   const colors = useColors()
+  const { dataStore } = useStores()
 
   const idleColor = colors.palette.neutral400
+
+  const homeCityName =
+    (dataStore.currentLocationLoaded && dataStore.currentLocation.city?.trim()) ||
+    getManualTestCityName() ||
+    ""
+
+  const homeTabLabelText = homeCityName ? `Home · ${homeCityName}` : "Home"
 
   return (
     <Tab.Navigator
@@ -66,7 +76,7 @@ export function NavigationTab() {
         tabBarStyle: [
           $tabBar,
           {
-            height: bottom + 70,
+            height: bottom + (homeCityName ? 78 : 70),
             backgroundColor: colors.background,
             borderTopColor: colors.border,
           },
@@ -83,13 +93,19 @@ export function NavigationTab() {
         component={HomeScreen as any}
         options={{
           tabBarLabel: ({ focused }) => (
-            <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>Home</Text>
+            <Text
+              numberOfLines={2}
+              ellipsizeMode="tail"
+              style={[$tabBarLabel, $homeTabLabel, { color: focused ? colors.tint : idleColor }]}
+            >
+              {homeTabLabelText}
+            </Text>
           ),
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <IconHomeFilled color={colors.tint} size={36} />
+              <IconHomeFilled color={colors.tint} size={28} />
             ) : (
-              <IconHome color={colors.textDim} size={36} />
+              <IconHome color={colors.textDim} size={28} />
             ),
         }}
       />
@@ -103,27 +119,9 @@ export function NavigationTab() {
           ),
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <IconSearch color={colors.tint} size={36} />
+              <IconSearch color={colors.tint} size={28} />
             ) : (
-              <IconSearch color={colors.textDim} size={36} />
-            ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Explore"
-        component={MarketScreen}
-        options={{
-          tabBarLabel: ({ focused }) => (
-            <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>
-              Explore
-            </Text>
-          ),
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <IconWorldBolt color={colors.tint} size={36} />
-            ) : (
-              <IconWorldBolt color={colors.textDim} size={36} />
+              <IconSearch color={colors.textDim} size={28} />
             ),
         }}
       />
@@ -138,9 +136,9 @@ export function NavigationTab() {
           ),
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <IconShoppingCartFilled color={colors.tint} size={36} />
+              <IconShoppingCartFilled color={colors.tint} size={28} />
             ) : (
-              <IconShoppingCart color={colors.textDim} size={36} />
+              <IconShoppingCart color={colors.textDim} size={28} />
             ),
         }}
       />
@@ -151,21 +149,21 @@ export function NavigationTab() {
         options={{
           tabBarLabel: ({ focused }) => (
             <Text style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}>
-              Account
+              Profile
             </Text>
           ),
 
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <IconUserFilled color={colors.tint} size={36} />
+              <IconUserFilled color={colors.tint} size={28} />
             ) : (
-              <IconUser color={colors.textDim} size={36} />
+              <IconUser color={colors.textDim} size={28} />
             ),
         }}
       />
     </Tab.Navigator>
   )
-}
+})
 
 const $tabBar: ViewStyle = {
   shadowColor: "#000",
@@ -177,8 +175,14 @@ const $tabBarItem: ViewStyle = {
   paddingTop: spacing.md,
 }
 
+const $homeTabLabel: TextStyle = {
+  maxWidth: 92,
+  minHeight: 32,
+  textAlign: "center",
+}
+
 const $tabBarLabel: TextStyle = {
-  fontSize: 10,
-  fontFamily: typography.primary.medium,
-  lineHeight: 20,
+  fontSize: 12,
+  fontFamily: typography.primary.bold,
+  lineHeight: 16,
 }

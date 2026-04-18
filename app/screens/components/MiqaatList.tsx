@@ -10,13 +10,18 @@ export function MiqaatCard({
   item,
   style,
   showCount,
+  showDate,
+  showDescription = true,
 }: {
   showCount?: boolean
   isCalendar?: boolean
   item: IMiqaat
   style?: ViewStyle
+  showDate?: boolean
+  showDescription?: boolean
 }) {
   const colors = useColors()
+  const hijriDate = HijriDate.fromMiqaat(item)
   return (
     <View style={[$cardContainer, style]}>
       <View style={$cardContent}>
@@ -45,14 +50,24 @@ export function MiqaatCard({
             numberOfLines={2}
             ellipsizeMode="tail"
           />
-          {item.description ? (
+
+          {showDate && (
             <Text
               color={colors.textDim}
               weight="normal"
               style={$cardDescriptionText}
-              text={`${item.description ?? ""} ${item.location ? ` - ${item.location}` : ``}`}
+              text={`${hijriDate.formatted()} - ${hijriDate.toMoment().format("DD MMM")}`}
             />
-          ) : null}
+          )}
+
+          {showDescription && (
+            <Text
+              color={colors.textDim}
+              weight="normal"
+              style={$cardDescriptionText}
+              text={`${item.description || item.location}`}
+            />
+          )}
         </View>
       </View>
     </View>
@@ -100,19 +115,17 @@ const $countDownContainer: ViewStyle = {
 const $cardDescriptionText: TextStyle = {
   fontSize: 14,
   flexWrap: "wrap",
-  flex: 1,
-  lineHeight: 20,
   width: "100%",
 }
 
 const $cardDescription: ViewStyle = {
   width: "80%",
-  flex: 1,
+  justifyContent: "center",
 }
 
 const $cardTitle: TextStyle = {
   fontSize: 16,
-  width: "90%",
+  width: "100%",
   lineHeight: 20,
   flexWrap: "wrap",
 }
@@ -163,8 +176,8 @@ const $listHeader: TextStyle = {
 const $cardContainer: ViewStyle = {
   paddingTop: 10,
   paddingBottom: 10,
+  paddingHorizontal: spacing.xs,
   minHeight: 10,
-  marginBottom: spacing.xs,
   borderColor: colors.border,
   borderRadius: 8,
   borderCurve: "continuous",

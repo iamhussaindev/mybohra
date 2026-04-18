@@ -93,8 +93,8 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
   const buffering = state === State.Buffering && isCurrent
 
   const togglePin = async () => {
-    const wasPinned = dataStore.isPdfPinned(item.id)
-    await dataStore.togglePinPdf(item)
+    const wasPinned = dataStore.isLibraryPinned(item.id)
+    dataStore.togglePinLibrary(item)
     Alert.alert(
       wasPinned ? "Unpinned" : "Pinned",
       `"${item.name}" has been ${wasPinned ? "unpinned" : "pinned"} to your home screen.`,

@@ -30,6 +30,10 @@ interface SoundPlayerContextType {
 
 const SoundPlayerContext = createContext<SoundPlayerContextType | null>(null)
 
+// Module-level flag to track if player has been initialized
+let isPlayerInitialized = false
+let initializationPromise: Promise<void> | null = null
+
 export const useSoundPlayer = (): SoundPlayerContextType => {
   return useContext(SoundPlayerContext) as SoundPlayerContextType
 }
@@ -42,21 +46,67 @@ const useProvideSoundPlayer = (): SoundPlayerContextType => {
   const previousPositionRef = useRef<number>(0)
 
   const setupPlayer = async () => {
-    await TrackPlayer.setupPlayer()
-    // Configure capabilities for notification controls and background playback
-    await TrackPlayer.updateOptions({
-      capabilities: [
-        Capability.Play,
-        Capability.Pause,
-        Capability.SkipToNext,
-        Capability.SkipToPrevious,
-        Capability.Stop,
-      ],
-      compactCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext],
-      android: {
-        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
-      },
-    })
+    // If already initialized, return the existing promise or resolve immediately
+    if (isPlayerInitialized) {
+      return initializationPromise ?? Promise.resolve()
+    }
+
+    // If initialization is in progress, return the existing promise
+    if (initializationPromise) {
+      return initializationPromise
+    }
+
+    // Start initialization
+    initializationPromise = (async () => {
+      try {
+        await TrackPlayer.setupPlayer()
+        isPlayerInitialized = true
+        
+        // Configure capabilities for notification controls and background playback
+        await TrackPlayer.updateOptions({
+          capabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.SkipToNext,
+            Capability.SkipToPrevious,
+            Capability.Stop,
+          ],
+          compactCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext],
+          android: {
+            appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+          },
+        })
+      } catch (error: any) {
+        // If player is already initialized, that's okay - just mark it as initialized
+        if (error?.message?.includes("already been initialized") || error?.code === "player_already_initialized") {
+          isPlayerInitialized = true
+          // Still update options even if already initialized
+          try {
+            await TrackPlayer.updateOptions({
+              capabilities: [
+                Capability.Play,
+                Capability.Pause,
+                Capability.SkipToNext,
+                Capability.SkipToPrevious,
+                Capability.Stop,
+              ],
+              compactCapabilities: [Capability.Play, Capability.Pause, Capability.SkipToNext],
+              android: {
+                appKilledPlaybackBehavior: AppKilledPlaybackBehavior.ContinuePlayback,
+              },
+            })
+          } catch (optionsError) {
+            // Ignore options update errors
+            console.warn("Failed to update TrackPlayer options:", optionsError)
+          }
+        } else {
+          // Re-throw other errors
+          throw error
+        }
+      }
+    })()
+
+    return initializationPromise
   }
 
   const seek = async (position: number) => {
@@ -77,9 +127,13 @@ const useProvideSoundPlayer = (): SoundPlayerContextType => {
   const { position, duration } = useProgress()
 
   useEffect(() => {
-    setupPlayer()
+    setupPlayer().catch((error) => {
+      // Handle any unhandled promise rejections
+      console.warn("TrackPlayer setup error:", error)
+    })
     return () => {
-      TrackPlayer.reset()
+      // Don't reset on unmount as it might affect other components using the player
+      // TrackPlayer.reset()
     }
   }, [])
 

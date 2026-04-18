@@ -10,6 +10,7 @@ import { useStores } from "app/models"
 import { ILocation } from "app/models/DataStore"
 import { colors, spacing, typography } from "app/theme"
 import { PlainLocation } from "app/types/location"
+import { getManualTestCoordinates } from "app/utils/manualTestLocation"
 import Fuse from "fuse.js"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ImageStyle, Pressable, TextInput, TextStyle, View, ViewStyle } from "react-native"
@@ -87,14 +88,19 @@ const LocationList = React.memo(
     // Handle auto-detect location
     const handleAutoDetect = useCallback(async () => {
       try {
-        // Get current device location
-        const location = await GetLocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 15000,
-        })
+        const manual = getManualTestCoordinates()
+        const latitude = manual?.latitude
+        const longitude = manual?.longitude
 
-        // Use the new autoDetectLocation method that always updates current location
-        await dataStore.autoDetectLocation(location.latitude, location.longitude)
+        if (latitude != null && longitude != null) {
+          await dataStore.autoDetectLocation(latitude, longitude)
+        } else {
+          const location = await GetLocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 15000,
+          })
+          await dataStore.autoDetectLocation(location.latitude, location.longitude)
+        }
 
         // Close the bottom sheet
         sheetRef.current?.close()
@@ -244,7 +250,7 @@ const LocationList = React.memo(
               value={search}
               style={$searchField}
               placeholder="eg: Ahmedabad"
-              placeholderTextColor={colors.palette.neutral300}
+              placeholderTextColor={colors.palette.neutral500}
               onChangeText={setSearch}
               autoCorrect={false}
               autoCapitalize="none"

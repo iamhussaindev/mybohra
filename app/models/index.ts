@@ -1,4 +1,5 @@
 export * from "./DataStore"
+export * from "./InformationStore"
 export * from "./LibraryStore"
 export * from "./MiqaatStore"
 export * from "./ReminderStore"

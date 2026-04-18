@@ -1,3 +1,24 @@
+const ARABIC_DAY_MARKER = " يوم "
+const ARABIC_MONTH_MARKER = " من شهر"
+
+export type RamazanNiyyatArabicParts = { start: string; middle: string; end: string }
+
+/**
+ * Splits the Arabic niyyat into a fixed prefix, the changing day phrase, and the fixed suffix
+ * (same idea as English split on "Saumal " / "min ").
+ */
+export function splitRamazanNiyyatArabic(arabic: string): RamazanNiyyatArabicParts | null {
+  const i = arabic.indexOf(ARABIC_DAY_MARKER)
+  if (i === -1) return null
+  const start = arabic.slice(0, i + ARABIC_DAY_MARKER.length)
+  const afterDay = arabic.slice(i + ARABIC_DAY_MARKER.length)
+  const j = afterDay.indexOf(ARABIC_MONTH_MARKER)
+  if (j === -1) return null
+  const middle = afterDay.slice(0, j)
+  const end = afterDay.slice(j)
+  return { start, middle, end }
+}
+
 export const ramazanNiyyat = [
   {
     day: 1,

@@ -1,5 +1,5 @@
 import { Text, Icon } from "app/components"
-import { ramazanNiyyat } from "app/data/niyyat"
+import { ramazanNiyyat, splitRamazanNiyyatArabic } from "app/data/niyyat"
 import HijriDate from "app/libs/HijriDate"
 import { colors, spacing, typography } from "app/theme"
 import * as storage from "app/utils/storage"
@@ -15,14 +15,10 @@ export default function RamazaanNiyyat() {
   const year = hijriDate.year
   const swipeableRow = useRef<SwipeableMethods>(null)
 
-  const niyyat = ramazanNiyyat.find((niyyat) => niyyat.day === day && month === 9)
+  const niyyat = ramazanNiyyat.find((niyyat) => niyyat.day === day && month === 8)
+
   const key = `${day}_${month}_${year}`
 
-  if (!niyyat) return null
-
-  const start = niyyat.text.split("Saumal ")[0] + "Saumal"
-  const middle = niyyat.text.split("Saumal ")[1].split("min ")[0]
-  const end = niyyat.text.split("min ")[1]
   const [hasSwiped, setHasSwiped] = useState(false)
 
   const [isVisible, setIsVisible] = useState(true)
@@ -98,6 +94,13 @@ export default function RamazaanNiyyat() {
     }
   }, [hasSwiped])
 
+  if (!niyyat) return null
+
+  const start = niyyat.text.split("Saumal ")[0] + "Saumal"
+  const middle = niyyat.text.split("Saumal ")[1].split("min ")[0]
+  const end = niyyat.text.split("min ")[1]
+  const arabicParts = niyyat.arabic ? splitRamazanNiyyatArabic(niyyat.arabic) : null
+
   const renderRightActions = () => {
     return (
       <Pressable style={$rightAction} onPress={handleClose}>
@@ -127,12 +130,20 @@ export default function RamazaanNiyyat() {
         </Text>
         <Pressable
           onPress={handleLanguageSwitch}
-          style={[!showArabic && $row, showArabic && $arabicRow]}
+          style={[!showArabic && $row, showArabic && $arabicPressable]}
         >
           {showArabic ? (
-            <Text weight="normal" style={[$text, $arabic]}>
-              {niyyat.arabic}
-            </Text>
+            arabicParts ? (
+              <Text style={$arabic}>
+                {arabicParts.start}
+                <Text style={[$arabic, $middleArabic]}>{arabicParts.middle}</Text>
+                {arabicParts.end}
+              </Text>
+            ) : (
+              <Text weight="normal" style={[$text, $arabic]}>
+                {niyyat.arabic ?? niyyat.text}
+              </Text>
+            )
           ) : (
             <View style={$rowEnglish}>
               <Text style={$text}>{start}</Text>
@@ -157,7 +168,7 @@ const $rowEnglish: ViewStyle = {
   gap: spacing.sm,
 }
 
-const $arabicRow: ViewStyle = {
+const $arabicPressable: ViewStyle = {
   justifyContent: "flex-start",
 }
 
@@ -167,6 +178,10 @@ const $arabic: TextStyle = {
   lineHeight: 50,
   fontFamily: typography.arabic.kanz,
   writingDirection: "rtl",
+}
+
+const $middleArabic: TextStyle = {
+  color: colors.palette.primary500,
 }
 
 const $rightAction: ViewStyle = {
@@ -212,7 +227,7 @@ const $middle: TextStyle = {
 const $container: ViewStyle = {
   marginHorizontal: spacing.lg,
   height: 220,
-  marginTop: spacing.lg,
+  marginTop: 0,
   borderRadius: 18,
 
   borderWidth: 1,

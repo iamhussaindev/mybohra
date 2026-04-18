@@ -85,6 +85,17 @@ export const DataStoreModel = types
       type: "city",
     }), // Store the device's auto-detected location
     deviceLocationLoaded: types.optional(types.boolean, false),
+    // Home location - user's confirmed home city
+    homeLocation: types.optional(LocationModel, {
+      latitude: 0,
+      longitude: 0,
+      city: "",
+      country: "",
+      state: null,
+      timezone: "Asia/Kolkata",
+      type: "city",
+    }),
+    homeLocationLoaded: types.optional(types.boolean, false),
     // Past selected locations for quick access
     pastSelectedLocations: types.optional(types.array(LocationModel), []),
     // Reminder settings
@@ -506,6 +517,55 @@ export const DataStoreModel = types
         storage.save("PAST_SELECTED_LOCATIONS", [])
       },
 
+      // Home location actions
+      setHomeLocation: flow(function* (location: PlainLocation) {
+        const normalizedLocation = normalizeLocation(location)
+        self.homeLocation = normalizedLocation
+        self.homeLocationLoaded = true
+        yield storage.save("HOME_LOCATION", normalizedLocation)
+      }),
+
+      loadHomeLocation: flow(function* () {
+        try {
+          const savedHomeLocation = yield storage.load("HOME_LOCATION")
+          if (savedHomeLocation) {
+            const normalizedLocation = normalizeLocation(savedHomeLocation)
+            self.homeLocation = normalizedLocation
+            self.homeLocationLoaded = true
+            return true
+          }
+        } catch (error) {
+          console.log("Error loading home location:", error)
+        }
+        return false
+      }),
+
+      clearHomeLocation() {
+        self.homeLocation = {
+          latitude: 0,
+          longitude: 0,
+          city: "",
+          country: "",
+          state: null,
+          timezone: "Asia/Kolkata",
+          type: "city",
+        }
+        self.homeLocationLoaded = false
+        storage.save("HOME_LOCATION", null)
+      },
+
+      // Check if current location is home city
+      isAtHome(): boolean {
+        if (!self.homeLocationLoaded || !self.currentLocationLoaded) {
+          return false
+        }
+        // Compare by city and country (not exact coordinates, since user might move within city)
+        return (
+          self.currentLocation.city === self.homeLocation.city &&
+          self.currentLocation.country === self.homeLocation.country
+        )
+      },
+
       // Reminder settings actions
       setNotificationType(type: "short" | "long") {
         self.reminderSettings.notificationType = type
@@ -563,11 +623,11 @@ export const DataStoreModel = types
         }
       }),
 
-      // Pinned PDFs actions - now stores full objects
-      pinPdf(pdfItem: ILibrary) {
-        const exists = self.pinnedPdfs.some((item) => item.id === pdfItem.id)
+      // Pinned Library items actions - now stores full objects
+      pinLibrary(libraryItem: ILibrary) {
+        const exists = self.pinnedPdfs.some((item) => item.id === libraryItem.id)
         if (!exists) {
-          self.pinnedPdfs.push(pdfItem)
+          self.pinnedPdfs.push(libraryItem)
           // Save full objects to storage
           const serialized = self.pinnedPdfs.map((item) => ({
             id: item.id,
@@ -589,8 +649,8 @@ export const DataStoreModel = types
         }
       },
 
-      unpinPdf(pdfId: number) {
-        const index = self.pinnedPdfs.findIndex((item) => item.id === pdfId)
+      unpinLibrary(libraryId: number) {
+        const index = self.pinnedPdfs.findIndex((item) => item.id === libraryId)
         if (index > -1) {
           self.pinnedPdfs.splice(index, 1)
           const serialized = self.pinnedPdfs.map((item) => ({
@@ -613,17 +673,34 @@ export const DataStoreModel = types
         }
       },
 
-      togglePinPdf(pdfItem: ILibrary) {
-        const exists = self.pinnedPdfs.some((item) => item.id === pdfItem.id)
+      togglePinLibrary(libraryItem: ILibrary) {
+        const exists = self.pinnedPdfs.some((item) => item.id === libraryItem.id)
         if (exists) {
-          this.unpinPdf(pdfItem.id)
+          this.unpinLibrary(libraryItem.id)
         } else {
-          this.pinPdf(pdfItem)
+          this.pinLibrary(libraryItem)
         }
       },
 
+      isLibraryPinned(libraryId: number): boolean {
+        return self.pinnedPdfs.some((item) => item.id === libraryId)
+      },
+
+      // Legacy methods for backward compatibility - deprecated, use pinLibrary/unpinLibrary instead
+      pinPdf(pdfItem: ILibrary) {
+        this.pinLibrary(pdfItem)
+      },
+
+      unpinPdf(pdfId: number) {
+        this.unpinLibrary(pdfId)
+      },
+
+      togglePinPdf(pdfItem: ILibrary) {
+        this.togglePinLibrary(pdfItem)
+      },
+
       isPdfPinned(pdfId: number): boolean {
-        return self.pinnedPdfs.some((item) => item.id === pdfId)
+        return this.isLibraryPinned(pdfId)
       },
 
       loadPinnedPdfs: flow(function* () {
@@ -674,6 +751,10 @@ export const DataStoreModel = types
 
       recordPdfOpen: flow(function* (pdfId: number) {
         try {
+          // Bump library.view_count in database (RPC or fallback in api layer)
+          yield apiSupabase.incrementPdfViewCount(pdfId)
+
+          // Track locally for history
           const now = new Date().toISOString()
           const existingEntry = self.pdfHistory.find((entry) => entry.pdfId === pdfId)
           if (existingEntry) {
@@ -1032,8 +1113,14 @@ export const DataStoreModel = types
     },
 
     getRecentlyPlayedItems(limit = 10): number[] {
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+
       return self.audioActivity
         .slice()
+        .filter((activity) => {
+          const lastPlayed = new Date(activity.lastPlayed)
+          return lastPlayed >= twoHoursAgo
+        })
         .sort((a, b) => new Date(b.lastPlayed).getTime() - new Date(a.lastPlayed).getTime())
         .slice(0, limit)
         .map((activity) => activity.itemId)

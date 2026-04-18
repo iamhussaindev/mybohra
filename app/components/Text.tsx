@@ -80,6 +80,7 @@ export function Text(props: TextProps) {
 
   const i18nText = tx && translate(tx, txOptions)
   const content = i18nText || text || children
+  const isStructuredTextArray = Array.isArray(text) && text.length > 0
 
   const preset: Presets = props.preset ?? "default"
   const $styles: StyleProp<TextStyle> = [
@@ -95,15 +96,13 @@ export function Text(props: TextProps) {
 
   return (
     <StyledText {...rest} style={$styles} className={className}>
-      {Array.isArray(content) ? (
+      {isStructuredTextArray ? (
         <View style={$textContainer}>
-          {content.length > 0
-            ? content.map((item, index) => (
-                <Text key={index} style={[$styles, item.props]} color={item.props?.color as string}>
-                  {item.text}
-                </Text>
-              ))
-            : null}
+          {(text as { text: string; props?: TextStyle }[]).map((item, index) => (
+            <Text key={index} style={[$styles, item.props]} color={item.props?.color as string}>
+              {item.text}
+            </Text>
+          ))}
         </View>
       ) : (
         content
