@@ -49,6 +49,21 @@ const darkPalette = {
 
   overlay20: "rgba(255, 255, 255, 0.2)",
   overlay50: "rgba(255, 255, 255, 0.5)",
+
+  brown100: "#E6E0D5",
+  brown200: "#D1C9BF",
+  brown300: "#BAB3A9",
+  brown400: "#A59D93",
+  brown500: "#664100",
+  brown600: "#805200",
+  brown700: "#996300",
+  brown800: "#B37400",
+  brown900: "#CC8500",
+  brown1000: "#E69600",
+  brown1100: "#FFA700",
+  brown1200: "#FFB800",
+  brown1300: "#FFC900",
+  brown1400: "#FFDA00",
 } as const
 
 export const darkColors = {

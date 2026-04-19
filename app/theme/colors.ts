@@ -50,9 +50,25 @@ const palette = {
 
   overlay20: "rgba(25, 16, 21, 0.2)",
   overlay50: "rgba(25, 16, 21, 0.5)",
+
+  brown100: "#FAE3BA",
+  brown200: "#F5D9A5",
+  brown300: "#F0CF90",
+  brown400: "#EBCA8B",
+  brown500: "#664100",
+  brown600: "#E6B576",
+  brown700: "#E1AF6C",
+  brown800: "#B37400",
+  brown900: "#DA9958",
+  brown1000: "#E69600",
+  brown1100: "#FFA700",
+  brown1200: "#FFB800",
+  brown1300: "#FFC900",
+  brown1400: "#FFDA00",
 } as const
 
 export const colors = {
+  brown: "rgb(102, 65, 0)",
   // tab colors
   tabBorder: "#eff2f6",
   tabBackground: "#ffffff",

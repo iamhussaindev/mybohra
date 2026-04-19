@@ -1,7 +1,7 @@
-import { Button, Screen, Text, TextField } from "app/components"
+import { Button, Icon, Screen, Text, TextField } from "app/components"
 import Header from "app/components/Header"
 import { useStores } from "app/models"
-import { AppStackScreenProps } from "app/navigators"
+import type { AppStackScreenProps } from "app/navigators"
 import { invokeAiSuggest } from "app/services/ai"
 import { getOrCreateDeviceId } from "app/services/deviceTracking"
 import { createRsvpEvent } from "app/services/rsvp"
@@ -16,9 +16,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
   Pressable,
   ScrollView,
   Share,
+  StyleSheet,
   View,
   ViewStyle,
   TextStyle,
@@ -36,6 +38,31 @@ const EVENT_TYPES: { id: EventType; label: string }[] = [
   { id: "shadi", label: "Shadi" },
   { id: "birthday", label: "Birthday" },
 ]
+
+const WIZARD_STEP_TITLES = ["Purpose", "Host", "When", "Message", "Review"] as const
+
+function getStepSubtitle(step: number, eventType: EventType): string {
+  switch (step) {
+    case 0:
+      return "Choose the purpose of the event"
+    case 1:
+      return eventType === "miqaat"
+        ? "Jamaat or society hosting this jaman"
+        : "Name shown to guests on the invite"
+    case 2:
+      return "Date and time for your event"
+    case 3:
+      return "Write or refine your invitation"
+    case 4:
+      return "Confirm details before sharing your link"
+    default:
+      return ""
+  }
+}
+
+function eventTypeLabel(id: EventType): string {
+  return EVENT_TYPES.find((t) => t.id === id)?.label ?? id
+}
 
 function defaultMessage(type: EventType): string {
   switch (type) {
@@ -85,6 +112,29 @@ export const RsvpCreateWizardScreen: FC<Props> = observer(function RsvpCreateWiz
     if (!q) return list.slice(0, 40)
     return list.filter((m) => m.name.toLowerCase().includes(q)).slice(0, 40)
   }, [miqaatQuery, miqaatStore.list])
+
+  const linkedMiqaatName = useMemo(() => {
+    if (linkedMiqaatId == null) return null
+    return miqaatStore.list.find((m) => m.id === linkedMiqaatId)?.name ?? null
+  }, [linkedMiqaatId, miqaatStore.list])
+
+  const $card = useMemo((): ViewStyle => {
+    return {
+      backgroundColor: colors.background,
+      borderRadius: 16,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...(Platform.OS === "ios"
+        ? {
+            shadowColor: "#000",
+            shadowOpacity: 0.07,
+            shadowRadius: 14,
+            shadowOffset: { width: 0, height: 6 },
+          }
+        : { elevation: 2 }),
+    }
+  }, [colors.background, colors.border])
 
   const onPickType = (t: EventType) => {
     setEventType(t)
@@ -165,104 +215,190 @@ export const RsvpCreateWizardScreen: FC<Props> = observer(function RsvpCreateWiz
     }
   }
 
-  const $chip = (active: boolean): ViewStyle => ({
-    paddingVertical: spacing.sm,
+  const $typeRow = (active: boolean): ViewStyle => ({
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: active ? colors.palette.primary500 : colors.border,
-    backgroundColor: active ? colors.palette.primary100 : colors.background,
-    marginRight: spacing.xs,
-    marginBottom: spacing.xs,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: active ? colors.palette.brown1000 : colors.border,
+    backgroundColor: active ? colors.palette.brown100 : colors.background,
+    marginBottom: spacing.sm,
   })
 
-  const $chipText = (active: boolean): TextStyle => ({
-    color: active ? colors.palette.primary500 : colors.text,
-    fontWeight: active ? "700" : "500",
+  const $miqaatRow = (active: boolean): ViewStyle => ({
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 10,
+    marginBottom: spacing.xs,
+    borderWidth: 1,
+    borderColor: active ? colors.palette.primary400 : "transparent",
+    backgroundColor: active ? colors.palette.primary10 : colors.background,
   })
 
   return (
     <Screen preset="scroll" safeAreaEdges={["top"]} backgroundColor={colors.accentBackground}>
-      <Header title="New RSVP" showBackButton />
+      <Header title={WIZARD_STEP_TITLES[step]} showBackButton />
       <ScrollView contentContainerStyle={$scroll} keyboardShouldPersistTaps="handled">
-        <Text preset="formHelper" color={colors.textDim} text={`Step ${step + 1} of 5`} />
+        <View style={$progressWrap}>
+          <View style={$progressTrack}>
+            {WIZARD_STEP_TITLES.map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  $progressSegment,
+                  {
+                    backgroundColor: i <= step ? colors.palette.brown1000 : colors.border,
+                  },
+                ]}
+              />
+            ))}
+          </View>
+        </View>
+
+        <Text
+          preset="formHelper"
+          color={colors.textDim}
+          text={getStepSubtitle(step, eventType)}
+          style={$stepSubtitle}
+        />
 
         {step === 0 && (
-          <View style={$block}>
-            <Text preset="subheading" weight="bold" text="Purpose" />
-            <View style={$rowWrap}>
-              {EVENT_TYPES.map((t) => (
+          <View style={$cardBlock}>
+            {EVENT_TYPES.map((t) => {
+              const active = eventType === t.id
+              return (
                 <Pressable
                   key={t.id}
                   onPress={() => onPickType(t.id)}
-                  style={$chip(eventType === t.id)}
+                  style={$typeRow(active)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                 >
-                  <Text style={$chipText(eventType === t.id)} text={t.label} />
+                  <View
+                    style={[
+                      $typeLetter,
+                      {
+                        borderColor: active ? colors.palette.brown1000 : colors.border,
+                        backgroundColor: active ? colors.palette.brown1000 : colors.background,
+                      },
+                    ]}
+                  >
+                    <Text
+                      weight="bold"
+                      style={{ color: active ? colors.palette.primary600 : colors.text }}
+                      text={t.label.slice(0, 1)}
+                    />
+                  </View>
+                  <Text
+                    style={$typeLabel}
+                    weight={active ? "bold" : "medium"}
+                    color={colors.text}
+                    text={t.label}
+                  />
+                  {active ? (
+                    <Icon icon="check" size={20} color={colors.palette.primary500} />
+                  ) : (
+                    <View style={$typeChevronSpacer} />
+                  )}
                 </Pressable>
-              ))}
-            </View>
-            <Button text="Next" preset="filled" onPress={() => setStep(1)} />
+              )
+            })}
+            <Button text="Continue" preset="reversed" style={$navBtn} onPress={() => setStep(1)} />
           </View>
         )}
 
         {step === 1 && (
-          <View style={$block}>
-            <Text
-              preset="subheading"
-              weight="bold"
-              text={eventType === "miqaat" ? "Jamaat" : "Host"}
-            />
+          <View style={[$card, $cardBlock]}>
             <TextField
               label={eventType === "miqaat" ? "Jamaat / society name" : "Host name"}
               value={hostLabel}
               onChangeText={setHostLabel}
-              containerStyle={$fieldGap}
+              containerStyle={$fieldTight}
             />
             {eventType === "miqaat" && (
-              <View style={$fieldGap}>
-                <Text preset="formLabel" text="Link calendar miqaat (optional)" />
+              <View style={$miqaatSection}>
+                <Text preset="formLabel" weight="medium" text="Link calendar miqaat (optional)" />
+                <Text
+                  preset="formHelper"
+                  color={colors.textDim}
+                  text="Search and tap a miqaat to attach it to this invite."
+                  style={$helperBelowLabel}
+                />
                 <TextField
                   value={miqaatQuery}
                   onChangeText={setMiqaatQuery}
                   placeholder="Search miqaats"
+                  containerStyle={$fieldTight}
                 />
                 <FlatList
                   data={filteredMiqaats}
                   keyExtractor={(item) => String(item.id)}
                   scrollEnabled={false}
-                  renderItem={({ item }) => (
-                    <Pressable
-                      style={[$miqaatRow, linkedMiqaatId === item.id && $miqaatRowActive]}
-                      onPress={() => setLinkedMiqaatId(item.id === linkedMiqaatId ? null : item.id)}
-                    >
-                      <Text text={item.name} numberOfLines={2} />
-                    </Pressable>
-                  )}
+                  renderItem={({ item }) => {
+                    const on = linkedMiqaatId === item.id
+                    return (
+                      <Pressable
+                        style={$miqaatRow(on)}
+                        onPress={() =>
+                          setLinkedMiqaatId(item.id === linkedMiqaatId ? null : item.id)
+                        }
+                      >
+                        <Text text={item.name} numberOfLines={2} color={colors.text} />
+                      </Pressable>
+                    )
+                  }}
                 />
               </View>
             )}
             <View style={$navRow}>
-              <Button text="Back" preset="reversed" onPress={() => setStep(0)} />
-              <Button text="Next" preset="filled" onPress={() => setStep(2)} />
+              <Button text="Back" preset="filled" onPress={() => setStep(0)} style={$navBtn} />
+              <Button
+                text="Continue"
+                preset="reversed"
+                onPress={() => setStep(2)}
+                style={$navBtn}
+              />
             </View>
           </View>
         )}
 
         {step === 2 && (
-          <View style={$block}>
-            <Text preset="subheading" weight="bold" text="When" />
-            <TextField label="Date (YYYY-MM-DD)" value={dateStr} onChangeText={setDateStr} />
-            <TextField label="Time (24h HH:mm)" value={timeStr} onChangeText={setTimeStr} />
+          <View style={[$card, $cardBlock]}>
+            <View style={$whenRow}>
+              <View style={$whenField}>
+                <TextField
+                  label="Date"
+                  value={dateStr}
+                  onChangeText={setDateStr}
+                  placeholder="YYYY-MM-DD"
+                />
+              </View>
+              <View style={$whenField}>
+                <TextField
+                  label="Time"
+                  value={timeStr}
+                  onChangeText={setTimeStr}
+                  placeholder="HH:mm"
+                />
+              </View>
+            </View>
+            <Text preset="formHelper" color={colors.textDim} text="Use 24-hour time, e.g. 18:30" />
             <View style={$navRow}>
-              <Button text="Back" preset="reversed" onPress={() => setStep(1)} />
-              <Button text="Next" preset="filled" onPress={() => setStep(3)} />
+              <Button text="Back" preset="filled" onPress={() => setStep(1)} style={$navBtn} />
+              <Button
+                text="Continue"
+                preset="reversed"
+                onPress={() => setStep(3)}
+                style={$navBtn}
+              />
             </View>
           </View>
         )}
 
         {step === 3 && (
-          <View style={$block}>
-            <Text preset="subheading" weight="bold" text="Message" />
+          <View style={[$card, $cardBlock]}>
             <TextField label="Short title (optional)" value={title} onChangeText={setTitle} />
             <TextField
               label="Invitation text"
@@ -271,37 +407,104 @@ export const RsvpCreateWizardScreen: FC<Props> = observer(function RsvpCreateWiz
               multiline={true}
               containerStyle={$multiline}
             />
-            {aiLoading ? <ActivityIndicator color={colors.palette.primary500} /> : null}
-            <Button
-              text={aiLoading ? "Working…" : "Improve with AI"}
-              preset="reversed"
-              onPress={onAiSuggest}
-              disabled={aiLoading}
-            />
+            <View
+              style={[
+                $aiRow,
+                { backgroundColor: colors.palette.neutral200, borderColor: colors.border },
+              ]}
+            >
+              {aiLoading ? (
+                <ActivityIndicator color={colors.palette.primary500} style={$aiSpinner} />
+              ) : null}
+              <Button
+                text={aiLoading ? "Working…" : "Improve with AI"}
+                preset="reversed"
+                onPress={onAiSuggest}
+                disabled={aiLoading}
+                style={$aiButton}
+              />
+            </View>
             <View style={$navRow}>
-              <Button text="Back" preset="reversed" onPress={() => setStep(2)} />
-              <Button text="Next" preset="filled" onPress={() => setStep(4)} />
+              <Button text="Back" preset="filled" onPress={() => setStep(2)} style={$navBtn} />
+              <Button
+                text="Continue"
+                preset="reversed"
+                onPress={() => setStep(4)}
+                style={$navBtn}
+              />
             </View>
           </View>
         )}
 
         {step === 4 && (
-          <View style={$block}>
-            <Text preset="subheading" weight="bold" text="Review" />
-            <Text color={colors.text} text={`Type: ${eventType}`} />
-            <Text color={colors.text} text={`Host: ${hostLabel}`} />
-            <Text color={colors.text} text={`When: ${dateStr} ${timeStr}`} />
-            <Text
-              color={colors.textDim}
-              text={message.slice(0, 200) + (message.length > 200 ? "…" : "")}
-            />
+          <View style={[$card, $cardBlock]}>
+            {(
+              [
+                { label: "Event", value: eventTypeLabel(eventType) },
+                {
+                  label: eventType === "miqaat" ? "Jamaat / host" : "Host",
+                  value: hostLabel || "—",
+                },
+                { label: "When", value: `${dateStr} · ${timeStr}` },
+                ...(title.trim()
+                  ? ([{ label: "Title", value: title.trim() }] as {
+                      label: string
+                      value: string
+                    }[])
+                  : []),
+                ...(eventType === "miqaat" && linkedMiqaatName
+                  ? ([{ label: "Linked miqaat", value: linkedMiqaatName }] as {
+                      label: string
+                      value: string
+                    }[])
+                  : []),
+              ] as { label: string; value: string }[]
+            ).map((row, idx, arr) => (
+              <View
+                key={row.label}
+                style={[
+                  $reviewRow,
+                  idx < arr.length - 1 && {
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: colors.border,
+                  },
+                ]}
+              >
+                <Text preset="formHelper" color={colors.textDim} text={row.label} />
+                <Text
+                  preset="formLabel"
+                  weight="bold"
+                  color={colors.text}
+                  text={row.value}
+                  style={$reviewValue}
+                />
+              </View>
+            ))}
+            <View
+              style={[
+                $messagePreview,
+                { borderColor: colors.border, backgroundColor: colors.accentBackground },
+              ]}
+            >
+              <Text
+                preset="formHelper"
+                color={colors.textDim}
+                text="Message preview"
+                style={$previewLabel}
+              />
+              <Text
+                color={colors.textDim}
+                text={message.slice(0, 280) + (message.length > 280 ? "…" : "")}
+                size="sm"
+              />
+            </View>
             <Button
               text={submitLoading ? "Creating…" : "Create & share link"}
-              preset="filled"
+              preset="reversed"
               onPress={onSubmit}
               disabled={submitLoading}
             />
-            <Button text="Back" preset="reversed" onPress={() => setStep(3)} />
+            <Button text="Back" preset="filled" onPress={() => setStep(3)} />
           </View>
         )}
       </ScrollView>
@@ -311,41 +514,120 @@ export const RsvpCreateWizardScreen: FC<Props> = observer(function RsvpCreateWiz
 
 const $scroll: ViewStyle = {
   padding: spacing.lg,
-  paddingBottom: spacing.xxl,
+  paddingBottom: spacing.xxxl,
 }
 
-const $block: ViewStyle = {
-  marginTop: spacing.md,
+const $progressWrap: ViewStyle = {
+  marginBottom: spacing.md,
+}
+
+const $progressTrack: ViewStyle = {
+  flexDirection: "row",
+  gap: spacing.xs,
+}
+
+const $progressSegment: ViewStyle = {
+  flex: 1,
+  height: 4,
+  borderRadius: 2,
+}
+
+const $stepSubtitle: TextStyle = {
+  marginBottom: spacing.lg,
+  lineHeight: 20,
+}
+
+const $cardBlock: ViewStyle = {
   gap: spacing.md,
 }
 
-const $rowWrap: ViewStyle = {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  marginTop: spacing.sm,
+const $typeLetter: ViewStyle = {
+  width: 40,
+  height: 40,
+  borderRadius: 12,
+  borderWidth: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  marginRight: spacing.md,
 }
 
-const $fieldGap: ViewStyle = {
-  marginTop: spacing.sm,
+const $typeLabel: TextStyle = {
+  flex: 1,
+  fontSize: 17,
+}
+
+const $typeChevronSpacer: ViewStyle = {
+  width: 20,
+}
+
+const $fieldTight: ViewStyle = {
+  marginBottom: 0,
+}
+
+const $miqaatSection: ViewStyle = {
+  gap: spacing.xs,
+}
+
+const $helperBelowLabel: TextStyle = {
+  marginTop: -spacing.xxs,
+  marginBottom: spacing.xs,
 }
 
 const $multiline: ViewStyle = {
-  minHeight: 120,
+  minHeight: 140,
 }
 
 const $navRow: ViewStyle = {
   flexDirection: "row",
-  justifyContent: "space-between",
-  gap: spacing.md,
-  marginTop: spacing.md,
+  gap: spacing.sm,
+  marginTop: spacing.sm,
 }
 
-const $miqaatRow: ViewStyle = {
-  paddingVertical: spacing.sm,
-  borderBottomWidth: 1,
-  borderBottomColor: "#00000014",
+const $navBtn: ViewStyle = {
+  flex: 1,
+  borderRadius: 100,
 }
 
-const $miqaatRowActive: ViewStyle = {
-  backgroundColor: "#00000008",
+const $whenRow: ViewStyle = {
+  flexDirection: "row",
+  gap: spacing.sm,
+}
+
+const $whenField: ViewStyle = {
+  flex: 1,
+}
+
+const $aiRow: ViewStyle = {
+  borderRadius: 12,
+  borderWidth: 1,
+  padding: spacing.sm,
+  flexDirection: "row",
+  alignItems: "center",
+  gap: spacing.sm,
+}
+
+const $aiSpinner: ViewStyle = {
+  marginLeft: spacing.sm,
+}
+
+const $aiButton: ViewStyle = {
+  flex: 1,
+}
+
+const $reviewRow: ViewStyle = {
+  paddingVertical: spacing.md,
+}
+
+const $reviewValue: TextStyle = {
+  marginTop: spacing.xxs,
+}
+
+const $messagePreview: ViewStyle = {
+  borderRadius: 12,
+  borderWidth: 1,
+  padding: spacing.md,
+}
+
+const $previewLabel: TextStyle = {
+  marginBottom: spacing.xs,
 }

@@ -156,7 +156,7 @@ const AppStack = observer(function AppStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="Home"
+      initialRouteName="RsvpCreate"
       screenOptions={{
         headerShown: false,
         navigationBarColor: colors.background,
