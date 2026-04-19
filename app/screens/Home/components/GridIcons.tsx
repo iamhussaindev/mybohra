@@ -12,6 +12,7 @@ const data = [
   { key: "5", name: "Tasbeeh", icon: require(`../../../../assets/images/tasbeeh.png`) },
   { key: "6", name: "Halal Food", icon: require(`../../../../assets/images/sadqah.png`) },
   { key: "8", name: "Mazaar", icon: require(`../../../../assets/images/mazaar.png`) },
+  { key: "9", name: "RSVP", icon: require(`../../../../assets/images/event_icon.png`) },
 ]
 
 export default function GridIcons({ onNavigation }: { onNavigation: (screen: any) => void }) {

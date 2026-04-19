@@ -4,7 +4,7 @@
 import { Screen, Text } from "app/components"
 import Header from "app/components/Header"
 import { useStores } from "app/models"
-import { AppStackScreenProps } from "app/navigators"
+import type { AppStackScreenProps } from "app/navigators"
 import { observer } from "mobx-react-lite"
 import React, { FC } from "react"
 import { View, ViewStyle, Dimensions } from "react-native"

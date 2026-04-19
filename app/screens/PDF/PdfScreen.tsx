@@ -4,10 +4,10 @@ import { formatTime } from "app/helpers/audio.helper"
 import { useSoundPlayer } from "app/hooks/useAudio"
 import { useStores } from "app/models"
 import { ILibrary } from "app/models/LibraryStore"
-import { AppStackScreenProps } from "app/navigators"
+import type { AppStackScreenProps } from "app/navigators"
 import { useColors } from "app/theme/useColors"
 import { observer } from "mobx-react-lite"
-import React, { FC, useEffect, useRef, useState } from "react"
+import React, { FC, LegacyRef, useEffect, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
@@ -16,7 +16,7 @@ import {
   TouchableHighlight,
   ViewStyle,
 } from "react-native"
-import Pdf from "react-native-pdf"
+import Pdf, { PdfRef } from "react-native-pdf"
 import * as Progress from "react-native-progress"
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
 import { State } from "react-native-track-player"
@@ -29,7 +29,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
   const colors = useColors()
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const $pdfRef = useRef<Pdf>(null)
+  const $pdfRef = useRef<typeof Pdf>(null)
 
   const { dataStore } = useStores()
 
@@ -228,7 +228,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
         showsVerticalScrollIndicator={true}
         showsHorizontalScrollIndicator={true}
         source={source}
-        ref={$pdfRef}
+        ref={$pdfRef as unknown as LegacyRef<PdfRef>}
         renderActivityIndicator={() => {
           return <ActivityIndicator size="large" color={colors.palette.primary500} />
         }}

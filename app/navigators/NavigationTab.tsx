@@ -65,8 +65,6 @@ export const NavigationTab = observer(function NavigationTab() {
     getManualTestCityName() ||
     ""
 
-  const homeTabLabelText = homeCityName ? `Home · ${homeCityName}` : "Home"
-
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -96,9 +94,9 @@ export const NavigationTab = observer(function NavigationTab() {
             <Text
               numberOfLines={2}
               ellipsizeMode="tail"
-              style={[$tabBarLabel, $homeTabLabel, { color: focused ? colors.tint : idleColor }]}
+              style={[$tabBarLabel, { color: focused ? colors.tint : idleColor }]}
             >
-              {homeTabLabelText}
+              Home
             </Text>
           ),
           tabBarIcon: ({ focused }) =>

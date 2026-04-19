@@ -6,6 +6,7 @@ import { ITasbeeh } from "app/models"
 import * as storage from "app/utils/storage"
 
 import { DEFAULT_VERSIONS } from "../../constants/version-keys"
+import { haversineDistanceKm } from "app/utils/geoDistance"
 import { supabase } from "../supabase"
 import type { Database } from "../supabase/types"
 
@@ -1334,6 +1335,69 @@ export class ApiSupabase {
   }
 
   /**
+   * Ziyarats within maxRadiusKm of a point (Haversine).
+   * Optionally filters the Supabase query by city first to keep payload smaller.
+   */
+  async fetchZiyaratsNear(params: {
+    latitude: number
+    longitude: number
+    maxRadiusKm: number
+    city?: string | null
+    fetchLimit?: number
+    resultLimit?: number
+  }): Promise<
+    | {
+        kind: "ok"
+        data: Array<ZiyaratRow & { distanceKm: number }>
+      }
+    | GeneralApiProblem
+  > {
+    try {
+      const fetchLimit = params.fetchLimit ?? 500
+      const resultLimit = params.resultLimit ?? 80
+
+      let query = supabase.from("ziyarat").select("*")
+
+      if (params.city) {
+        query = query.eq("city", params.city)
+      }
+
+      query = query
+        .order("rank", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true })
+        .range(0, Math.max(0, fetchLimit - 1))
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error("Error fetching ziyarats (near):", error)
+        return { kind: "bad-data" }
+      }
+
+      const rows = (data || []) as ZiyaratRow[]
+      const withDistance = rows
+        .filter((z) => z.lat != null && z.lng != null && Number.isFinite(z.lat) && Number.isFinite(z.lng))
+        .map((z) => {
+          const distanceKm = haversineDistanceKm(
+            params.latitude,
+            params.longitude,
+            z.lat as number,
+            z.lng as number,
+          )
+          return { ...z, distanceKm }
+        })
+        .filter((z) => z.distanceKm <= params.maxRadiusKm)
+        .sort((a, b) => a.distanceKm - b.distanceKm)
+        .slice(0, resultLimit)
+
+      return { kind: "ok", data: withDistance }
+    } catch (error) {
+      console.error("Error fetching ziyarats near:", error)
+      return { kind: "bad-data" }
+    }
+  }
+
+  /**
    * Fetch all musafirkhanas
    */
   async fetchMusafirkhanas(options?: { limit?: number; offset?: number; city?: string }): Promise<
@@ -1460,7 +1524,10 @@ export class ApiSupabase {
     latitude: number
     longitude: number
     radius?: number
+    /** Exact match on a single category */
     category?: string
+    /** Match any of these `nearby_places.category` values (OR) */
+    categories?: string[]
     limit?: number
   }): Promise<
     | {
@@ -1475,7 +1542,9 @@ export class ApiSupabase {
 
       let query = supabase.from("nearby_places").select("*")
 
-      if (params.category) {
+      if (params.categories?.length) {
+        query = query.in("category", params.categories)
+      } else if (params.category) {
         query = query.eq("category", params.category)
       }
 

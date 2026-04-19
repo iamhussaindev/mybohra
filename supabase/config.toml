@@ -1,0 +1,14 @@
+# Supabase CLI — https://supabase.com/docs/guides/cli
+# Link project: supabase link --project-ref <ref>
+
+[functions.ai-suggest]
+verify_jwt = false
+
+[functions.rsvp-public]
+verify_jwt = false
+
+[functions.rsvp-create]
+verify_jwt = false
+
+[functions.rsvp-list-mine]
+verify_jwt = false

@@ -312,6 +312,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
       name: string
       distanceKm: number
       subtitle: string
+      imageUrl: string | null
     } | null = null
 
     for (let i = 0; i < mazaars.length; i++) {
@@ -325,7 +326,10 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
         const subtitle = m.location
           ? [m.location.city, m.location.state, m.location.country].filter(Boolean).join(", ")
           : ""
-        best = { id: String(m.id), name: m.name, distanceKm: km, subtitle }
+        const photos = m.photos
+        const imageUrl =
+          photos && photos.length > 0 && typeof photos[0] === "string" ? photos[0] : null
+        best = { id: String(m.id), name: m.name, distanceKm: km, subtitle, imageUrl }
       }
     }
     return best
@@ -342,6 +346,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
               name={nearestMazaar.name}
               distanceKm={nearestMazaar.distanceKm}
               subtitle={nearestMazaar.subtitle || undefined}
+              imageUri={nearestMazaar.imageUrl}
               onPress={() => props.navigation.navigate("Mazaar" as never)}
             />,
           ],
@@ -421,6 +426,16 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
                   />,
                 ],
               },
+              // {
+              //   name: "RSVP",
+              //   description: "RSVP jaman",
+              //   data: [
+              //     <RsvpHomeBanner
+              //       key="rsvp-home-banner"
+              //       onPress={() => props.navigation.navigate("Rsvp")}
+              //     />,
+              //   ],
+              // },
               {
                 name: "Ramazan Niyyat",
                 description: "Ramazan Niyyat",
@@ -453,6 +468,7 @@ export const HomeScreen: FC<HomeScreenProps> = observer(function MainScreen(prop
                         Counter: "Counter" as keyof typeof props.navigation.navigate,
                         Tasbeeh: "TasbeehList" as keyof typeof props.navigation.navigate,
                         Mazaar: "Mazaar" as keyof typeof props.navigation.navigate,
+                        RSVP: "Rsvp" as keyof typeof props.navigation.navigate,
                       }
                       const route = screenMap[screen]
                       if (route) {

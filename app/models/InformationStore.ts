@@ -195,6 +195,7 @@ export const InformationStoreModel = types
       longitude: number
       radius?: number
       category?: string
+      categories?: string[]
       limit?: number
     }) {
       try {

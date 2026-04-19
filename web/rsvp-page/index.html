@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RSVP</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 420px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; }
+    .muted { color: #555; font-size: 0.9rem; }
+    button, .btn { display: inline-block; margin: 0.25rem 0.25rem 0.25rem 0; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #ccc; background: #f8f8f8; cursor: pointer; }
+    button.primary { background: #8b0d50; color: #fff; border-color: #8b0d50; }
+    input, select { width: 100%; padding: 0.5rem; margin: 0.25rem 0 0.75rem; box-sizing: border-box; }
+    .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .hidden { display: none; }
+    #err { color: #b00020; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <p class="muted">My Bohra — RSVP</p>
+  <div id="setup" class="hidden">
+    <p>Set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> in the script below (or inject at deploy), then redeploy this file.</p>
+  </div>
+  <div id="app">
+    <h1 id="title">RSVP</h1>
+    <p id="meta" class="muted"></p>
+    <p id="msg"></p>
+    <p id="totals" class="muted"></p>
+    <div id="form" class="hidden">
+      <label>Your RSVP</label>
+      <div class="row" id="statusRow"></div>
+      <label>How many people (including you)?</label>
+      <input type="number" id="headcount" min="1" max="50" value="1" />
+      <label>Your name (optional)</label>
+      <input type="text" id="guestName" maxlength="120" />
+      <button class="primary" id="submitBtn">Submit</button>
+      <p id="err"></p>
+    </div>
+    <div id="actions" class="hidden">
+      <p class="muted">Open in the app (if installed): <a class="btn" id="openApp" href="#">Open in app</a></p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var SUPABASE_URL = "REPLACE_WITH_SUPABASE_URL"
+      var SUPABASE_ANON_KEY = "REPLACE_WITH_SUPABASE_ANON_KEY"
+      var params = new URLSearchParams(window.location.search)
+      var slug = (params.get("slug") || "").trim().toLowerCase()
+      if (!slug || !/^[a-z0-9]{8,32}$/.test(slug)) {
+        document.getElementById("title").textContent = "Missing or invalid link"
+        return
+      }
+      if (SUPABASE_URL.indexOf("REPLACE") !== -1 || SUPABASE_ANON_KEY.indexOf("REPLACE") !== -1) {
+        document.getElementById("setup").classList.remove("hidden")
+        document.getElementById("title").textContent = "Configure this page"
+        return
+      }
+      var appScheme = "mybohra://rsvp/" + encodeURIComponent(slug)
+      document.getElementById("openApp").href = appScheme
+      document.getElementById("actions").classList.remove("hidden")
+      loadEvent()
+      function fnUrl() {
+        return SUPABASE_URL.replace(/\/$/, "") + "/functions/v1/rsvp-public"
+      }
+      function post(body) {
+        return fetch(fnUrl(), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + SUPABASE_ANON_KEY,
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify(body),
+        }).then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok) throw new Error(j.error || r.statusText)
+            return j
+          })
+        })
+      }
+      function loadEvent() {
+        document.getElementById("title").textContent = "Loading…"
+        post({ action: "get", slug: slug })
+          .then(function (data) {
+            var ev = data.event
+            if (!ev) throw new Error("Not found")
+            document.getElementById("title").textContent = ev.title || ev.event_type + " jaman"
+            document.getElementById("meta").textContent =
+              "Host: " + ev.host_label + " · " + new Date(ev.scheduled_at).toLocaleString()
+            document.getElementById("msg").textContent = ev.message || ""
+            var t = data.totals || {}
+            document.getElementById("totals").textContent =
+              "Responses — Yes: " + (t.yes || 0) + " · No: " + (t.no || 0) + " · Maybe: " + (t.maybe || 0)
+            if (ev.closed_at) {
+              document.getElementById("form").classList.add("hidden")
+              document.getElementById("title").textContent = "RSVP closed"
+              return
+            }
+            document.getElementById("form").classList.remove("hidden")
+            ;["yes", "no", "maybe"].forEach(function (s) {
+              var b = document.createElement("button")
+              b.type = "button"
+              b.textContent = s.toUpperCase()
+              b.dataset.status = s
+              b.onclick = function () {
+                Array.prototype.forEach.call(document.querySelectorAll("#statusRow button"), function (x) {
+                  x.style.outline = ""
+                })
+                b.style.outline = "2px solid #8b0d50"
+                b.dataset.selected = "1"
+              }
+              document.getElementById("statusRow").appendChild(b)
+            })
+          })
+          .catch(function (e) {
+            document.getElementById("title").textContent = "Could not load"
+            document.getElementById("err").textContent = e.message || String(e)
+          })
+      }
+      document.getElementById("submitBtn").onclick = function () {
+        var selected = document.querySelector("#statusRow button[data-selected]")
+        var status = selected && selected.dataset.status
+        document.getElementById("err").textContent = ""
+        if (!status) {
+          document.getElementById("err").textContent = "Choose Yes, No, or Maybe."
+          return
+        }
+        var headcount = parseInt(document.getElementById("headcount").value, 10) || 1
+        var guest_name = document.getElementById("guestName").value.trim() || null
+        post({ action: "respond", slug: slug, status: status, headcount: headcount, guest_name: guest_name })
+          .then(function () {
+            alert("Thank you — your RSVP was recorded.")
+            loadEvent()
+          })
+          .catch(function (e) {
+            document.getElementById("err").textContent = e.message || String(e)
+          })
+      }
+    })()
+  </script>
+</body>
+</html>

@@ -121,6 +121,20 @@ export type AppStackParamList = {
   Miqaats: undefined
   MiqaatsSearch: undefined
   Mazaar: undefined
+  MazarDetail: {
+    id: string
+    name: string
+    imageUri?: string | null
+    latitude: number
+    longitude: number
+    city?: string | null
+  }
+  Rsvp: undefined
+  RsvpMyList: undefined
+  RsvpCreate: undefined
+  RsvpRespond: { slug: string }
+  AuthEmail: { redirectTo?: "RsvpCreate" } | undefined
+  AuthVerify: { email: string; redirectTo?: "RsvpCreate" }
 }
 
 /**
@@ -210,6 +224,13 @@ const AppStack = observer(function AppStack() {
         component={Screens.MiqaatsSearchScreen}
       />
       <Stack.Screen name="Mazaar" component={Screens.MazaarScreen} />
+      <Stack.Screen name="MazarDetail" component={Screens.MazarDetailScreen} />
+      <Stack.Screen name="Rsvp" component={Screens.RsvpScreen} />
+      <Stack.Screen name="RsvpMyList" component={Screens.RsvpMyListScreen} />
+      <Stack.Screen name="RsvpCreate" component={Screens.RsvpCreateWizardScreen} />
+      <Stack.Screen name="RsvpRespond" component={Screens.RsvpRespondScreen} />
+      <Stack.Screen name="AuthEmail" component={Screens.AuthEmailScreen} />
+      <Stack.Screen name="AuthVerify" component={Screens.AuthVerifyScreen} />
     </Stack.Navigator>
   )
 })

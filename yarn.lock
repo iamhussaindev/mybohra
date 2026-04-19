@@ -3137,9 +3137,10 @@
   dependencies:
     invariant "^2.2.4"
 
-"@react-native-community/slider@https://github.com/beinghussain/react-native-slider.git":
+"@react-native-community/slider@4.5.2":
   version "4.5.2"
-  resolved "https://github.com/beinghussain/react-native-slider.git#7e371aba4e59ff0110453c6f719869d859bc2868"
+  resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-4.5.2.tgz#c3835788dbc1bd83d3778b83ca15533c805db149"
+  integrity sha512-DbFyCyI7rwl0FkBkp0lzEVp+5mNfS5qU/nM2sK2aSguWhj0Odkt1aKHP2iW/ljruOhgS/O4dEixXlne4OdZJDQ==
 
 "@react-native/assets-registry@0.73.1", "@react-native/assets-registry@~0.73.1":
   version "0.73.1"
@@ -6226,6 +6227,11 @@ expo-camera@^17.0.10:
   integrity sha512-w1RBw83mAGVk4BPPwNrCZyFop0VLiVSRE3c2V9onWbdFwonpRhzmB4drygG8YOUTl1H3wQvALJHyMPTbgsK1Jg==
   dependencies:
     invariant "^2.2.4"
+
+expo-clipboard@~5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-5.0.1.tgz#a62a021a9444740d180d60f915cca8242a323716"
+  integrity sha512-JH853QJPr5W3h87If3aDTnMK+ESSIrwzU2TdfZrqZttVDY2pMIf/w37mVHHNYodXM4ATHXadtOkjKbAa0DWwUg==
 
 expo-constants@^12.1.2:
   version "12.2.0"
@@ -10403,9 +10409,10 @@ react-native-pdf-thumbnail@^1.3.1:
   resolved "https://registry.yarnpkg.com/react-native-pdf-thumbnail/-/react-native-pdf-thumbnail-1.3.1.tgz#147bc6ff58cae73ab1079b046adb4a22e34fb6a6"
   integrity sha512-7c5I+XXpM2a0ijiYNfD6nj2qNTEqGaiILfw7s86igHBzLV18c27hefqR8VNpqkK+qRMmosDrpaJeIRITXsad0w==
 
-"react-native-pdf@https://github.com/beinghussain/react-native-pdf.git":
-  version "6.7.5"
-  resolved "https://github.com/beinghussain/react-native-pdf.git#52e4594dfe4a0b9506ca86740b9afc4b6534546c"
+react-native-pdf@^7.0.4:
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-pdf/-/react-native-pdf-7.0.4.tgz#f48d485d32cef24f41511ba2072bc99ba94b13c9"
+  integrity sha512-Uhxn5SSguMKvbwD50iIZfYPmYeKcX+9I3tc4J3HCbRExAN0uqXTAKx2pvbR2Y62umAj0JS274FcbSldQfoQfyg==
   dependencies:
     crypto-js "4.2.0"
     deprecated-react-native-prop-types "^2.3.0"

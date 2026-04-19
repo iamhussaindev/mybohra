@@ -649,6 +649,85 @@ export interface Database {
           updated_at?: string
         }
       }
+      rsvp_events: {
+        Row: {
+          id: string
+          slug: string
+          event_type: "miqaat" | "darees" | "majlis" | "shadi" | "birthday"
+          host_mode: "jamaat" | "individual"
+          scheduled_at: string
+          message: string | null
+          title: string | null
+          host_label: string
+          linked_miqaat_id: number | null
+          created_by: string | null
+          creator_device_id: string | null
+          created_at: string
+          updated_at: string
+          closed_at: string | null
+        }
+        Insert: {
+          id?: string
+          slug: string
+          event_type: "miqaat" | "darees" | "majlis" | "shadi" | "birthday"
+          host_mode: "jamaat" | "individual"
+          scheduled_at: string
+          message?: string | null
+          title?: string | null
+          host_label?: string
+          linked_miqaat_id?: number | null
+          created_by?: string | null
+          creator_device_id?: string | null
+          created_at?: string
+          updated_at?: string
+          closed_at?: string | null
+        }
+        Update: {
+          id?: string
+          slug?: string
+          event_type?: "miqaat" | "darees" | "majlis" | "shadi" | "birthday"
+          host_mode?: "jamaat" | "individual"
+          scheduled_at?: string
+          message?: string | null
+          title?: string | null
+          host_label?: string
+          linked_miqaat_id?: number | null
+          created_by?: string | null
+          creator_device_id?: string | null
+          created_at?: string
+          updated_at?: string
+          closed_at?: string | null
+        }
+      }
+      rsvp_responses: {
+        Row: {
+          id: string
+          event_id: string
+          status: "yes" | "no" | "maybe"
+          headcount: number
+          guest_name: string | null
+          responder_user_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          status: "yes" | "no" | "maybe"
+          headcount?: number
+          guest_name?: string | null
+          responder_user_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          status?: "yes" | "no" | "maybe"
+          headcount?: number
+          guest_name?: string | null
+          responder_user_id?: string | null
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,7 +1,7 @@
 import { Button, Dropdown, Screen, Switch, Text, TextField } from "app/components"
 import Header from "app/components/Header"
 import HijriDate from "app/libs/HijriDate"
-import { AppStackScreenProps } from "app/navigators"
+import type { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { observer } from "mobx-react-lite"
 import React, { FC, useState } from "react"

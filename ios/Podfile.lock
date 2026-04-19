@@ -83,6 +83,8 @@ PODS:
     - React-Core
   - ExpoBlur (12.9.2):
     - ExpoModulesCore
+  - ExpoClipboard (5.0.1):
+    - ExpoModulesCore
   - ExpoDevice (5.9.4):
     - ExpoModulesCore
   - ExpoFileSystem (16.0.8):
@@ -1009,7 +1011,7 @@ PODS:
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - react-native-pdf (6.7.5):
+  - react-native-pdf (7.0.4):
     - React-Core
   - react-native-pdf-thumbnail (1.3.1):
     - glog
@@ -1261,6 +1263,7 @@ DEPENDENCIES:
   - expo-dev-menu (from `../node_modules/expo-dev-menu`)
   - expo-dev-menu-interface (from `../node_modules/expo-dev-menu-interface/ios`)
   - ExpoBlur (from `../node_modules/expo-blur/ios`)
+  - ExpoClipboard (from `../node_modules/expo-clipboard/ios`)
   - ExpoDevice (from `../node_modules/expo-device/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
@@ -1380,6 +1383,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-dev-menu-interface/ios"
   ExpoBlur:
     :path: "../node_modules/expo-blur/ios"
+  ExpoClipboard:
+    :path: "../node_modules/expo-clipboard/ios"
   ExpoDevice:
     :path: "../node_modules/expo-device/ios"
   ExpoFileSystem:
@@ -1553,6 +1558,7 @@ SPEC CHECKSUMS:
   expo-dev-menu: b964921baa1bda2a7ff42a407d1d7698ce215faf
   expo-dev-menu-interface: 7ba029c9d1a82ac22b9b584c00514860b060553e
   ExpoBlur: e832d874bd94afc0645daddbd3162ec1ce172080
+  ExpoClipboard: b597982124f067ff9f5b89093eb3d97898d5d877
   ExpoDevice: 97307196d8cab694e245752b8a7afacc35c14e03
   ExpoFileSystem: eecaf6796aed0f4dd20042dc2ca2cac6c4bc1185
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
@@ -1594,7 +1600,7 @@ SPEC CHECKSUMS:
   react-native-compass-heading: 4f28f2b6640b8abacd26b793160dcffdd54e5c00
   react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
   react-native-pager-view: d81ab2060b9caf57ca8c3a0d57467ff407cdb825
-  react-native-pdf: 103940c90d62adfd259f63cca99c7c0c306b514c
+  react-native-pdf: 5ab526192aa54d3630ea34f02ea7de90faf8d595
   react-native-pdf-thumbnail: 6a78a7b23fa456800cdb665fde16995931eb18cd
   react-native-safe-area-context: 0ee144a6170530ccc37a0fd9388e28d06f516a89
   react-native-slider: 07df44a6b615c6bf8584a5ee88288024b3cbf498
@@ -1637,6 +1643,6 @@ SPEC CHECKSUMS:
   SwiftAudioEx: f6aa653770f3a0d3851edaf8d834a30aee4a7646
   Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
-PODFILE CHECKSUM: 63f203305d707c08810c9b65f4f0f41aab3dc5c4
+PODFILE CHECKSUM: 02d25e15ee275eb1730477b119b5ed7f62eb1e62
 
 COCOAPODS: 1.16.2

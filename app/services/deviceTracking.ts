@@ -15,7 +15,8 @@ const DEVICE_ID_STORAGE_KEY = "DEVICE_ID"
 /**
  * Generate or retrieve a unique device ID
  */
-async function getOrCreateDeviceId(): Promise<string> {
+/** Stable id for this install (storage-backed); safe to use for RSVP when user is not signed in. */
+export async function getOrCreateDeviceId(): Promise<string> {
   try {
     // Try to get existing device ID from storage
     const existingDeviceId = await storage.load(DEVICE_ID_STORAGE_KEY)

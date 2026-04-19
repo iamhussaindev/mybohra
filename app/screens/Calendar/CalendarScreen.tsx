@@ -1,7 +1,7 @@
 import { Screen } from "app/components"
 import { Calendar, CalendarDay } from "app/libs/Calendar"
 import { useStores } from "app/models"
-import { AppStackScreenProps } from "app/navigators"
+import type { AppStackScreenProps } from "app/navigators"
 import { DailyDuaWithLibrary, SupabaseFetcherService } from "app/services/supabase"
 import { observer } from "mobx-react-lite"
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react"

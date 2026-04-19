@@ -14,14 +14,15 @@ import GetLocation from "react-native-get-location"
 import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
 import Toast from "react-native-toast-message"
 
-import Config from "./config"
 import { HomeLocationManager } from "./components/HomeLocationManager"
+import Config from "./config"
 import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { SoundProvider } from "./hooks/useAudio"
 import { useDeviceTracking } from "./hooks/useDeviceTracking"
 import { useInitialRootStore, useStores } from "./models"
-import { AppNavigator, useNavigationPersistence } from "./navigators"
+import { AppNavigator } from "./navigators/AppNavigator"
+import { useNavigationPersistence } from "./navigators/navigationUtilities"
 import { ErrorBoundary } from "./screens/ErrorScreen/ErrorBoundary"
 import { customFontsToLoad } from "./theme"
 import { getManualTestCityName, getManualTestCoordinates } from "./utils/manualTestLocation"
@@ -30,10 +31,16 @@ import { locationStorage } from "./utils/storage"
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
-// Web linking configuration
+// Deep links: mybohra://rsvp/:slug → RsvpRespond (see app.json expo.scheme)
 const prefix = Linking.createURL("/")
-const config = {
-  screens: {},
+const linkingPrefixes = [prefix, "mybohra://"]
+const linkingScreens = {
+  Tabs: {
+    screens: {
+      Home: "",
+    },
+  },
+  RsvpRespond: "rsvp/:slug",
 }
 
 interface AppProps {
@@ -157,8 +164,8 @@ function App(props: AppProps) {
   if (!rehydrated || !isNavigationStateRestored || !areFontsLoaded) return null
 
   const linking = {
-    prefixes: [prefix],
-    config,
+    prefixes: linkingPrefixes,
+    config: { screens: linkingScreens },
   }
 
   // otherwise, we're ready to render the app
