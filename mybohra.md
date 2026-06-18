@@ -214,7 +214,7 @@ bohracorner.com, zaereen.com, its52.com/musafareen, idaratalzakereen.org, dawood
 | Repo | Owns |
 |------|------|
 | **mybohra-dashboard** | `supabase/migrations/` (all DDL), `npm run db:push`, `npm run db:sync` |
-| **app** (this repo) | Generated types only — `app/services/supabase/database.types.ts` |
+| **app** (this repo) | Generated types + store models — `app/services/supabase/database.types.ts`, `app/models/generated/` |
 
 **After any database change:**
 

@@ -263,4 +263,3 @@ export const YouTubeStoreModel = types
 
 export interface YouTubeStore extends Instance<typeof YouTubeStoreModel> {}
 export interface YouTubeStoreSnapshot extends SnapshotOut<typeof YouTubeStoreModel> {}
-export interface IYouTubeVideo extends Instance<typeof YouTubeVideoModel> {}
