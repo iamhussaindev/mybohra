@@ -6,6 +6,7 @@ This app does **not** contain SQL migrations or schema files.
 |------|--------|
 | Schema migrations | `mybohra-dashboard/supabase/migrations/` |
 | Generated types | `app/services/supabase/database.types.ts` |
+| Generated store models | `app/models/generated/` |
 | Type imports | `app/services/supabase/types.ts` |
 
 ## Sync types after schema changes

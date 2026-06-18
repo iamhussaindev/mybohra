@@ -507,8 +507,9 @@ export const AudioPlayerScreen: React.FC<AudioPlayerScreenProps> = observer(
 
     // Format file size (placeholder - would need actual file size from metadata)
     const getFileSize = () => {
-      if (currentTrackItem?.metadata?.audioSize) {
-        const sizeMB = currentTrackItem.metadata.audioSize / (1024 * 1024)
+      const audioSize = (currentTrackItem?.metadata as { audioSize?: number } | null | undefined)?.audioSize
+      if (audioSize) {
+        const sizeMB = audioSize / (1024 * 1024)
         return `${sizeMB.toFixed(0)} MB`
       }
       return "12 MB" // Default placeholder
