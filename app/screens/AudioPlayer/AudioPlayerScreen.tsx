@@ -32,7 +32,12 @@ import {
   ImageStyle,
   ActivityIndicator,
 } from "react-native"
-import TrackPlayer, { State } from "react-native-track-player"
+import { filterNativeAudioQueue, navigateLibraryAudioItem, navigateLibraryPdfAudio } from "app/utils/navigateLibraryItem"
+import {
+  shouldOfferDeeplinkFromPdf,
+  shouldOfferYouTubeFromPdf,
+  shouldShowNativePdfAudioPlayer,
+} from "app/utils/libraryAccess"
 
 type AudioPlayerScreenProps = AppStackScreenProps<"AudioPlayer">
 
@@ -142,6 +147,7 @@ export const AudioPlayerScreen: React.FC<AudioPlayerScreenProps> = observer(
             } else {
               items = []
             }
+            items = filterNativeAudioQueue(items)
             setTracks(items)
             loadedTracksRef.current = items
             loadedAlbumRef.current = album
@@ -164,7 +170,11 @@ export const AudioPlayerScreen: React.FC<AudioPlayerScreenProps> = observer(
           if (trackId !== undefined && items.length === 0 && !isSameTrackPlaying) {
             // Fetch just this single item to play immediately
             const singleItem = await libraryStore.fetchItemsByIds([trackId])
-            if (singleItem.length > 0 && singleItem[0].audio_url) {
+            if (singleItem.length > 0) {
+              if (!singleItem[0].audio_url || !filterNativeAudioQueue(singleItem).length) {
+                await navigateLibraryAudioItem(props.navigation, singleItem[0], { album })
+                return
+              }
               // Play the single track immediately
               playSound(singleItem[0], "LIBRARY")
               // If autoplay is off, pause immediately after setting up

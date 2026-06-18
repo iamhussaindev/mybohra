@@ -156,7 +156,7 @@ export const YouTubeStoreModel = types
     /**
      * Set videos in store (for caching)
      */
-    setVideos: function (videos: IYouTubeVideo[]) {
+    setVideos: function (videos: IYouTubeVideoDb[]) {
       self.videos = videos as any
     },
 

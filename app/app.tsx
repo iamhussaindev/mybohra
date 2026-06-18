@@ -19,10 +19,12 @@ import Config from "./config"
 import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
 import { ThemeProvider } from "./contexts/ThemeContext"
 import { SoundProvider } from "./hooks/useAudio"
+import { useAuthInit } from "./hooks/useAuthInit"
 import { useDeviceTracking } from "./hooks/useDeviceTracking"
 import { useInitialRootStore, useStores } from "./models"
 import { AppNavigator } from "./navigators/AppNavigator"
 import { useNavigationPersistence } from "./navigators/navigationUtilities"
+import { QueryProvider } from "./providers/QueryProvider"
 import { ErrorBoundary } from "./screens/ErrorScreen/ErrorBoundary"
 import { customFontsToLoad } from "./theme"
 import { getManualTestCityName, getManualTestCoordinates } from "./utils/manualTestLocation"
@@ -65,6 +67,7 @@ function App(props: AppProps) {
 
   // Track device on app launch and when app comes to foreground
   useDeviceTracking(true)
+  useAuthInit()
 
   const { rehydrated } = useInitialRootStore(() => {
     // This runs after the root store has been initialized and rehydrated.
@@ -171,25 +174,27 @@ function App(props: AppProps) {
   // otherwise, we're ready to render the app
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <ThemeProvider>
-        <SoundProvider>
-          <ErrorBoundary catchErrors={Config.catchErrors}>
-            <GestureHandlerRootView style={$container}>
-              <BottomSheetModalProvider>
-                <LocationBottomSheetProvider>
-                  <AppNavigator
-                    linking={linking}
-                    initialState={initialNavigationState}
-                    onStateChange={onNavigationStateChange}
-                  />
-                  <HomeLocationManager />
-                  <Toast position="bottom" swipeable topOffset={200} />
-                </LocationBottomSheetProvider>
-              </BottomSheetModalProvider>
-            </GestureHandlerRootView>
-          </ErrorBoundary>
-        </SoundProvider>
-      </ThemeProvider>
+      <QueryProvider>
+        <ThemeProvider>
+          <SoundProvider>
+            <ErrorBoundary catchErrors={Config.catchErrors}>
+              <GestureHandlerRootView style={$container}>
+                <BottomSheetModalProvider>
+                  <LocationBottomSheetProvider>
+                    <AppNavigator
+                      linking={linking}
+                      initialState={initialNavigationState}
+                      onStateChange={onNavigationStateChange}
+                    />
+                    <HomeLocationManager />
+                    <Toast position="bottom" swipeable topOffset={200} />
+                  </LocationBottomSheetProvider>
+                </BottomSheetModalProvider>
+              </GestureHandlerRootView>
+            </ErrorBoundary>
+          </SoundProvider>
+        </ThemeProvider>
+      </QueryProvider>
     </SafeAreaProvider>
   )
 }

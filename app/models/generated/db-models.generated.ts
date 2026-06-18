@@ -28,6 +28,11 @@ export const LibraryDbModel = types.model('LibraryDbModel', {
   view_count: types.maybeNull(types.number),
   youtube_id: types.maybeNull(types.number),
   youtube_url: types.maybeNull(types.string),
+  youtube_video_id: types.maybeNull(types.string),
+  youtube_thumbnail: types.maybeNull(types.string),
+  youtube_duration: types.maybeNull(types.number),
+  deeplink_url: types.maybeNull(types.string),
+  access_tag: types.maybeNull(types.enumeration("AccessTag", ["ATS", "ATS_PUBLIC", "PUBLIC"])),
 })
 export type ILibraryDb = Instance<typeof LibraryDbModel>
 

@@ -52,6 +52,10 @@ export type AppStackParamList = {
     audio_url: string | null
     pdf_url: string | null
     youtube_url: string | null
+    youtube_video_id?: string | null
+    youtube_thumbnail?: string | null
+    deeplink_url?: string | null
+    access_tag?: "ATS" | "ATS_PUBLIC" | "PUBLIC" | null
     metadata: any
     tags: string[] | null
     categories: string[] | null
@@ -63,6 +67,9 @@ export type AppStackParamList = {
     audio_url: string | null
     pdf_url: string | null
     youtube_url: string | null
+    youtube_video_id?: string | null
+    deeplink_url?: string | null
+    access_tag?: "ATS" | "ATS_PUBLIC" | "PUBLIC" | null
   }
   Counter: undefined
   SavedTasbeeh: undefined

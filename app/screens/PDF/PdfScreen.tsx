@@ -19,7 +19,12 @@ import {
 import Pdf, { PdfRef } from "react-native-pdf"
 import * as Progress from "react-native-progress"
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated"
-import { State } from "react-native-track-player"
+import {
+  shouldOfferDeeplinkFromPdf,
+  shouldOfferYouTubeFromPdf,
+  shouldShowNativePdfAudioPlayer,
+} from "app/utils/libraryAccess"
+import { navigateLibraryPdfAudio } from "app/utils/navigateLibraryItem"
 
 import { Header } from "./PdfHeader"
 
@@ -110,7 +115,7 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
       style={isFullscreen ? $fullscreenContainer : $container}
     >
       <Header isFullscreen={isFullscreen} togglePin={togglePin} {...item} />
-      {!loading && item.audio_url && (
+      {!loading && shouldShowNativePdfAudioPlayer(item) && item.audio_url && (
         <>
           <Animated.View
             style={[
@@ -220,6 +225,20 @@ export const PdfScreen: FC<PdfScreenProps> = observer(function PdfScreen(props) 
             )}
           </Animated.View>
         </>
+      )}
+
+      {!loading && !shouldShowNativePdfAudioPlayer(item) && (shouldOfferYouTubeFromPdf(item) || shouldOfferDeeplinkFromPdf(item)) && (
+        <TouchableHighlight
+          underlayColor={colors.palette.primary400}
+          style={$externalAudioButton(colors)}
+          onPress={() => {
+            void navigateLibraryPdfAudio(props.navigation, item)
+          }}
+        >
+          <Text weight="bold" style={$externalAudioText(colors)}>
+            {shouldOfferDeeplinkFromPdf(item) ? "Open audio in Sautuliman" : "Play audio on YouTube"}
+          </Text>
+        </TouchableHighlight>
       )}
 
       <Pdf
@@ -346,3 +365,21 @@ const $fullscreenPdf: ViewStyle = {
   height: Dimensions.get("window").height,
   paddingTop: 0,
 }
+
+const $externalAudioButton = (colors: any): ViewStyle => ({
+  position: "absolute",
+  bottom: 16,
+  left: 16,
+  right: 16,
+  zIndex: 100,
+  backgroundColor: colors.palette.primary500,
+  borderRadius: 999,
+  paddingVertical: 14,
+  paddingHorizontal: 20,
+  alignItems: "center",
+})
+
+const $externalAudioText = (colors: any): TextStyle => ({
+  color: colors.white,
+  fontSize: 14,
+})

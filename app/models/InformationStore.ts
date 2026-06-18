@@ -26,9 +26,9 @@ export const MazaarModel = MazaarDbModel.props({
 export const InformationStoreModel = types
   .model("InformationStore", {
     mazaars: types.optional(types.array(MazaarModel), []),
-    ziyarats: types.optional(types.array(ZiyaratModel), []),
-    musafirkhanas: types.optional(types.array(MusafirkhanaModel), []),
-    masjids: types.optional(types.array(MasjidModel), []),
+    ziyarats: types.optional(types.array(ZiyaratDbModel), []),
+    musafirkhanas: types.optional(types.array(MusafirkhanaDbModel), []),
+    masjids: types.optional(types.array(MasjidDbModel), []),
     nearbyPlaces: types.optional(types.array(NearbyPlaceModel), []),
   })
   .actions((self) => ({
@@ -151,7 +151,7 @@ export const InformationStoreModel = types
 export interface InformationStore extends Instance<typeof InformationStoreModel> {}
 export interface InformationStoreSnapshot extends SnapshotOut<typeof InformationStoreModel> {}
 export interface IMazaar extends Instance<typeof MazaarModel> {}
-export interface IZiyarat extends Instance<typeof ZiyaratModel> {}
-export interface IMusafirkhana extends Instance<typeof MusafirkhanaModel> {}
-export interface IMasjid extends Instance<typeof MasjidModel> {}
+export interface IZiyarat extends Instance<typeof ZiyaratDbModel> {}
+export interface IMusafirkhana extends Instance<typeof MusafirkhanaDbModel> {}
+export interface IMasjid extends Instance<typeof MasjidDbModel> {}
 export interface INearbyPlace extends Instance<typeof NearbyPlaceModel> {}

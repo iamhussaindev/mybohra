@@ -8,6 +8,7 @@ import type { AppStackScreenProps } from "app/navigators"
 import { spacing, typography } from "app/theme"
 import { useColors } from "app/theme/useColors"
 import { formatLabel } from "app/utils/labelHelper"
+import { navigateLibraryAudioItem } from "app/utils/navigateLibraryItem"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState, useCallback } from "react"
 import {
@@ -158,13 +159,9 @@ export const LibraryScreen: React.FC<LibraryScreenProps> = observer(function Lib
 
   const handleItemPress = useCallback(
     (item: ILibrary) => {
-      // For "For you" tab, use the item's actual album instead of "For you"
       const albumToUse =
         selectedAlbum === "For you" ? item.album || "" : selectedAlbum || item.album || ""
-      navigation.navigate("AudioPlayer" as any, {
-        album: albumToUse,
-        trackId: item.id,
-      })
+      void navigateLibraryAudioItem(navigation, item, { album: albumToUse })
     },
     [navigation, selectedAlbum],
   )
