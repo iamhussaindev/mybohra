@@ -2,36 +2,14 @@ import HijriDate from "app/libs/HijriDate"
 import { apiSupabase } from "app/services/api"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
-export const MetadataModel = types.model("MetadataModel", {
-  audioSize: types.maybeNull(types.number),
-  pdfSize: types.union(types.number, types.string, types.undefined, types.null),
-  audioLength: types.maybeNull(types.number),
-  pdfPageCount: types.union(types.number, types.string, types.undefined, types.null),
-  thumbnail: types.maybeNull(types.string),
-})
+import { ILibraryDb, LibraryDbModel } from "./generated"
 
-export const LibraryModel = types.model("LibraryModel", {
-  id: types.identifierNumber,
-  name: types.string,
-  description: types.maybeNull(types.string),
-  audio_url: types.maybeNull(types.string),
-  pdf_url: types.maybeNull(types.string),
-  youtube_url: types.maybeNull(types.string),
-  metadata: types.maybeNull(MetadataModel),
-  album: types.maybeNull(types.string),
-  tags: types.maybeNull(types.array(types.string)),
-  categories: types.maybeNull(types.array(types.string)),
-  search_text: types.maybeNull(types.string),
-  search_vector: types.maybeNull(types.string),
-  view_count: types.maybeNull(types.number),
-  pdf_view_count: types.maybeNull(types.number),
-  created_at: types.maybeNull(types.string),
-  updated_at: types.maybeNull(types.string),
-})
+export { LibraryDbModel as LibraryModel }
+export type { ILibraryDb as ILibrary }
 
 export const LibraryStoreModel = types
   .model("LibraryStore", {
-    homeData: types.optional(types.array(LibraryModel), []),
+    homeData: types.optional(types.array(LibraryDbModel), []),
     // Remove allLibraryData - we'll fetch from Supabase on demand
     categories: types.optional(types.array(types.frozen()), []),
     albums: types.optional(types.array(types.frozen()), []),
@@ -103,7 +81,7 @@ export const LibraryStoreModel = types
       try {
         const response = yield apiSupabase.fetchByAlbum(album, options)
         if (response.kind === "ok") {
-          return response.data as ILibrary[]
+          return response.data as ILibraryDb[]
         }
         return []
       } catch (error) {
@@ -120,7 +98,7 @@ export const LibraryStoreModel = types
       try {
         const response = yield apiSupabase.fetchByCategories(categories as string[], options)
         if (response.kind === "ok") {
-          return response.data as ILibrary[]
+          return response.data as ILibraryDb[]
         }
         return []
       } catch (error) {
@@ -134,7 +112,7 @@ export const LibraryStoreModel = types
       try {
         const response = yield apiSupabase.fetchByTags(tags)
         if (response.kind === "ok") {
-          return response.data as ILibrary[]
+          return response.data as ILibraryDb[]
         }
         return []
       } catch (error) {
@@ -148,7 +126,7 @@ export const LibraryStoreModel = types
       try {
         const response = yield apiSupabase.fetchLibraryItemsByIds(ids)
         if (response.kind === "ok") {
-          return response.data as ILibrary[]
+          return response.data as ILibraryDb[]
         }
         return []
       } catch (error) {
@@ -162,7 +140,7 @@ export const LibraryStoreModel = types
       try {
         const response = yield apiSupabase.searchLibrary(searchQuery, searchAlbum)
         if (response.kind === "ok") {
-          return response.data as ILibrary[]
+          return response.data as ILibraryDb[]
         }
         return []
       } catch (error) {
@@ -182,7 +160,7 @@ export const LibraryStoreModel = types
       try {
         const response = yield apiSupabase.fetchCustomizedUpnext(params)
         if (response.kind === "ok") {
-          return response.data as ILibrary[]
+          return response.data as ILibraryDb[]
         }
         return []
       } catch (error) {
@@ -204,4 +182,3 @@ export const LibraryStoreModel = types
 
 export interface LibraryStore extends Instance<typeof LibraryStoreModel> {}
 export interface LibraryStoreSnapshot extends SnapshotOut<typeof LibraryStoreModel> {}
-export interface ILibrary extends Instance<typeof LibraryModel> {}

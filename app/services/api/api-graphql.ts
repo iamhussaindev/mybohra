@@ -33,31 +33,7 @@ type MusafirkhanaRow = Database["public"]["Tables"]["musafirkhana"]["Row"]
 type MasjidRow = Database["public"]["Tables"]["masjid"]["Row"]
 type NearbyPlaceRow = Database["public"]["Tables"]["nearby_places"]["Row"]
 type MazaarRow = Database["public"]["Tables"]["mazaars"]["Row"]
-
-// YouTube Video type definition
-type YouTubeVideoRow = {
-  id: number
-  video_id: string
-  title: string
-  description: string | null
-  duration: number | null
-  view_count: number | null
-  upload_date: string | null
-  url: string
-  thumbnail: string | null
-  thumbnail_default: string | null
-  thumbnail_medium: string | null
-  thumbnail_high: string | null
-  thumbnail_standard: string | null
-  thumbnail_maxres: string | null
-  channel_url: string | null
-  channel_handle: string | null
-  created_at: string
-  updated_at: string
-  tags: string[] | null
-  categories: string[] | null
-  library_id: number | null
-}
+type YouTubeVideoRow = Database["public"]["Tables"]["youtube_videos"]["Row"]
 /**
  * New Supabase-based API service using PostgREST
  */

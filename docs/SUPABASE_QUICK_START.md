@@ -16,11 +16,10 @@ This is a condensed guide to get you up and running with Supabase in 15 minutes.
 
 ### Step 2: Create Database (3 min)
 ```
-1. Go to SQL Editor in dashboard
-2. Copy content from app/database/database.sql
-3. Paste and click "Run"
-4. Verify tables in Table Editor
+cd mybohra-dashboard
+npm run db:link && npm run db:push && npm run db:sync
 ```
+Verify tables in Supabase Table Editor.
 
 ### Step 3: Add Essential Data (2 min)
 ```sql

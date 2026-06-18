@@ -65,11 +65,15 @@ Configuration files updated:
 
 ### Step 2: Set Up Database Schema
 
-1. In your Supabase dashboard, go to the **SQL Editor**
-2. Copy the schema from `app/database/database.sql`
-3. Paste it into the SQL Editor
-4. Run the SQL to create all tables
-5. Enable Row Level Security (RLS) if needed for your use case
+Schema is managed in **mybohra-dashboard** (`supabase/migrations/`). From that repo:
+
+```bash
+npm run db:link    # once per machine
+npm run db:push    # apply migrations to your Supabase project
+npm run db:sync    # regenerate types for dashboard + this app
+```
+
+See `mybohra-dashboard/docs/SCHEMA_SYNC.md`.
 
 ### Step 3: Verify API Access
 

@@ -15,7 +15,7 @@ Welcome to the MyBohra App documentation! This folder contains all setup guides,
 - **[Architecture](ARCHITECTURE.md)** - Technical architecture and design decisions
 - **[GraphQL Removal](GRAPHQL_REMOVAL.md)** - Why we're using PostgREST, not GraphQL
 - **[Supabase Fetcher](SUPABASE_FETCHER.md)** - Supabase data fetching service
-- **Database Schema**: `../app/database/database.sql`
+- **Schema & types**: `mybohra-dashboard/supabase/migrations/` + `npm run db:sync` → `app/services/supabase/database.types.ts`
 
 ### Firebase Analytics
 - **[Firebase Setup](FIREBASE_SETUP.md)** - Firebase Analytics configuration

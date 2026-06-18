@@ -136,15 +136,15 @@ yarn build:ios:prod     # Build iOS production
 yarn build:android:prod # Build Android production
 ```
 
-### Database Schema
+### Database schema & types
 
-The database schema is defined in `app/database/database.sql` and includes:
-- **data** - Configuration and version management
-- **location** - Cities and coordinates
-- **library** - Duas and religious content
-- **miqaat** - Islamic calendar dates
-- **tasbeeh** - Prayer beads collection
-- **user** - User profiles
+Schema migrations live in **mybohra-dashboard** (`supabase/migrations/`). This app consumes generated types from `app/services/supabase/database.types.ts`.
+
+```bash
+cd mybohra-dashboard && npm run db:sync   # after schema changes
+```
+
+See `mybohra-dashboard/docs/SCHEMA_SYNC.md`.
 
 ## 🔐 Environment Variables
 

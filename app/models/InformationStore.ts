@@ -1,118 +1,26 @@
 import { apiSupabase } from "app/services/api"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
-// Ziyarat Model - based on actual schema
-export const ZiyaratModel = types.model("ZiyaratModel", {
-  id: types.identifierNumber,
-  name: types.string,
-  city: types.maybeNull(types.string),
-  address: types.maybeNull(types.string),
-  history: types.maybeNull(types.string),
-  photos: types.maybeNull(types.array(types.string)),
-  year: types.maybeNull(types.number),
-  created_at: types.maybeNull(types.string),
-  updated_at: types.maybeNull(types.string),
-  created_by: types.maybeNull(types.number),
-  updated_by: types.maybeNull(types.number),
-  rank: types.maybeNull(types.number),
-  lat: types.maybeNull(types.number),
-  lng: types.maybeNull(types.number),
-})
+import {
+  MazaarDbModel,
+  MasjidDbModel,
+  MusafirkhanaDbModel,
+  NearbyPlaceDbModel,
+  ZiyaratDbModel,
+} from "./generated"
 
-// Musafirkhana Model - based on actual schema
-export const MusafirkhanaModel = types.model("MusafirkhanaModel", {
-  id: types.identifierNumber,
-  name: types.string,
-  city: types.maybeNull(types.string),
-  lat: types.maybeNull(types.number),
-  lng: types.maybeNull(types.number),
-  photos: types.maybeNull(types.array(types.string)),
-  phone: types.maybeNull(types.string),
-  contact_person_name: types.maybeNull(types.string),
-  map_link: types.maybeNull(types.string),
-  total_rooms: types.maybeNull(types.number),
-  created_at: types.maybeNull(types.string),
-  updated_at: types.maybeNull(types.string),
-  created_by: types.maybeNull(types.number),
-  updated_by: types.maybeNull(types.number),
-  address: types.maybeNull(types.string),
-  description: types.maybeNull(types.string),
-  email: types.maybeNull(types.string),
-  info: types.maybeNull(types.string),
-})
+export { ZiyaratDbModel as ZiyaratModel }
+export { MusafirkhanaDbModel as MusafirkhanaModel }
+export { MasjidDbModel as MasjidModel }
 
-// Masjid Model - based on common masjid schema pattern
-export const MasjidModel = types.model("MasjidModel", {
-  id: types.identifierNumber,
-  name: types.string,
-  city: types.maybeNull(types.string),
-  address: types.maybeNull(types.string),
-  lat: types.maybeNull(types.number),
-  lng: types.maybeNull(types.number),
-  phone: types.maybeNull(types.string),
-  email: types.maybeNull(types.string),
-  website: types.maybeNull(types.string),
-  photos: types.maybeNull(types.array(types.string)),
-  capacity: types.maybeNull(types.number),
-  facilities: types.maybeNull(types.array(types.string)),
-  prayer_times_url: types.maybeNull(types.string),
-  description: types.maybeNull(types.string),
-  created_at: types.maybeNull(types.string),
-  updated_at: types.maybeNull(types.string),
-  created_by: types.maybeNull(types.number),
-  updated_by: types.maybeNull(types.number),
-})
-
-// Nearby Place Model - based on common nearby places schema pattern
-export const NearbyPlaceModel = types.model("NearbyPlaceModel", {
-  id: types.identifierNumber,
-  name: types.string,
-  category: types.maybeNull(types.string),
-  lat: types.maybeNull(types.number),
-  lng: types.maybeNull(types.number),
-  address: types.maybeNull(types.string),
-  city: types.maybeNull(types.string),
-  country: types.maybeNull(types.string),
-  state: types.maybeNull(types.string),
-  phone: types.maybeNull(types.string),
-  email: types.maybeNull(types.string),
-  website: types.maybeNull(types.string),
-  photos: types.maybeNull(types.array(types.string)),
-  description: types.maybeNull(types.string),
-  rating: types.maybeNull(types.number),
+/** DB model + optional UI fields (distance is computed client-side). */
+export const NearbyPlaceModel = NearbyPlaceDbModel.props({
   distance: types.maybeNull(types.number),
-  created_at: types.maybeNull(types.string),
-  updated_at: types.maybeNull(types.string),
-  created_by: types.maybeNull(types.number),
-  updated_by: types.maybeNull(types.number),
 })
 
-// Mazaar Model - based on actual schema (id is UUID/string)
-export const MazaarModel = types.model("MazaarModel", {
-  id: types.identifier,
-  name: types.string,
-  lat: types.maybeNull(types.number),
-  lng: types.maybeNull(types.number),
-  contact: types.maybeNull(types.string),
-  photos: types.maybeNull(types.array(types.string)),
-  created_at: types.maybeNull(types.string),
-  updated_at: types.maybeNull(types.string),
-  created_by: types.maybeNull(types.number),
-  updated_by: types.maybeNull(types.number),
-  location_id: types.maybeNull(types.number),
-  website: types.maybeNull(types.string),
-  social_media: types.maybeNull(types.array(types.string)),
-  // Location info from join
-  location: types.maybeNull(
-    types.model("MazaarLocation", {
-      id: types.number,
-      city: types.string,
-      state: types.maybeNull(types.string),
-      country: types.string,
-      latitude: types.number,
-      longitude: types.number,
-    }),
-  ),
+/** DB model + optional joined location from API. */
+export const MazaarModel = MazaarDbModel.props({
+  location: types.maybeNull(types.frozen()),
 })
 
 export const InformationStoreModel = types

@@ -1,49 +1,57 @@
-// TODO: write documentation for colors and palette in own markdown file and add links from here
+// Canonical brand palette — see mybohra.md
+export const brandPalette = {
+  primary: "#B0271A",
+  gradientStart: "#B0271A",
+  gradientEnd: "#7F0E03",
+  background: "#F6EEDB",
+  accent: "#B78034",
+  text: "#0F0808",
+} as const
 
 const palette = {
   neutral100: "#FFFFFF",
-  neutral200: "#F4F2F1",
-  neutral300: "#f4f5f9",
-  neutral400: "#B6ACA6",
+  neutral200: "#FEF6D5",
+  neutral300: "#F5EDD0",
+  neutral400: "#C4B5A8",
   neutral500: "#978F8A",
-  neutral600: "#564E4A",
-  neutral700: "#3C3836",
-  neutral800: "#191015",
+  neutral600: "#6B5E5C",
+  neutral700: "#3D2E2D",
+  neutral800: "#0F0808",
   neutral900: "#000000",
 
-  primary10: "#fdf2f7",
-  primary20: "#fce8f1",
-  primary30: "#fbdbeb",
-  primary40: "#f8cfe3",
-  primary50: "#f5c2db",
-  primary100: "#eda5cb",
-  primary200: "#e07fb0",
-  primary300: "#d15596",
-  primary400: "#c02b7b",
-  primary500: "#AB0256",
-  primary600: "#8a0145",
-  primary700: "#690135",
-  primary800: "#480124",
-  primary900: "#270012",
-  primary950: "#1a000c",
+  primary10: "#FDF0EF",
+  primary20: "#FAD9D6",
+  primary30: "#F5B8B3",
+  primary40: "#EE948C",
+  primary50: "#E57065",
+  primary100: "#D9584B",
+  primary200: "#CF4537",
+  primary300: "#C73527",
+  primary400: "#BC2E20",
+  primary500: "#B0271A",
+  primary600: "#9A2217",
+  primary700: "#7F0E03",
+  primary800: "#5C0A02",
+  primary900: "#3D0701",
+  primary950: "#260401",
 
-  secondary100: "#f7eee3",
-  secondary200: "#BCC0D6",
-  secondary300: "#9196B9",
-  secondary400: "#626894",
-  secondary500: "#f4ede3",
+  secondary100: "#F5EDE0",
+  secondary200: "#EBD9BC",
+  secondary300: "#DFC299",
+  secondary400: "#D3AB76",
+  secondary500: "#FEF6D5",
 
-  accent100: "#fde9dc",
-  accent200: "#F9E9BF",
-  accent300: "#F5DB99",
-  accent400: "#F1CE72",
-  accent500: "#471515",
+  accent100: "#F5EDE0",
+  accent200: "#EBD9BC",
+  accent300: "#DFC299",
+  accent400: "#D3AB76",
+  accent500: "#B78034",
 
-  accent600: "#D6A946",
-  accent700: "#B28B3B",
-  accent800: "#8E6D30",
-  accent900: "#755A28",
-  accent950: "#5B471E",
+  accent600: "#9A6D2D",
+  accent700: "#7D5825",
+  accent800: "#60441C",
+  accent900: "#4A3516",
+  accent950: "#352710",
 
   angry100: "#F2D6CD",
   angry500: "#C03403",
@@ -68,14 +76,14 @@ const palette = {
 } as const
 
 export const colors = {
-  brown: "rgb(102, 65, 0)",
+  brown: brandPalette.accent,
   // tab colors
-  tabBorder: "#eff2f6",
+  tabBorder: "#F5EDD0",
   tabBackground: "#ffffff",
-  tabBackgroundActive: "#eff2f6",
+  tabBackgroundActive: "#F5EDD0",
 
   absoluteWhite: "#ffffff",
-  accentBackground: "rgb(254, 244, 227)",
+  accentBackground: palette.accent100,
   /**
    * The palette is available to use, but prefer using the name.
    * This is only included for rare, one-off cases. Try to use
@@ -85,7 +93,7 @@ export const colors = {
 
   white: "#FFFFFF",
 
-  gray: "#f4f5f9",
+  gray: "#F5EDD0",
 
   yellow: "#f0932b", // rgba(240, 147, 43, 1)
 
@@ -97,7 +105,7 @@ export const colors = {
   /**
    * The default text color in many components.
    */
-  text: palette.neutral800,
+  text: brandPalette.text,
   /**
    * Secondary text information.
    */
@@ -105,19 +113,19 @@ export const colors = {
   /**
    * The default color of the screen background.
    */
-  background: palette.neutral100,
+  background: brandPalette.background,
 
   /**
    * The background color of the highlighted item.
    */
-  backgroundHighlight: "#f3eae1",
+  backgroundHighlight: palette.accent100,
   /**
    * The default border color.
    */
 
   darkHighlight: "#ffffff",
 
-  border: "#ced0e5",
+  border: "#E8D9B8",
   /**
    * The main tinting color.
    */

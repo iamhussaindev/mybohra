@@ -1576,10 +1576,10 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@expo-google-fonts/dm-sans@^0.4.2":
+"@expo-google-fonts/sora@^0.4.2":
   version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@expo-google-fonts/dm-sans/-/dm-sans-0.4.2.tgz#76b73ba806c24f5b4188127485162603fb67de62"
-  integrity sha512-e/fLH5aCJzkEenz7axvEn8N7IJAKhUwNjIxS75h9j+Ip1M9S7d22M19gJN3A7QW4egVkBJRyQh1hQFhngQn9yA==
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/sora/-/sora-0.4.2.tgz#c144e5726128925635581f3335c4d75b382e176c"
+  integrity sha512-X86Kl1cfObcSUzTLIbtmrPCLRlIbCNh0uBOo8bjmXb8gWgVVhnI8CZJEK2btsdq85JPn5k4P6sbV9JLbAm7dqQ==
 
 "@expo-google-fonts/space-grotesk@^0.2.2":
   version "0.2.3"

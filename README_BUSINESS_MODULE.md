@@ -6,14 +6,14 @@ This document provides an overview of the Business Directory Module implementati
 
 A comprehensive marketplace/directory system where users can create business accounts, subscribe to plans, post products/services, and receive reviews. Supports location-based search with flexible ranking algorithms.
 
-## Database Schema
+## Database schema
 
-Run the SQL schema file to set up all tables:
+Schema is managed in **mybohra-dashboard** (`supabase/migrations/20240611000008_business_directory.sql`).
 
-```sql
+Apply via dashboard:
 
-/scripts/business_directory_schema.sql
-
+```bash
+cd mybohra-dashboard && npm run db:push && npm run db:sync
 ```
 
 This creates the following tables:

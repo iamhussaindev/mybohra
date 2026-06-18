@@ -25,7 +25,7 @@ app/services/
 
 ### 3. Database Types Generated ✅
 
-Created TypeScript types for all database tables from `app/database/database.sql`:
+Created TypeScript types synced from **mybohra-dashboard** (`npm run db:sync` → `app/services/supabase/database.types.ts`):
 - `data` - Configuration key-value store
 - `location` - Cities and coordinates
 - `library` - Duas and religious content
@@ -102,7 +102,7 @@ Created `app/services/api/api-graphql.ts` with methods:
 
 1. Go to [https://supabase.com](https://supabase.com)
 2. Create a new project
-3. Run the SQL schema from `app/database/database.sql`
+3. Apply schema from `mybohra-dashboard`: `npm run db:link && npm run db:push && npm run db:sync`
 4. Get your project URL and API keys
 5. Create a `.env` file with your credentials:
 

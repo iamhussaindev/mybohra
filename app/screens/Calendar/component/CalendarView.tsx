@@ -354,7 +354,7 @@ const getHeaderControlButton = (colors: any): ViewStyle => ({
 const $headerText: TextStyle = {
   fontSize: 20,
   fontWeight: "bold",
-  fontFamily: typography.fonts.dmSans.bold,
+  fontFamily: typography.fonts.sora.bold,
   letterSpacing: -0.5,
 }
 
@@ -386,7 +386,7 @@ const $dailyDuaContainer: ViewStyle = {
 const $dailyDuaHeader: TextStyle = {
   fontSize: 16,
   fontWeight: "bold",
-  fontFamily: typography.fonts.dmSans.bold,
+  fontFamily: typography.fonts.sora.bold,
   letterSpacing: -0.5,
 }
 

@@ -1,4 +1,5 @@
 export * from "./DataStore"
+export * from "./generated"
 export * from "./InformationStore"
 export * from "./LibraryStore"
 export * from "./MiqaatStore"

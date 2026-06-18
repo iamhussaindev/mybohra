@@ -1,0 +1,49 @@
+---
+alwaysApply: false
+---
+
+# MyBohra Platform Context
+
+Before implementing features, read **`MYBOHRA.md`** at the workspace root (`/app/mybohra.md`).
+
+## Quick reference
+
+**MyBohra** is a daily-utility app for the Dawoodi Bohra community: religious tools (Hijri calendar, Miqaats, namaz, PDF library, tasbeeh, Qibla, Mazaar/Ziyarat) + a hyper-local business marketplace. Core differentiator: **interlinked** religious/travel data and local commerce (Mazaar → musafirkhana → transport → nearby shops/restaurants).
+
+**MVP target:** Before Ramadan 1447 AH.
+
+**Repos:**
+
+- `dashboard` — admin (this workspace)
+- `webapp` — website
+- `app` — native app
+
+## Product rules
+
+- Utility features (PDF, calendar, namaz) are **never paywalled**
+- UX bar: PDF ≤3 taps, today's date ≤1 tap
+- **Universal Search** must be a backend API with fuzzy/typo-tolerant matching — not client-only filter
+- Market seller UX = photo + price + description (WhatsApp-simple); auto-categorization
+- Geofenced "inside Mazaar" mode when user is near a mazaar
+
+## Supabase is the data layer
+
+Map features to tables (see `MYBOHRA.md` for full schema):
+
+| Domain             | Tables                                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| PDF / library      | `library`, `daily_duas`, `miqaat_library`                                                                |
+| Calendar / Miqaats | `miqaat`                                                                                                 |
+| Mazaar ecosystem   | `mazaars`, `ziyarat`, `musafirkhana`, `mazaar_ziyarat`, `mazaar_musafirkhana`, `nearby_places`, `masjid` |
+| Market             | `business`, `category`, `post`, `product_details`, `business_review`                                     |
+| Video              | `youtube_videos`                                                                                         |
+| Geo / devices      | `location`, `devices`                                                                                    |
+| Config             | `data`                                                                                                   |
+
+When adding dashboard features, align table/column names with existing Supabase schema. Use MCP Supabase tools to verify schema before migrations.
+
+**Schema changes:** migrations live only in `mybohra-dashboard/supabase/migrations/`. After `db:push`, run `npm run db:sync` to update app types. See `mybohra-dashboard/docs/SCHEMA_SYNC.md`.
+
+## Styling
+
+Canonical brand palette is documented in **`MYBOHRA.md`** (Primary `#B0271A`, Background `#FEF6D5`, Accent `#B78034`, Text `#0F0808`). Dashboard colors come from `mybohra-dashboard/app/globals.css` `@theme` tokens — no hardcoded hex in classNames.

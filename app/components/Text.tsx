@@ -126,13 +126,10 @@ const $sizeStyles = {
   xxs: { fontSize: 12, lineHeight: 18 } satisfies TextStyle,
 }
 
-const $fontWeightStyles = Object.entries(typography.primary).reduce((acc, [weight, fontFamily]) => {
-  // Use DM Sans for bold weight with letter spacing -1
-  if (weight === "bold") {
-    return { ...acc, [weight]: { fontFamily: typography.fonts.dmSans.bold, letterSpacing: -0.5 } }
-  }
-  return { ...acc, [weight]: { fontFamily } }
-}, {}) as Record<Weights, TextStyle>
+const $fontWeightStyles = Object.entries(typography.primary).reduce(
+  (acc, [weight, fontFamily]) => ({ ...acc, [weight]: { fontFamily } }),
+  {},
+) as Record<Weights, TextStyle>
 
 const $baseStyle: StyleProp<TextStyle> = [
   $sizeStyles.sm,

@@ -2,14 +2,13 @@
 // markdown file and add links from here
 
 import {
-  DMSans_300Light as dmSansLight,
-  DMSans_400Regular as dmSansRegular,
-  DMSans_500Medium as dmSansMedium,
-  DMSans_600SemiBold as dmSansSemiBold,
-  DMSans_700Bold as dmSansBold,
-  DMSans_800ExtraBold as dmSansExtraBold,
-  DMSans_900Black as dmSansBlack,
-} from "@expo-google-fonts/dm-sans"
+  Sora_300Light as soraLight,
+  Sora_400Regular as soraRegular,
+  Sora_500Medium as soraMedium,
+  Sora_600SemiBold as soraSemiBold,
+  Sora_700Bold as soraBold,
+  Sora_800ExtraBold as soraExtraBold,
+} from "@expo-google-fonts/sora"
 import {
   SpaceGrotesk_300Light as spaceGroteskLight,
   SpaceGrotesk_400Regular as spaceGroteskRegular,
@@ -28,13 +27,12 @@ export const customFontsToLoad = {
   arabicKanz: require("../../assets/fonts/mJ.ttf"),
   amiriRegular: require("../../assets/fonts/regularamiri.ttf"),
 
-  dmSansLight,
-  dmSansRegular,
-  dmSansMedium,
-  dmSansSemiBold,
-  dmSansBold,
-  dmSansExtraBold,
-  dmSansBlack,
+  soraLight,
+  soraRegular,
+  soraMedium,
+  soraSemiBold,
+  soraBold,
+  soraExtraBold,
 
   muminoBold: require("../../assets/fonts/UberMoveText-Bold.otf"),
   muminoRegular: require("../../assets/fonts/UberMoveText-Regular.otf"),
@@ -43,12 +41,6 @@ export const customFontsToLoad = {
 
   muminoHeaderBold: require("../../assets/fonts/UberMove-Bold.otf"),
   muminoHeaderRegular: require("../../assets/fonts/UberMove-Medium.otf"),
-
-  satoshiLight: require("../../assets/fonts/Satoshi-Light.otf"),
-  satoshiRegular: require("../../assets/fonts/Satoshi-Regular.otf"),
-  satoshiMedium: require("../../assets/fonts/Satoshi-Medium.otf"),
-  satoshiBold: require("../../assets/fonts/Satoshi-Bold.otf"),
-  satoshiBlack: require("../../assets/fonts/Satoshi-Black.otf"),
 }
 
 const fonts = {
@@ -60,14 +52,14 @@ const fonts = {
     semiBold: "spaceGroteskSemiBold",
     bold: "spaceGroteskBold",
   },
-  dmSans: {
-    light: "dmSansLight",
-    normal: "dmSansRegular",
-    medium: "dmSansMedium",
-    semiBold: "dmSansSemiBold",
-    bold: "dmSansBold",
-    extraBold: "dmSansExtraBold",
-    black: "dmSansBlack",
+  sora: {
+    light: "soraLight",
+    normal: "soraRegular",
+    medium: "soraMedium",
+    semiBold: "soraSemiBold",
+    bold: "soraBold",
+    extraBold: "soraExtraBold",
+    black: "soraExtraBold",
   },
   mumino: {
     // Custom font.
@@ -103,13 +95,6 @@ const fonts = {
   monospace: {
     // Android only font.
     normal: "monospace",
-  },
-  satoshi: {
-    light: "satoshiLight",
-    normal: "satoshiRegular",
-    medium: "satoshiMedium",
-    bold: "satoshiBold",
-    black: "satoshiBlack",
   },
 }
 
@@ -149,17 +134,17 @@ export const typography = {
   /**
    * The primary font. Used in most places.
    */
-  primary: fonts.satoshi,
+  primary: fonts.sora,
   /**
    * An alternate font used for perhaps titles and stuff.
    */
-  secondary: fonts.dmSans,
+  secondary: fonts.sora,
   /**
    * Lets get fancy with a monospace font!
    */
   code: Platform.select({ ios: fonts.courier, android: fonts.monospace }),
 
-  number: fonts.dmSans,
+  number: fonts.sora,
 
   arabic: fonts.arabic,
 

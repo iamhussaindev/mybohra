@@ -27,11 +27,9 @@ Use this checklist to ensure you've completed all necessary steps for the Supaba
 ## 🗄️ Phase 2: Database Setup
 
 - [ ] **Create Database Schema**
-  - Go to SQL Editor in Supabase dashboard
-  - Copy contents from `app/database/database.sql`
-  - Paste into SQL Editor
-  - Click "Run" to execute
-  - Verify all tables are created (check Table Editor)
+  - From `mybohra-dashboard`: `npm run db:link && npm run db:push && npm run db:sync`
+  - See `mybohra-dashboard/docs/SCHEMA_SYNC.md`
+  - Verify all tables in Supabase Table Editor
 
 - [ ] **Verify Tables Created**
   - [ ] `data` table exists

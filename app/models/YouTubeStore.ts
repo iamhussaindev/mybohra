@@ -1,33 +1,14 @@
 import { apiSupabase } from "app/services/api"
 import { types, flow, Instance, SnapshotOut } from "mobx-state-tree"
 
-export const YouTubeVideoModel = types.model("YouTubeVideoModel", {
-  id: types.identifierNumber,
-  video_id: types.string,
-  title: types.string,
-  description: types.maybeNull(types.string),
-  duration: types.maybeNull(types.number),
-  view_count: types.maybeNull(types.number),
-  upload_date: types.maybeNull(types.string),
-  url: types.string,
-  thumbnail: types.maybeNull(types.string),
-  thumbnail_default: types.maybeNull(types.string),
-  thumbnail_medium: types.maybeNull(types.string),
-  thumbnail_high: types.maybeNull(types.string),
-  thumbnail_standard: types.maybeNull(types.string),
-  thumbnail_maxres: types.maybeNull(types.string),
-  channel_url: types.maybeNull(types.string),
-  channel_handle: types.maybeNull(types.string),
-  created_at: types.string,
-  updated_at: types.string,
-  tags: types.maybeNull(types.array(types.string)),
-  categories: types.maybeNull(types.array(types.string)),
-  library_id: types.maybeNull(types.number),
-})
+import { IYouTubeVideoDb, YouTubeVideoDbModel } from "./generated"
+
+export { YouTubeVideoDbModel as YouTubeVideoModel }
+export type { IYouTubeVideoDb as IYouTubeVideo }
 
 export const YouTubeStoreModel = types
   .model("YouTubeStore", {
-    videos: types.optional(types.array(YouTubeVideoModel), []),
+    videos: types.optional(types.array(YouTubeVideoDbModel), []),
     tags: types.optional(types.array(types.frozen()), []),
     categories: types.optional(types.array(types.frozen()), []),
   })
@@ -46,7 +27,7 @@ export const YouTubeStoreModel = types
       try {
         const response = yield apiSupabase.fetchYouTubeVideos(options)
         if (response.kind === "ok") {
-          return response.data as IYouTubeVideo[]
+          return response.data as IYouTubeVideoDb[]
         }
         return []
       } catch (error) {
@@ -81,7 +62,7 @@ export const YouTubeStoreModel = types
       try {
         const response = yield apiSupabase.fetchYouTubeVideosByChannel(channelHandle, options)
         if (response.kind === "ok") {
-          return response.data as IYouTubeVideo[]
+          return response.data as IYouTubeVideoDb[]
         }
         return []
       } catch (error) {
@@ -108,7 +89,7 @@ export const YouTubeStoreModel = types
           categories,
         })
         if (response.kind === "ok") {
-          return response.data as IYouTubeVideo[]
+          return response.data as IYouTubeVideoDb[]
         }
         return []
       } catch (error) {
@@ -135,7 +116,7 @@ export const YouTubeStoreModel = types
           tags,
         })
         if (response.kind === "ok") {
-          return response.data as IYouTubeVideo[]
+          return response.data as IYouTubeVideoDb[]
         }
         return []
       } catch (error) {
@@ -163,7 +144,7 @@ export const YouTubeStoreModel = types
 
         console.log("response", response)
         if (response.kind === "ok") {
-          return response.data as IYouTubeVideo[]
+          return response.data as IYouTubeVideoDb[]
         }
         return []
       } catch (error) {
@@ -241,7 +222,7 @@ export const YouTubeStoreModel = types
       try {
         const response = yield apiSupabase.searchYouTubeVideos(searchQuery, limit)
         if (response.kind === "ok") {
-          return response.data as IYouTubeVideo[]
+          return response.data as IYouTubeVideoDb[]
         }
         return []
       } catch (error) {
