@@ -1,5 +1,5 @@
 import { IconImageInPicture, IconSearch } from "@tabler/icons-react-native"
-import { Screen, Text } from "app/components"
+import { CachedImage, Screen, Text, ListView } from "app/components"
 import Header from "app/components/Header"
 import { useLocationCoords } from "app/hooks/useLocationCoords"
 import { useStores } from "app/models"
@@ -8,14 +8,13 @@ import { spacing } from "app/theme"
 import { useColors } from "app/theme/useColors"
 import { haversineDistanceKm } from "app/utils/geoDistance"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useState, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo, useState, memo } from "react"
 import {
   ViewStyle,
-  FlatList,
   View,
   ActivityIndicator,
-  Image,
   ImageStyle,
+  View,
   TextStyle,
   RefreshControl,
   Pressable,
@@ -48,16 +47,16 @@ interface MazaarCardProps {
   onPress?: () => void
 }
 
-const MazaarCard: React.FC<MazaarCardProps> = ({ mazaar }) => {
+const MazaarCard = memo(function MazaarCard({ mazaar, onPress }: MazaarCardProps) {
   const colors = useColors()
   const imageUrl = mazaar.photos && mazaar.photos.length > 0 ? mazaar.photos[0] : null
 
   return (
-    <View style={[$card(), { backgroundColor: colors.background }]}>
+    <Pressable onPress={onPress} style={[$card(), { backgroundColor: colors.background }]}>
       {/* Square image on left */}
       <View style={$imageContainer}>
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={$image} resizeMode="cover" />
+          <CachedImage uri={imageUrl} style={$image} contentFit="cover" />
         ) : (
           <View style={[$image, $placeholderImage, { backgroundColor: colors.palette.neutral300 }]}>
             <IconImageInPicture size={24} color={colors.palette.neutral500} />
@@ -83,11 +82,13 @@ const MazaarCard: React.FC<MazaarCardProps> = ({ mazaar }) => {
           </Text>
         )}
       </View>
-    </View>
+    </Pressable>
   )
-}
+})
 
-export const MazaarScreen: React.FC<MazaarScreenProps> = observer(function MazaarScreen() {
+export const MazaarScreen: React.FC<MazaarScreenProps> = observer(function MazaarScreen({
+  navigation,
+}) {
   const colors = useColors()
   const { informationStore } = useStores()
   const locationCoords = useLocationCoords()
@@ -172,19 +173,34 @@ export const MazaarScreen: React.FC<MazaarScreenProps> = observer(function Mazaa
   }, [informationStore.allMazaars, locationCoords])
 
   const onRefresh = async () => {
-    console.log("onRefresh")
     setRefreshing(true)
     await loadMazaars()
     setRefreshing(false)
   }
 
-  const handleMazaarPress = (mazaar: PlainMazaar) => {
-    // TODO: Navigate to mazaar detail screen if needed
-    console.log("Pressed mazaar:", mazaar.name)
-  }
+  const handleMazaarPress = useCallback(
+    (mazaar: PlainMazaar) => {
+      const lat = mazaar.lat ?? mazaar.location?.latitude
+      const lng = mazaar.lng ?? mazaar.location?.longitude
+      if (lat == null || lng == null) return
 
-  const renderMazaarCard = ({ item }: { item: PlainMazaar }) => (
-    <MazaarCard mazaar={item} onPress={() => handleMazaarPress(item)} />
+      navigation.navigate("MazarDetail", {
+        id: mazaar.id,
+        name: mazaar.name,
+        imageUri: mazaar.photos?.[0] ?? null,
+        latitude: lat,
+        longitude: lng,
+        city: mazaar.location?.city ?? null,
+      })
+    },
+    [navigation],
+  )
+
+  const renderMazaarCard = useCallback(
+    ({ item }: { item: PlainMazaar }) => (
+      <MazaarCard mazaar={item} onPress={() => handleMazaarPress(item)} />
+    ),
+    [handleMazaarPress],
   )
 
   return (
@@ -198,9 +214,7 @@ export const MazaarScreen: React.FC<MazaarScreenProps> = observer(function Mazaa
       <Header
         rightActions={
           <Pressable
-            onPress={() => {
-              console.log("search")
-            }}
+            onPress={() => navigation.navigate("Tabs", { screen: "Search" } as never)}
             style={$searchButton}
             hitSlop={8}
           >
@@ -220,10 +234,11 @@ export const MazaarScreen: React.FC<MazaarScreenProps> = observer(function Mazaa
           <Text style={[$emptyText, { color: colors.textDim }]}>No mazaars found</Text>
         </View>
       ) : (
-        <FlatList
+        <ListView
           data={sortedMazaars as PlainMazaar[]}
           renderItem={renderMazaarCard}
           keyExtractor={(item) => item.id}
+          estimatedItemSize={96}
           contentContainerStyle={$listContent()}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />

@@ -1,9 +1,9 @@
 import { Button, Screen, Text, TextField } from "app/components"
 import Header from "app/components/Header"
-import { supabase } from "app/services/supabase"
 import { AppStackScreenProps } from "app/navigators"
 import { spacing } from "app/theme"
 import { useColors } from "app/theme/useColors"
+import { useAuthStore } from "app/store"
 import { observer } from "mobx-react-lite"
 import React, { FC, useState } from "react"
 import { Alert, View, ViewStyle } from "react-native"
@@ -14,7 +14,8 @@ export const AuthEmailScreen: FC<Props> = observer(function AuthEmailScreen({ na
   const colors = useColors()
   const redirectTo = route.params?.redirectTo
   const [email, setEmail] = useState("")
-  const [loading, setLoading] = useState(false)
+  const sendOtp = useAuthStore((s) => s.sendOtp)
+  const isLoading = useAuthStore((s) => s.isLoading)
 
   const onContinue = async () => {
     const trimmed = email.trim().toLowerCase()
@@ -22,20 +23,13 @@ export const AuthEmailScreen: FC<Props> = observer(function AuthEmailScreen({ na
       Alert.alert("Check email", "Enter a valid email address.")
       return
     }
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: trimmed,
-        options: { shouldCreateUser: true },
-      })
-      if (error) {
-        Alert.alert("Sign in", error.message)
-        return
-      }
-      navigation.navigate("AuthVerify", { email: trimmed, redirectTo })
-    } finally {
-      setLoading(false)
+    const ok = await sendOtp(trimmed)
+    if (!ok) {
+      const error = useAuthStore.getState().error
+      Alert.alert("Sign in", error ?? "Could not send code")
+      return
     }
+    navigation.navigate("AuthVerify", { email: trimmed, redirectTo })
   }
 
   return (
@@ -57,7 +51,7 @@ export const AuthEmailScreen: FC<Props> = observer(function AuthEmailScreen({ na
           keyboardType="email-address"
           containerStyle={$field}
         />
-        <Button text="Send code" preset="filled" onPress={onContinue} disabled={loading} />
+        <Button text="Send code" preset="filled" onPress={onContinue} disabled={isLoading} />
       </View>
     </Screen>
   )

@@ -1,0 +1,713 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLib.framework" : {
+      "inputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64/MDOLib.framework"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "directory",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLib.framework"
+        }
+      ]
+    }
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.MDOLibBridge-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/sources",
+      "importPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/MDOLibBridge/MDOLibBridge.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "directory",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLib.framework"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "MDOLibBridge",
+      "moduleOutputPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/MDOLibBridge.swiftmodule",
+      "objects" : [
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx12.0",
+        "-enable-batch-mode",
+        "-index-store-path",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-I",
+        "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+        "-module-cache-path",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-F",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge-Swift.h",
+        "-swift-version",
+        "5",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "mdolib_proxy"
+      ],
+      "outputFileMapPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/MDOLibBridge.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/MDOLibBridge/MDOLibBridge.swift"
+      ],
+      "tempsPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.mdolib-cli-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/sources",
+      "importPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-cli/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/MDOLibBridge.swiftmodule"
+        },
+        {
+          "kind" : "directory",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLib.framework"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "mdolib_cli",
+      "moduleOutputPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/mdolib_cli.swiftmodule",
+      "objects" : [
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx12.0",
+        "-enable-batch-mode",
+        "-index-store-path",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-I",
+        "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+        "-module-cache-path",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "mdolib_cli_main",
+        "-F",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug",
+        "-swift-version",
+        "5",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "mdolib_proxy"
+      ],
+      "outputFileMapPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/mdolib_cli.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-cli/main.swift"
+      ],
+      "tempsPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.mdolib-proxy-arm64-apple-macosx15.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/sources",
+      "importPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-proxy/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/MDOLibBridge.swiftmodule"
+        },
+        {
+          "kind" : "directory",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLib.framework"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "mdolib_proxy",
+      "moduleOutputPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/mdolib_proxy.swiftmodule",
+      "objects" : [
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx12.0",
+        "-enable-batch-mode",
+        "-index-store-path",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-I",
+        "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+        "-Xcc",
+        "-I",
+        "-Xcc",
+        "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+        "-module-cache-path",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "mdolib_proxy_main",
+        "-F",
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug",
+        "-swift-version",
+        "5",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "mdolib_proxy"
+      ],
+      "outputFileMapPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules/mdolib_proxy.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-proxy/main.swift"
+      ],
+      "tempsPath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "MDOLibBridge" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "MDOLibBridge",
+      "-package-name",
+      "mdolib_proxy",
+      "-incremental",
+      "-c",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/MDOLibBridge/MDOLibBridge.swift",
+      "-I",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx12.0",
+      "-enable-batch-mode",
+      "-index-store-path",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-I",
+      "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+      "-module-cache-path",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-F",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge-Swift.h",
+      "-swift-version",
+      "5",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "mdolib_proxy",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "mdolib_cli" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "mdolib_cli",
+      "-package-name",
+      "mdolib_proxy",
+      "-incremental",
+      "-c",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-cli/main.swift",
+      "-I",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx12.0",
+      "-enable-batch-mode",
+      "-index-store-path",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-I",
+      "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+      "-module-cache-path",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "mdolib_cli_main",
+      "-F",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug",
+      "-swift-version",
+      "5",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "mdolib_proxy",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "mdolib_proxy" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "mdolib_proxy",
+      "-package-name",
+      "mdolib_proxy",
+      "-incremental",
+      "-c",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-proxy/main.swift",
+      "-I",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx12.0",
+      "-enable-batch-mode",
+      "-index-store-path",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-I",
+      "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+      "-Xcc",
+      "-I",
+      "-Xcc",
+      "/Users/hussain/mybohra/app/ios/MDOLib.xcframework/macos-arm64_x86_64",
+      "-module-cache-path",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "mdolib_proxy_main",
+      "-F",
+      "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug",
+      "-swift-version",
+      "5",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "mdolib_proxy",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "MDOLibBridge" : [
+      "MDOLib"
+    ],
+    "mdolib_cli" : [
+      "MDOLibBridge",
+      "MDOLib"
+    ],
+    "mdolib_proxy" : [
+      "MDOLibBridge",
+      "MDOLib"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "enableAllTraits" : false
+  },
+  "writeCommands" : {
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/MDOLibBridge/MDOLibBridge.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/sources"
+    },
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-cli-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-cli-entitlement.plist"
+    },
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-cli.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-cli.product/Objects.LinkFileList"
+    },
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-proxy-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-proxy-entitlement.plist"
+    },
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-proxy.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib-proxy.product/Objects.LinkFileList"
+    },
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-cli/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_cli.build/sources"
+    },
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/mdolib-proxy/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/mdolib_proxy.build/sources"
+    },
+    "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

@@ -1,9 +1,9 @@
 import { Button, Screen, Text, TextField } from "app/components"
 import Header from "app/components/Header"
-import { supabase } from "app/services/supabase"
 import { AppStackScreenProps } from "app/navigators"
 import { spacing } from "app/theme"
 import { useColors } from "app/theme/useColors"
+import { useAuthStore } from "app/store"
 import { observer } from "mobx-react-lite"
 import React, { FC, useState } from "react"
 import { Alert, View, ViewStyle } from "react-native"
@@ -17,7 +17,8 @@ export const AuthVerifyScreen: FC<Props> = observer(function AuthVerifyScreen({
   const colors = useColors()
   const { email } = route.params
   const [code, setCode] = useState("")
-  const [loading, setLoading] = useState(false)
+  const verifyOtpCode = useAuthStore((s) => s.verifyOtpCode)
+  const isLoading = useAuthStore((s) => s.isLoading)
 
   const onVerify = async () => {
     const token = code.trim().replace(/\s/g, "")
@@ -25,21 +26,13 @@ export const AuthVerifyScreen: FC<Props> = observer(function AuthVerifyScreen({
       Alert.alert("Code", "Enter the 6-digit code from your email.")
       return
     }
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: "email",
-      })
-      if (error) {
-        Alert.alert("Verification", error.message)
-        return
-      }
-      navigation.pop(2)
-    } finally {
-      setLoading(false)
+    const ok = await verifyOtpCode(email, token)
+    if (!ok) {
+      const error = useAuthStore.getState().error
+      Alert.alert("Verification", error ?? "Invalid code")
+      return
     }
+    navigation.pop(2)
   }
 
   return (
@@ -55,7 +48,7 @@ export const AuthVerifyScreen: FC<Props> = observer(function AuthVerifyScreen({
           maxLength={12}
           containerStyle={$field}
         />
-        <Button text="Verify" preset="filled" onPress={onVerify} disabled={loading} />
+        <Button text="Verify" preset="filled" onPress={onVerify} disabled={isLoading} />
       </View>
     </Screen>
   )

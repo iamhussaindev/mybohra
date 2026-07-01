@@ -14,6 +14,7 @@ import GetLocation from "react-native-get-location"
 import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
 import Toast from "react-native-toast-message"
 
+import { GeofenceManager } from "./components/GeofenceManager"
 import { HomeLocationManager } from "./components/HomeLocationManager"
 import Config from "./config"
 import { LocationBottomSheetProvider } from "./contexts/LocationBottomSheetContext"
@@ -21,10 +22,13 @@ import { ThemeProvider } from "./contexts/ThemeContext"
 import { SoundProvider } from "./hooks/useAudio"
 import { useAuthInit } from "./hooks/useAuthInit"
 import { useDeviceTracking } from "./hooks/useDeviceTracking"
+import { useOfflineSync } from "./hooks/useOfflineSync"
+import { useRealtimeSubscriptions } from "./hooks/useRealtimeSubscriptions"
 import { useInitialRootStore, useStores } from "./models"
 import { AppNavigator } from "./navigators/AppNavigator"
 import { useNavigationPersistence } from "./navigators/navigationUtilities"
 import { QueryProvider } from "./providers/QueryProvider"
+import { MazaarContextualSheet } from "./screens/Mazaars/MazaarContextualSheet"
 import { ErrorBoundary } from "./screens/ErrorScreen/ErrorBoundary"
 import { customFontsToLoad } from "./theme"
 import { getManualTestCityName, getManualTestCoordinates } from "./utils/manualTestLocation"
@@ -65,19 +69,15 @@ function App(props: AppProps) {
   const [areFontsLoaded] = useFonts(customFontsToLoad)
   const { dataStore, miqaatStore, libraryStore, tasbeehStore } = useStores()
 
+  const { rehydrated } = useInitialRootStore(() => {
+    fetchData()
+  })
+
   // Track device on app launch and when app comes to foreground
   useDeviceTracking(true)
   useAuthInit()
-
-  const { rehydrated } = useInitialRootStore(() => {
-    // This runs after the root store has been initialized and rehydrated.
-
-    // If your initialization scripts run very fast, it's good to show the splash screen for just a bit longer to prevent flicker.
-    // Slightly delaying splash screen hiding for better UX; can be customized or removed as needed,
-    // Note: (vanilla Android) The splash-screen will not appear if you launch your app via the terminal or Android Studio. Kill the app and launch it normally by tapping on the launcher icon. https://stackoverflow.com/a/69831106
-    // Note: (vanilla iOS) You might notice the splash-screen logo change size. This happens in debug/development mode. Try building the app for release.
-    fetchData()
-  })
+  useOfflineSync(rehydrated)
+  useRealtimeSubscriptions(rehydrated)
 
   const fetchData = async () => {
     const manualCoords = getManualTestCoordinates()
@@ -187,6 +187,8 @@ function App(props: AppProps) {
                       onStateChange={onNavigationStateChange}
                     />
                     <HomeLocationManager />
+                    <GeofenceManager />
+                    <MazaarContextualSheet />
                     <Toast position="bottom" swipeable topOffset={200} />
                   </LocationBottomSheetProvider>
                 </BottomSheetModalProvider>

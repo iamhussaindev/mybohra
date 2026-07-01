@@ -1,0 +1,27 @@
+{
+  "object" : {
+    "artifacts" : [
+      {
+        "kind" : "xcframework",
+        "packageRef" : {
+          "identity" : "mdolib-proxy",
+          "kind" : "root",
+          "location" : "/Users/hussain/mybohra/app/ios/mdolib-proxy",
+          "name" : "mdolib-proxy"
+        },
+        "path" : "/Users/hussain/mybohra/app/ios/MDOLib.xcframework",
+        "source" : {
+          "type" : "local"
+        },
+        "targetName" : "MDOLib"
+      }
+    ],
+    "dependencies" : [
+
+    ],
+    "prebuilts" : [
+
+    ]
+  },
+  "version" : 7
+}

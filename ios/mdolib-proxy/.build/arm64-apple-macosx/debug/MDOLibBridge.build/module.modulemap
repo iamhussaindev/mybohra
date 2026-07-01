@@ -1,0 +1,4 @@
+module MDOLibBridge {
+    header "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge-Swift.h"
+    requires objc
+}

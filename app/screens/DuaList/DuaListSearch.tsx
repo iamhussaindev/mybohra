@@ -1,11 +1,12 @@
 import { IconChevronLeft } from "@tabler/icons-react-native"
 import { Screen, Text } from "app/components"
 import { shadowProps } from "app/helpers/shadow.helper"
-import { ILibrary, useStores } from "app/models"
+import { useDebouncedValue } from "app/hooks/useDebouncedValue"
+import type { ILibrary } from "app/models"
 import type { AppStackScreenProps } from "app/navigators"
+import { useLibraryAlbums, useLibrarySearch } from "app/services/supabase/queries/library.query"
 import { spacing, typography } from "app/theme"
 import { useColors } from "app/theme/useColors"
-import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef, useState, useCallback } from "react"
 import {
   FlatList,
@@ -22,108 +23,53 @@ import {
 
 type DuaListSearchProps = AppStackScreenProps<"DuaListSearch" | "DuaListSearchModal">
 
-export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function DuaListSearch(props) {
+export function DuaListSearch(props: DuaListSearchProps) {
   const { navigation } = props
   const colors = useColors()
-  const { libraryStore } = useStores()
   const [query, setQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<ILibrary[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
   const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null)
+  const debouncedQuery = useDebouncedValue(query, 500)
 
   const inputRef = useRef<TextInput>(null)
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const { data: albums = [] } = useLibraryAlbums()
+  const hasQuery = debouncedQuery.trim().length > 0
+
+  const { data: searchResults = [], isFetching, isLoading } = useLibrarySearch(
+    debouncedQuery,
+    selectedAlbum,
+    hasQuery,
+  )
+
+  const isSearching = hasQuery && (isFetching || isLoading)
+  const hasSearched = hasQuery
 
   useEffect(() => {
-    async function fetchAlbums() {
-      await libraryStore.fetchAlbums()
-    }
-    fetchAlbums()
-  }, [])
-
-  useEffect(() => {
-    // Focus input immediately when screen opens
     const timeout = setTimeout(() => {
       inputRef.current?.focus()
     }, 100)
-
     return () => clearTimeout(timeout)
   }, [])
 
-  // Debounced search function
-  const performSearch = useCallback(
-    async (searchQuery: string, album: string | null) => {
-      if (!searchQuery.trim()) {
-        setSearchResults([])
-        setIsSearching(false)
-        setHasSearched(false)
-        return
-      }
-
-      setIsSearching(true)
-      setHasSearched(true)
-
-      try {
-        const results = await libraryStore.searchLibrary(searchQuery.trim(), album)
-        setSearchResults(results)
-      } catch (error) {
-        console.error("Error searching library:", error)
-        setSearchResults([])
-      } finally {
-        setIsSearching(false)
-      }
+  const handleSelect = useCallback(
+    (item: ILibrary) => {
+      navigation.pop()
+      navigation.navigate("PdfViewer", {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        audio_url: item.audio_url ?? null,
+        pdf_url: item.pdf_url ?? null,
+        youtube_url: item.youtube_url ?? null,
+        metadata: item.metadata,
+        tags: item.tags ?? null,
+        categories: item.categories ?? null,
+      })
     },
-    [libraryStore],
+    [navigation],
   )
 
-  // Handle query changes with debouncing
-  useEffect(() => {
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-
-    if (!query.trim()) {
-      setSearchResults([])
-      setIsSearching(false)
-      setHasSearched(false)
-      return
-    }
-
-    // Set loading state immediately
-    setIsSearching(true)
-    setHasSearched(true)
-
-    // Debounce the search by 500ms
-    searchTimeoutRef.current = setTimeout(() => {
-      performSearch(query, selectedAlbum)
-    }, 500)
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
-    }
-  }, [query, performSearch])
-
-  const handleSelect = (item: ILibrary) => {
-    navigation.pop()
-    navigation.navigate("PdfViewer", {
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      audio_url: item.audio_url ?? null,
-      pdf_url: item.pdf_url ?? null,
-      youtube_url: item.youtube_url ?? null,
-      metadata: item.metadata,
-      tags: item.tags ?? null,
-      categories: item.categories ?? null,
-    })
-  }
-
-  const renderItem = ({ item }: { item: ILibrary }) => {
-    return (
+  const renderItem = useCallback(
+    ({ item }: { item: ILibrary }) => (
       <Pressable style={$resultItem(colors)} onPress={() => handleSelect(item)}>
         <View style={$resultContent()}>
           <View style={$resultImageContainer()}>
@@ -140,10 +86,9 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
           </View>
         </View>
       </Pressable>
-    )
-  }
-
-  const albums = libraryStore.getAlbums()
+    ),
+    [colors, handleSelect],
+  )
 
   return (
     <Screen
@@ -185,14 +130,7 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
                   idx === albums.length - 1 && { marginEnd: spacing.md },
                 ]}
                 key={album.album}
-                onPress={() => {
-                  const newAlbum = isSelected ? null : album.album
-                  setSelectedAlbum(newAlbum)
-                  // Trigger search if there's already a query
-                  if (query.trim()) {
-                    performSearch(query, newAlbum)
-                  }
-                }}
+                onPress={() => setSelectedAlbum(isSelected ? null : album.album)}
               >
                 <Text style={$searchTabItemText(colors, isSelected)}>{album.album}</Text>
               </Pressable>
@@ -208,33 +146,33 @@ export const DuaListSearch: React.FC<DuaListSearchProps> = observer(function Dua
         </View>
       ) : (
         <FlatList
-          data={searchResults}
+          data={searchResults as ILibrary[]}
           keyExtractor={(item) => `dua-${item.id}`}
           renderItem={renderItem}
           contentContainerStyle={$listContent()}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
-            hasSearched && query.trim() ? (
+            hasSearched ? (
               <View style={$emptyContainer()}>
                 <Text style={$emptyText(colors)}>No results found</Text>
                 <Text size="xs" style={$emptySubtext(colors)}>
                   Try a different search term
                 </Text>
               </View>
-            ) : !hasSearched ? (
+            ) : (
               <View style={$emptyContainer()}>
                 <Text style={$emptyText(colors)}>Start typing to search</Text>
                 <Text size="xs" style={$emptySubtext(colors)}>
                   Search for duas by name
                 </Text>
               </View>
-            ) : null
+            )
           }
         />
       )}
     </Screen>
   )
-})
+}
 
 const $searchTabContainer = (_colors: any): ViewStyle => ({
   marginStart: spacing.md,
@@ -252,7 +190,7 @@ const $searchTabItem = (colors: any, isSelected: boolean): ViewStyle => ({
   borderRadius: 100,
   borderWidth: 1,
   borderColor: isSelected ? colors.palette.primary500 : colors.palette.neutral400,
-  backgroundColor: isSelected ? colors.palette.neutral300 : colors.palette.neutral300,
+  backgroundColor: colors.palette.neutral300,
 })
 
 const $searchTabItemText = (colors: any, isSelected: boolean): TextStyle => ({

@@ -41,7 +41,7 @@ export function useLibrarySearch(query: string, album?: string | null, enabled =
   return useQuery({
     queryKey: libraryQueryKeys.search(query, album),
     queryFn: async () => unwrapApiResponse(await apiSupabase.searchLibrary(query, album)),
-    enabled: enabled && query.trim().length >= 2,
+    enabled: enabled && query.trim().length > 0,
     staleTime: 1000 * 60 * 5,
   })
 }

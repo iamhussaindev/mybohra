@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/master.swiftdeps"
+  },
+  "/Users/hussain/mybohra/app/ios/mdolib-proxy/Sources/MDOLibBridge/MDOLibBridge.swift": {
+    "dependencies": "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge.d",
+    "object": "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge.swift.o",
+    "swiftmodule": "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge~partial.swiftmodule",
+    "swift-dependencies": "/Users/hussain/mybohra/app/ios/mdolib-proxy/.build/arm64-apple-macosx/debug/MDOLibBridge.build/MDOLibBridge.swiftdeps"
+  }
+}

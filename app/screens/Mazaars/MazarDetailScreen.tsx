@@ -1,5 +1,5 @@
 import { IconArrowLeft } from "@tabler/icons-react-native"
-import { Screen, Text } from "app/components"
+import { CachedImage, ListView, Screen, Text } from "app/components"
 import type { AppStackScreenProps } from "app/navigators"
 import { apiSupabase } from "app/services/api"
 import type { Database } from "app/services/supabase/types"
@@ -9,8 +9,6 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
-  FlatList,
-  Image,
   ImageStyle,
   ListRenderItem,
   Pressable,
@@ -214,19 +212,6 @@ export const MazarDetailScreen = observer(function MazarDetailScreen({ route, na
     setTabIndex(e.nativeEvent.position)
   }, [])
 
-  const renderZiyaratRow: ListRenderItem<ZiyaratNearRow> = useCallback(
-    ({ item }) => (
-      <View style={[$row, { borderBottomColor: colors.border }]}>
-        <Text weight="medium" color={colors.text} text={item.name} numberOfLines={2} />
-        {item.city ? (
-          <Text preset="formHelper" color={colors.textDim} text={item.city} numberOfLines={1} />
-        ) : null}
-        <Text preset="formHelper" color={colors.palette.primary500} text={`${item.distanceKm.toFixed(1)} km`} />
-      </View>
-    ),
-    [colors],
-  )
-
   const renderPlaceRow: ListRenderItem<NearbyPlaceRow> = useCallback(
     ({ item }) => (
       <View style={[$row, { borderBottomColor: colors.border }]}>
@@ -263,39 +248,46 @@ export const MazarDetailScreen = observer(function MazarDetailScreen({ route, na
             {ziyaratAt.length === 0 ? (
               <Text preset="formHelper" color={colors.textDim} text="No ziyarat listed within a short walk." />
             ) : (
-              <FlatList
-                data={ziyaratAt}
-                keyExtractor={(item) => `at-${item.id}`}
-                renderItem={renderZiyaratRow}
-                scrollEnabled={false}
-              />
+              ziyaratAt.map((item) => (
+                <View key={`at-${item.id}`} style={[$row, { borderBottomColor: colors.border }]}>
+                  <Text weight="medium" color={colors.text} text={item.name} numberOfLines={2} />
+                  {item.city ? (
+                    <Text preset="formHelper" color={colors.textDim} text={item.city} numberOfLines={1} />
+                  ) : null}
+                  <Text preset="formHelper" color={colors.palette.primary500} text={`${item.distanceKm.toFixed(1)} km`} />
+                </View>
+              ))
             )}
             <Text preset="formLabel" weight="bold" color={colors.text} style={$sectionTitle} text="Nearby" />
             {ziyaratNear.length === 0 ? (
               <Text preset="formHelper" color={colors.textDim} text="No other ziyarat within 25 km." />
             ) : (
-              <FlatList
-                data={ziyaratNear}
-                keyExtractor={(item) => `near-${item.id}`}
-                renderItem={renderZiyaratRow}
-                scrollEnabled={false}
-              />
+              ziyaratNear.map((item) => (
+                <View key={`near-${item.id}`} style={[$row, { borderBottomColor: colors.border }]}>
+                  <Text weight="medium" color={colors.text} text={item.name} numberOfLines={2} />
+                  {item.city ? (
+                    <Text preset="formHelper" color={colors.textDim} text={item.city} numberOfLines={1} />
+                  ) : null}
+                  <Text preset="formHelper" color={colors.palette.primary500} text={`${item.distanceKm.toFixed(1)} km`} />
+                </View>
+              ))
             )}
           </>
         )}
       </ScrollView>
     ),
-    [colors, loading, ziyaratAt, ziyaratNear, renderZiyaratRow],
+    [colors, loading, ziyaratAt, ziyaratNear],
   )
 
   const halalTab = useMemo(
     () => (
-      <FlatList
+      <ListView
         style={$tabScroll}
         contentContainerStyle={$tabListContent}
         data={halalPlaces}
         keyExtractor={(item) => `h-${item.id}`}
         renderItem={renderPlaceRow}
+        estimatedItemSize={72}
         ListEmptyComponent={
           loading ? (
             <ActivityIndicator style={$tabLoading} color={colors.tint} />
@@ -310,12 +302,13 @@ export const MazarDetailScreen = observer(function MazarDetailScreen({ route, na
 
   const shopsTab = useMemo(
     () => (
-      <FlatList
+      <ListView
         style={$tabScroll}
         contentContainerStyle={$tabListContent}
         data={shopPlaces}
         keyExtractor={(item) => `s-${item.id}`}
         renderItem={renderPlaceRow}
+        estimatedItemSize={72}
         ListEmptyComponent={
           loading ? (
             <ActivityIndicator style={$tabLoading} color={colors.tint} />
@@ -330,12 +323,13 @@ export const MazarDetailScreen = observer(function MazarDetailScreen({ route, na
 
   const placesTab = useMemo(
     () => (
-      <FlatList
+      <ListView
         style={$tabScroll}
         contentContainerStyle={$tabListContent}
         data={otherPlaces}
         keyExtractor={(item) => `p-${item.id}`}
         renderItem={renderPlaceRow}
+        estimatedItemSize={72}
         ListEmptyComponent={
           loading ? (
             <ActivityIndicator style={$tabLoading} color={colors.tint} />
@@ -352,7 +346,7 @@ export const MazarDetailScreen = observer(function MazarDetailScreen({ route, na
     <Screen preset="fixed" backgroundColor={colors.background} safeAreaEdges={["top"]} style={$screen}>
       <View style={$heroShell}>
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={$heroImage} resizeMode="cover" />
+          <CachedImage uri={imageUri} style={$heroImage} contentFit="cover" />
         ) : (
           <View style={[$heroImage, { backgroundColor: colors.palette.neutral300 }]} />
         )}
