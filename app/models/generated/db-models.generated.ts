@@ -1,20 +1,22 @@
 /**
  * AUTO-GENERATED — DO NOT EDIT
  *
- * Source of truth: mybohra-dashboard/supabase/migrations/
- * Regenerate: cd mybohra-dashboard && npm run db:sync
+ * Source of truth: mybohra-webapp/supabase/migrations/
+ * Regenerate: cd mybohra-webapp && pnpm db:sync
  *
- * Generated: 2026-06-18T16:18:57.318Z
+ * Generated: 2026-10-03T10:16:12.124Z
  */
 
 import { types, Instance } from 'mobx-state-tree'
 import type { Database } from 'app/services/supabase/types'
 
 export const LibraryDbModel = types.model('LibraryDbModel', {
+  access_tag: types.enumeration("LibraryAccessTag", ["ATS", "ATS_PUBLIC", "PUBLIC"]),
   album: types.maybeNull(types.enumeration("Album", ["MADEH", "NOHA", "SALAAM", "ILTEJA", "QURAN", "DUA", "MUNAJAAT", "MANQABAT", "NAAT", "RASA", "QASIDA", "NASIHAT"])),
   audio_url: types.maybeNull(types.string),
   categories: types.maybeNull(types.array(types.string)),
   created_at: types.string,
+  deeplink_url: types.maybeNull(types.string),
   description: types.maybeNull(types.string),
   id: types.identifierNumber,
   metadata: types.maybeNull(types.frozen()),
@@ -26,13 +28,11 @@ export const LibraryDbModel = types.model('LibraryDbModel', {
   tags: types.maybeNull(types.array(types.string)),
   updated_at: types.string,
   view_count: types.maybeNull(types.number),
+  youtube_duration: types.maybeNull(types.number),
   youtube_id: types.maybeNull(types.number),
+  youtube_thumbnail: types.maybeNull(types.string),
   youtube_url: types.maybeNull(types.string),
   youtube_video_id: types.maybeNull(types.string),
-  youtube_thumbnail: types.maybeNull(types.string),
-  youtube_duration: types.maybeNull(types.number),
-  deeplink_url: types.maybeNull(types.string),
-  access_tag: types.maybeNull(types.enumeration("AccessTag", ["ATS", "ATS_PUBLIC", "PUBLIC"])),
 })
 export type ILibraryDb = Instance<typeof LibraryDbModel>
 

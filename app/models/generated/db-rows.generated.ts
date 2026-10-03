@@ -1,10 +1,10 @@
 /**
  * AUTO-GENERATED — DO NOT EDIT
  *
- * Source of truth: mybohra-dashboard/supabase/migrations/
- * Regenerate: cd mybohra-dashboard && npm run db:sync
+ * Source of truth: mybohra-webapp/supabase/migrations/
+ * Regenerate: cd mybohra-webapp && pnpm db:sync
  *
- * Generated: 2026-06-18T16:18:57.318Z
+ * Generated: 2026-10-03T10:16:12.124Z
  */
 
 import type { Database, Tables, TablesInsert, TablesUpdate } from 'app/services/supabase/types'

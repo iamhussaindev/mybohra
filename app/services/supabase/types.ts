@@ -1,12 +1,11 @@
 /**
- * Supabase database types — synced from mybohra-dashboard.
+ * Supabase database types — synced from mybohra-webapp.
  *
  * DO NOT edit database.types.ts manually.
- * Schema source of truth: mybohra-dashboard/supabase/migrations/
+ * Schema source of truth: mybohra-webapp/supabase/migrations/
  *
  * Regenerate:
- *   cd mybohra-dashboard && npm run db:sync
- *   — or from app repo: npm run db:types
+ *   cd mybohra-webapp && pnpm db:sync
  */
 
 export type {

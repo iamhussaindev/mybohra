@@ -1,10 +1,10 @@
 /**
  * AUTO-GENERATED — DO NOT EDIT
  *
- * Source of truth: mybohra-dashboard/supabase/migrations/
- * Regenerate: cd mybohra-dashboard && npm run db:sync
+ * Source of truth: mybohra-webapp/supabase/migrations/
+ * Regenerate: cd mybohra-webapp && pnpm db:sync
  *
- * Generated: 2026-06-18T16:18:57.304Z
+ * Generated: 2026-10-03T10:16:12.120Z
  */
 
 export type Json =
@@ -19,7 +19,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   graphql_public: {
     Tables: {
@@ -494,12 +494,41 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          project_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          project_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          project_type?: string | null
+        }
+        Relationships: []
+      }
       library: {
         Row: {
+          access_tag: Database["public"]["Enums"]["library_access_tag"]
           album: Database["public"]["Enums"]["album_enum"] | null
           audio_url: string | null
           categories: string[] | null
           created_at: string
+          deeplink_url: string | null
           description: string | null
           id: number
           metadata: Json | null
@@ -511,14 +540,19 @@ export type Database = {
           tags: string[] | null
           updated_at: string
           view_count: number | null
+          youtube_duration: number | null
           youtube_id: number | null
+          youtube_thumbnail: string | null
           youtube_url: string | null
+          youtube_video_id: string | null
         }
         Insert: {
+          access_tag?: Database["public"]["Enums"]["library_access_tag"]
           album?: Database["public"]["Enums"]["album_enum"] | null
           audio_url?: string | null
           categories?: string[] | null
           created_at?: string
+          deeplink_url?: string | null
           description?: string | null
           id?: number
           metadata?: Json | null
@@ -530,14 +564,19 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           view_count?: number | null
+          youtube_duration?: number | null
           youtube_id?: number | null
+          youtube_thumbnail?: string | null
           youtube_url?: string | null
+          youtube_video_id?: string | null
         }
         Update: {
+          access_tag?: Database["public"]["Enums"]["library_access_tag"]
           album?: Database["public"]["Enums"]["album_enum"] | null
           audio_url?: string | null
           categories?: string[] | null
           created_at?: string
+          deeplink_url?: string | null
           description?: string | null
           id?: number
           metadata?: Json | null
@@ -549,8 +588,11 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           view_count?: number | null
+          youtube_duration?: number | null
           youtube_id?: number | null
+          youtube_thumbnail?: string | null
           youtube_url?: string | null
+          youtube_video_id?: string | null
         }
         Relationships: [
           {
@@ -712,17 +754,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "mazaar_dai_duat_dai_duat_id_fkey"
-            columns: ["ziyarat_id"]
-            isOneToOne: false
-            referencedRelation: "ziyarat"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mazaar_dai_duat_mazaar_id_fkey"
+            foreignKeyName: "mazaar_ziyarat_mazaar_id_fkey"
             columns: ["mazaar_id"]
             isOneToOne: false
             referencedRelation: "mazaars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mazaar_ziyarat_ziyarat_id_fkey"
+            columns: ["ziyarat_id"]
+            isOneToOne: false
+            referencedRelation: "ziyarat"
             referencedColumns: ["id"]
           },
         ]
@@ -897,17 +939,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "miqaat_dai_duat_dai_duat_id_fkey"
-            columns: ["ziyarat_id"]
-            isOneToOne: false
-            referencedRelation: "ziyarat"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "miqaat_dai_duat_miqaat_id_fkey"
+            foreignKeyName: "miqaat_ziyarat_miqaat_id_fkey"
             columns: ["miqaat_id"]
             isOneToOne: false
             referencedRelation: "miqaat"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "miqaat_ziyarat_ziyarat_id_fkey"
+            columns: ["ziyarat_id"]
+            isOneToOne: false
+            referencedRelation: "ziyarat"
             referencedColumns: ["id"]
           },
         ]
@@ -1425,6 +1467,27 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
       youtube_videos: {
         Row: {
           categories: string[] | null
@@ -1561,7 +1624,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      exec_sql: { Args: { sql: string }; Returns: Json }
       get_distinct_albums:
         | {
             Args: never
@@ -1577,6 +1639,8 @@ export type Database = {
               count: number
             }[]
           }
+      get_distinct_library_albums: { Args: never; Returns: string[] }
+      get_distinct_library_categories: { Args: never; Returns: string[] }
       get_library_items_for_date_month: {
         Args: { p_date: number; p_month: number }
         Returns: {
@@ -1598,6 +1662,43 @@ export type Database = {
       increment_pdf_view_count: {
         Args: { library_id: number }
         Returns: undefined
+      }
+      list_library_paginated: {
+        Args: {
+          p_access_tag?: string
+          p_album?: string
+          p_has_audio?: boolean
+          p_has_pdf?: boolean
+          p_has_youtube?: boolean
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort_by?: string
+          p_sort_order?: string
+        }
+        Returns: {
+          access_tag: Database["public"]["Enums"]["library_access_tag"]
+          album: Database["public"]["Enums"]["album_enum"]
+          audio_url: string
+          categories: string[]
+          created_at: string
+          deeplink_url: string
+          description: string
+          id: number
+          metadata: Json
+          name: string
+          pdf_url: string
+          pdf_view_count: number
+          tags: string[]
+          total_count: number
+          updated_at: string
+          view_count: number
+          youtube_duration: number
+          youtube_id: number
+          youtube_thumbnail: string
+          youtube_url: string
+          youtube_video_id: string
+        }[]
       }
       search_library: {
         Args: { p_limit?: number; p_query: string }
@@ -1693,6 +1794,7 @@ export type Database = {
         | "HINDUSTAN_DUAT_MUTLAQEEN"
         | "YEMEN_DUAT_MUTLAQEEN"
         | "ATABAAT_AALIYAH"
+      library_access_tag: "ATS" | "ATS_PUBLIC" | "PUBLIC"
       miqaat_type_enum:
         | "URS"
         | "MILAD"
@@ -1723,12 +1825,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1752,11 +1854,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1777,11 +1879,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1802,11 +1904,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1819,11 +1921,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1858,6 +1960,7 @@ export const Constants = {
         "YEMEN_DUAT_MUTLAQEEN",
         "ATABAAT_AALIYAH",
       ],
+      library_access_tag: ["ATS", "ATS_PUBLIC", "PUBLIC"],
       miqaat_type_enum: [
         "URS",
         "MILAD",
