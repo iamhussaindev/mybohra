@@ -14,7 +14,6 @@ import {
   View,
   ActivityIndicator,
   ImageStyle,
-  View,
   TextStyle,
   RefreshControl,
   Pressable,

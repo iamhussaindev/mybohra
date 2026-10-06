@@ -1,0 +1,7 @@
+nodeLinker: hoisted
+
+allowBuilds:
+  "@firebase/util": false
+  msw: false
+  postinstall-prepare: false
+  protobufjs: false

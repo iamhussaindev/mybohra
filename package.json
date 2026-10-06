@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "tsc --noEmit -p . --pretty",
     "format": "prettier --write \"app/**/*.{js,jsx,json,md,ts,tsx}\"",
-    "lint": "eslint App.tsx app test --fix --ext .js,.ts,.tsx && npm run format",
+    "lint": "eslint App.tsx app test --fix --ext .js,.ts,.tsx && pnpm format",
     "lint:fix": "eslint App.tsx app test --fix --ext .js,.ts,.tsx",
     "lint:app": "eslint app --fix --ext .js,.ts,.tsx",
     "lint:check": "eslint App.tsx app test --ext .js,.ts,.tsx",
@@ -182,5 +182,6 @@
     "semi": false,
     "singleQuote": false,
     "trailingComma": "all"
-  }
+  },
+  "packageManager": "pnpm@12.9.1"
 }

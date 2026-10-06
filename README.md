@@ -14,16 +14,16 @@ A React Native Expo application for the Bohra community, built with Ignite boile
 
 ```bash
 # Install dependencies
-yarn install
+pnpm install
 
 # Start development server
-yarn start
+pnpm start
 
 # Run on iOS
-yarn ios
+pnpm ios
 
 # Run on Android
-yarn android
+pnpm android
 ```
 
 ### Environment Setup
@@ -111,29 +111,29 @@ mybohra-app/
 
 ```bash
 # Development
-yarn start              # Start Expo development server
-yarn ios                # Run on iOS simulator
-yarn android            # Run on Android emulator
-yarn web                # Run in web browser
+pnpm start              # Start Expo development server
+pnpm ios                # Run on iOS simulator
+pnpm android            # Run on Android emulator
+pnpm web                # Run in web browser
 
 # Code Quality
-yarn lint               # Run ESLint
-yarn lint:fix           # Fix linting issues
-yarn format             # Format code with Prettier
-yarn compile            # TypeScript type checking
+pnpm lint               # Run ESLint
+pnpm lint:fix           # Fix linting issues
+pnpm format             # Format code with Prettier
+pnpm compile            # TypeScript type checking
 
 # Testing
-yarn test               # Run all tests
-yarn test:watch         # Run tests in watch mode
-yarn test:coverage      # Generate coverage report
-yarn test:unit          # Run unit tests only
-yarn test:integration   # Run integration tests only
+pnpm test               # Run all tests
+pnpm test:watch         # Run tests in watch mode
+pnpm test:coverage      # Generate coverage report
+pnpm test:unit          # Run unit tests only
+pnpm test:integration   # Run integration tests only
 
 # Build
-yarn build:ios:dev      # Build iOS development
-yarn build:android:dev  # Build Android development
-yarn build:ios:prod     # Build iOS production
-yarn build:android:prod # Build Android production
+pnpm build:ios:dev      # Build iOS development
+pnpm build:android:dev  # Build Android development
+pnpm build:ios:prod     # Build iOS production
+pnpm build:android:prod # Build Android production
 ```
 
 ### Database schema & types
@@ -172,16 +172,16 @@ EXPO_PUBLIC_DEBUG_MODE=true
 
 ```bash
 # Run all tests
-yarn test
+pnpm test
 
 # Run specific test suites
-yarn test:models      # Test MobX models
-yarn test:helpers     # Test helper functions
-yarn test:utils       # Test utility functions
-yarn test:components  # Test React components
+pnpm test:models      # Test MobX models
+pnpm test:helpers     # Test helper functions
+pnpm test:utils       # Test utility functions
+pnpm test:components  # Test React components
 
 # Coverage report
-yarn test:coverage
+pnpm test:coverage
 ```
 
 ## 🚢 Deployment
@@ -190,20 +190,20 @@ yarn test:coverage
 
 ```bash
 # Build for development device
-yarn build:ios:dev
+pnpm build:ios:dev
 
 # Build for production
-yarn build:ios:prod
+pnpm build:ios:prod
 ```
 
 ### Android Deployment
 
 ```bash
 # Build for development device
-yarn build:android:dev
+pnpm build:android:dev
 
 # Build for production
-yarn build:android:prod
+pnpm build:android:prod
 ```
 
 For detailed deployment instructions, refer to the [Expo documentation](https://docs.expo.dev/build/introduction/).
@@ -218,8 +218,8 @@ For detailed deployment instructions, refer to the [Expo documentation](https://
 
 1. Create a feature branch from `main`
 2. Make your changes
-3. Ensure tests pass: `yarn test`
-4. Ensure no linting errors: `yarn lint`
+3. Ensure tests pass: `pnpm test`
+4. Ensure no linting errors: `pnpm lint`
 5. Create a pull request
 
 ### Code Style
